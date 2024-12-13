@@ -1,0 +1,39 @@
+{% extends '../index_master.html' %}
+
+{% block content %}
+
+    <!-- page content -->
+    <div class="right_col" role="main">
+
+        <h1>LISTAR</h1>
+        
+        <!-- Code by w3codegenerator.com -->
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Empresa</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in usuarios %}
+                <tr>
+                    <th scope="row">{{ u.id }}</th>
+                    <td>{{ u.empresa }}</td>
+                    <td>{{ u.nombre }}</td>
+                    <td>{{ u.apellido }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.telefono }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- /page content -->
+{% endblock %}
