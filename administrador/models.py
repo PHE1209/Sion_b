@@ -24,7 +24,7 @@ class Choice(models.Model):
 ########################
 
 
-class usuarios(models.Model):
+class Usuarios(models.Model):
     id = models.AutoField(primary_key=True)
     empresa = models.CharField(max_length=25, null = False)
     nombre = models.CharField(max_length=25, null = False)
@@ -35,13 +35,13 @@ class usuarios(models.Model):
         db_table = 'usuarios'
 
 
-class proyectos(models.Model):
+class Proyectos(models.Model):
     id_proyecto = models.AutoField(primary_key=True)
     pm = models.CharField(max_length=25, null = False)
     empresa = models.CharField(max_length=25, null = False)
     nombre = models.CharField(max_length=25, null = False)
-    fecha_inicio = models.DateField
-    fecha_termino = models.DateField
+    fecha_inicio = models.DateField(null=True, blank=True)  # Permitir NULL
+    fecha_termino = models.DateField(null=True, blank=True)  # Permitir NULL
     alcance = models.CharField(max_length=255, null = False)
     class Meta:
         db_table = 'proyectos'
