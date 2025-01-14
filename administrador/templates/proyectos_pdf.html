@@ -1,0 +1,36 @@
+{% comment %} <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Proyectos</title>
+</head>
+<body>
+    <h1>Lista de Proyectos</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>PM</th>
+                <th>Empresa</th>
+                <th>Nombre</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Término</th>
+                <th>Alcance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proyecto in proyectos %}
+            <tr>
+                <td>{{ proyecto.id }}</td>
+                <td>{{ proyecto.pm }}</td>
+                <td>{{ proyecto.empresa }}</td>
+                <td>{{ proyecto.nombre }}</td>
+                <td>{{ proyecto.fecha_inicio }}</td>
+                <td>{{ proyecto.fecha_termino }}</td>
+                <td>{{ proyecto.alcance }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html> {% endcomment %}

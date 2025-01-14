@@ -1,0 +1,113 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Gráfico de Humedad</h1>
+
+    <form id="filtrosForm" class="form-inline mb-3">
+        <div class="form-group mr-3">
+            <label for="id_proyecto">Proyecto:</label>
+            <select id="id_proyecto" name="id_proyecto" class="form-control">
+                <option value="">Proyecto</option>
+                {% for proyecto in proyectos %}
+                <option value="{{ proyecto.id }}">{{ proyecto.id }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group mr-3">
+            <label for="tipo_prospeccion">Tipo de Prospección:</label>
+            <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
+                <option value="">Tipo de Prospección</option>
+                <!-- Las opciones se llenarán dinámicamente con AJAX -->
+            </select>
+        </div>
+
+        <div class="form-group mr-3">
+            <label for="area">Área:</label>
+            <select id="area" name="area" class="form-control">
+                <option value="">Área</option>
+                <!-- Las opciones se llenarán dinámicamente con AJAX -->
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Actualizar Gráfico</button>
+    </form>
+    
+    <h2>Gráfico de Áreas</h2>
+    <div id="grafico">
+        <img id="grafico_humedad" src="data:image/png;base64,{{ image_base64_area }}" class="img-fluid" alt="Gráfico de Humedad por Área">
+    </div>
+
+    <h2>Gráfico de ID Prospecciones</h2>
+    <div id="grafico-prospecciones">
+        <img id="grafico_prospeccion" src="data:image/png;base64,{{ image_base64_prospeccion }}" class="img-fluid" alt="Gráfico de Humedad por ID Prospecciones">
+    </div>
+</div>
+
+<button id="actualizarTabla" onclick="actualizarTabla()">Actualizar Tabla</button>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_proyecto').change(function() {
+            var id_proyecto = $(this).val();
+            if (id_proyecto) {
+                // Cargar tipos de prospección
+                $.ajax({
+                    url: '{% url "obtener_tipos_prospeccion" %}',
+                    data: {
+                        'id_proyecto': id_proyecto
+                    },
+                    success: function(data) {
+                        var tipoProspeccionSelect = $('#tipo_prospeccion');
+                        tipoProspeccionSelect.empty();
+                        tipoProspeccionSelect.append('<option value="">Tipo de Prospección</option>'); // Opción por defecto
+                        $.each(data, function(key, value) {
+                            tipoProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al obtener los tipos de prospección: ", error);
+                    }
+                });
+
+                // Cargar áreas
+                $.ajax({
+                    url: '{% url "obtener_areas" %}',
+                    data: {
+                        'id_proyecto': id_proyecto
+                    },
+                    success: function(data) {
+                        var areaSelect = $('#area');
+                        areaSelect.empty();
+                        areaSelect.append('<option value="">Área</option>'); // Opción por defecto
+                        $.each(data, function(key, value) {
+                            areaSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al obtener las áreas: ", error);
+                    }
+                });
+            } else {
+                $('#tipo_prospeccion').empty();
+                $('#tipo_prospeccion').append('<option value="">Tipo de Prospección</option>'); // Restablecer a la opción por defecto
+                $('#area').empty();
+                $('#area').append('<option value="">Área</option>'); // Restablecer a la opción por defecto
+            }
+        });
+    });
+
+    function actualizarTabla() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/ruta_a_tu_endpoint", true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                document.getElementById("tablaHumedad").innerHTML = xhr.responseText;
+            }
+        };
+        xhr.send();
+    }
+</script>
+{% endblock %}

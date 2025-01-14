@@ -1,0 +1,81 @@
+{% extends '../index_master.html' %}
+
+{% block content %}
+    <div class="right_col" role="main">
+        <h1>EDITAR</h1>
+
+        {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="{% url 'editar_proyectos' proyecto.n %}" method="POST">
+            {% csrf_token %}
+
+            <div class="form-group row">
+                <label for="id" class="col-4 col-form-label">ID</label>
+                <div class="col-8">
+                    <input id="id" name="id" type="text" class="form-control" value="{{ proyecto.id }}" readonly>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="pm" class="col-4 col-form-label">PM</label>
+                <div class="col-8">
+                    <input id="pm" name="Estatus" type="text" class="form-control" value="{{ proyecto.estatus_proyecto }}" required>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="pm" class="col-4 col-form-label">PM</label>
+                <div class="col-8">
+                    <input id="pm" name="pm" type="text" class="form-control" value="{{ proyecto.pm }}" required>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="empresa" class="col-4 col-form-label">Empresa</label>
+                <div class="col-8">
+                    <input id="empresa" name="empresa" type="text" class="form-control" value="{{ proyecto.empresa }}" required>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="nombre" class="col-4 col-form-label">Nombre del proyecto</label>
+                <div class="col-8">
+                    <input id="nombre" name="nombre" type="text" class="form-control" value="{{ proyecto.nombre }}" required>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="fecha_inicio" class="col-4 col-form-label">Fecha inicio</label>
+                <div class="col-8">
+                    <input id="fecha_inicio" name="fecha_inicio" type="date" class="form-control" value="{{ proyecto.fecha_inicio }}" required>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="fecha_termino" class="col-4 col-form-label">Fecha termino</label>
+                <div class="col-8">
+                    <input id="fecha_termino" name="fecha_termino" type="date" class="form-control" value="{{ proyecto.fecha_termino }}" required>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="alcance" class="col-4 col-form-label">Alcance</label>
+                <div class="col-8">
+                    <textarea id="alcance" name="alcance" cols="40" rows="15" class="form-control" required>{{ proyecto.alcance }}</textarea>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class=" offset-4 col-8">
+                    <button name="submit" type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Submit
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}

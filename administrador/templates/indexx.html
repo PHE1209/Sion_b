@@ -1,0 +1,199 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+    <!-- contenido de la página -->
+    <div class="right_col" role="main">
+        <!-- mosaicos superiores -->
+        <div class="row" style="display: inline-block;">
+            <div class="tile_count">
+                <div class="col-md-4 col-sm-4 tile_stats_count">
+                    <span class="count_top"><i class="fa fa-folder-open"></i> Total Proyectos</span>
+                    <div class="count">10</div>
+                    <span class="count_bottom"><i class="green">8 Nuevos </i> Desde la semana pasada</span>
+                </div>
+                <div class="col-md-4 col-sm-4 tile_stats_count">
+                    <span class="count_top"><i class="fa fa-search"></i> Total Prospecciones</span>
+                    <div class="count">25</div>
+                    <span class="count_bottom"><i class="green">5 Nuevas </i> Desde la semana pasada</span>
+                </div>
+                <div class="col-md-4 col-sm-4 tile_stats_count">
+                    <span class="count_top"><i class="fa fa-user"></i> Total trabajadores </span>
+                    <div class="count">2500</div>
+                    <span class="count_bottom"><i class="green">4% </i> Desde la semana pasada</span>
+                </div>
+            </div>
+        </div>
+        <!-- /mosaicos superiores -->
+
+        <div class="row">
+            <div class="col-md-12 col-sm-12 ">
+                <div class="dashboard_graph">
+                    <div class="row x_title">
+                        <div class="col-md-6">
+                            <h3>Network Activities <small>Graph title sub-title</small></h3>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="reportrange" class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                                <span>December 30, 2014 - January 28, 2015</span> <b class="caret"></b>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9 col-sm-9 ">
+                        <div id="chart_plot_01" class="demo-placeholder"></div>
+                    </div>
+                    <div class="col-md-3 col-sm-3 bg-white">
+                        <div class="x_title">
+                            <h2>Top Campaign Performance</h2>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="col-md-12 col-sm-12 ">
+                            <div>
+                                <p>Sondajes</p>
+                                <div class="">
+                                    <div class="progress progress_sm" style="width: 76%;">
+                                        <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="80"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <p>Calicatas</p>
+                                <div class="">
+                                    <div class="progress progress_sm" style="width: 76%;">
+                                        <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="60"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 col-sm-12 ">
+                            <div>
+                                <p>Geofisica</p>
+                                <div class="">
+                                    <div class="progress progress_sm" style="width: 76%;">
+                                        <div class="progress-bar bg-green" role="progressbar" data-transitiongoal="50"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+        <br />
+
+        <div class="row">
+            <div class="col-md-6 col-sm-6 ">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Proyectos por Estatus</h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <div class="chart-container">
+                            <canvas id="proyectosChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-sm-6 ">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Prospecciones por Tipo</h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <div class="chart-container">
+                            <canvas id="prospeccionesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-sm-6 ">
+                <div class="x_panel">
+                    <div class="x_title">
+                        <h2>Distribución de Humedad</h2>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="x_content">
+                        <div class="chart-container">
+                            <canvas id="humedadChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+<script>
+  // Datos de ejemplo (deberías reemplazarlos con tus datos reales)
+  const proyectosData = {
+    labels: ['Propuesta', 'Ejecución', 'StandBy'],
+    datasets: [{
+      label: 'Proyectos',
+      data: [5, 12, 3],  // Cambiar con tus datos
+      backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 159, 64, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+      borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 159, 64, 1)', 'rgba(255, 99, 132, 1)'],
+      borderWidth: 1
+    }]
+  };
+
+  const prospeccionesData = {
+    labels: ['Sondajes', 'Calicatas', 'Geofísica'],
+    datasets: [{
+      label: 'Prospecciones',
+      data: [8, 6, 10],  // Cambiar con tus datos
+      backgroundColor: ['rgba(54, 162, 235, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 206, 86, 0.2)'],
+      borderColor: ['rgba(54, 162, 235, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 206, 86, 1)'],
+      borderWidth: 1
+    }]
+  };
+
+  const humedadData = {
+    labels: ['Prospección 1', 'Prospección 2', 'Prospección 3', 'Prospección 4'],  // Cambiar con tus datos
+    datasets: [{
+      label: 'Humedad (%)',
+      data: [20, 30, 50, 60],  // Cambiar con tus datos
+      backgroundColor: 'rgba(153, 102, 255, 0.2)',
+      borderColor: 'rgba(153, 102, 255, 1)',
+      borderWidth: 1
+    }]
+  };
+
+  // Crear gráficos con Chart.js
+  const ctxProyectos = document.getElementById('proyectosChart').getContext('2d');
+  new Chart(ctxProyectos, {
+    type: 'bar',
+    data: proyectosData,
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  const ctxProspecciones = document.getElementById('prospeccionesChart').getContext('2d');
+  new Chart(ctxProspecciones, {
+    type: 'bar',
+    data: prospeccionesData,
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  const ctxHumedad = document.getElementById('humedadChart').getContext('2d');
+  new Chart(ctxHumedad, {
+    type: 'line',
+    data: humedadData,
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+</script>

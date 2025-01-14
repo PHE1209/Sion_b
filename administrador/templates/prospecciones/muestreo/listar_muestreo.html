@@ -1,0 +1,91 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+    <!-- page content -->
+    <div class="right_col" role="main">
+        <h1 class="mb-4">Lista de Muestreos</h1>
+
+        <form id="searchForm" class="form-inline mb-3">
+            <input type="text" id="searchInput" name="q" value="{{ query }}" class="form-control mr-2" placeholder="Buscar...">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+
+        <div class="mb-3">
+            <a href="{% url 'agregar_muestreo' %}" class="btn btn-success">
+                <i class="fa fa-plus"></i> Agregar Muestreo
+            </a>
+            <a href="{% url 'export_to_excel_muestreo' %}" class="btn btn-info">
+                <i class="fa fa-file-excel-o"></i> Exportar a Excel
+            </a>
+            <a href="{% url 'export_to_pdf_muestreo' %}" class="btn btn-danger">
+                <i class="fa fa-file-pdf-o"></i> Exportar a PDF
+            </a>
+        </div>
+
+        <table id="muestreoTable" class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>N</th> <!-- Columna N -->
+                    <th>ID Proyecto</th>
+                    <th>ID Prospección</th> <!-- Columna ID Prospección -->
+                    <th>Tipo de Prospección</th> 
+                    <th>Fecha de Muestreo</th>
+                    <th>Número de Muestra</th>
+                    <th>Embalaje</th>
+                    <th>Peso</th>
+                    <th>Cota Desde</th>
+                    <th>Cota Hasta</th>
+                    <th>Estrato</th>
+                    <th>Tipo</th>
+                    <th>Área</th>
+                    <th>Observación</th>
+                    <th>Acciones</th> <!-- Nueva columna para acciones -->
+                </tr>
+            </thead>
+            <tbody id="muestreoTableBody">
+                {% for muestreo in page_obj %}
+                <tr>
+                    <td>{{ muestreo.n }}</td> <!-- Muestra el valor de la columna N -->
+                    <td>{{ muestreo.id_proyecto.id }}</td> <!-- Muestra el ID del proyecto relacionado -->
+                    <td>{{ muestreo.id_prospeccion }}</td> <!-- Muestra el ID de la prospección -->
+                    <td>{{ muestreo.tipo_prospeccion }}</td> 
+                    <td>{{ muestreo.fecha_muestreo|date:"d/m/Y" }}</td>
+                    <td>{{ muestreo.n_muestra }}</td>
+                    <td>{{ muestreo.embalaje }}</td>
+                    <td>{{ muestreo.peso }}</td>
+                    <td>{{ muestreo.cota_desde }}</td>
+                    <td>{{ muestreo.cota_hasta }}</td>
+                    <td>{{ muestreo.estrato }}</td>
+                    <td>{{ muestreo.tipo }}</td>
+                    <td>{{ muestreo.area }}</td>
+                    <td>{{ muestreo.observacion }}</td>
+                    <td>
+                        <a href="{% url 'ver_muestreo' muestreo.n %}" class="btn btn-info btn-sm">Ver</a>
+                        <a href="{% url 'editar_muestreo' muestreo.n %}" class="btn btn-warning btn-sm">Editar</a>
+                        <form action="{% url 'eliminar_muestreo' muestreo.n %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este muestreo?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="pagination-wrapper">
+            <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1&q={{ query }}" class="btn btn-outline-secondary">Primera</a>
+                    <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}" class="btn btn-outline-secondary">Anterior</a>
+                {% endif %}
+                <span class="mx-2">|</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&q={{ query }}" class="btn btn-outline-secondary">Siguiente</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}" class="btn btn-outline-secondary">Última</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- /page content -->
+{% endblock %}

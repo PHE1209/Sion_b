@@ -1,0 +1,202 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+
+<div class="right_col" role="main">
+    <h1>AGREGAR HUMEDAD</h1>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form action="{% url 'agregar_humedad' %}" method="POST">
+        {% csrf_token %}
+
+        <div class="form-group row">
+            <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-500px"></i>
+                        </div>
+                    </div>
+                    <select id="id_proyecto" name="id_proyecto" class="form-control">
+                        <option value="">Seleccione Proyecto</option>
+                        {% for proyecto in proyectos %}
+                        <option value="{{ proyecto.id }}">{{ proyecto.id }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.id_proyecto.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.id_proyecto.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-500px"></i>
+                        </div>
+                    </div>
+                    <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
+                        <option value="">Seleccione Tipo de Prospección</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="id_prospeccion" class="col-4 col-form-label">Prospección</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-500px"></i>
+                        </div>
+                    </div>
+                    <select id="id_prospeccion" name="id_prospeccion" class="form-control">
+                        <option value="">Seleccione Prospección</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="humedad" class="col-4 col-form-label">Humedad</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.humedad }}
+                    {% if form.humedad.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.humedad.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="profundidad_promedio" class="col-4 col-form-label">Profundidad Promedio</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-arrows-v"></i>
+                        </div>
+                    </div>
+                    {{ form.profundidad_promedio }}
+                    {% if form.profundidad_promedio.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.profundidad_promedio.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="area" class="col-4 col-form-label">Área</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-area-chart"></i>
+                        </div>
+                    </div>
+                    {{ form.area }}
+                    {% if form.area.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.area.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-8 offset-4">
+                <button type="submit" class="btn btn-primary">Agregar Humedad</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_proyecto').change(function() {
+            var id_proyecto = $(this).val();
+            if (id_proyecto) {
+                $.ajax({
+                    url: '{% url "obtener_tipos_prospeccion" %}',
+                    data: {'id_proyecto': id_proyecto},
+                    success: function(data) {
+                        var tipoProspeccionSelect = $('#tipo_prospeccion');
+                        tipoProspeccionSelect.empty();
+                        tipoProspeccionSelect.append('<option value="">Seleccione Tipo de Prospección</option>');
+                        $.each(data, function(key, value) {
+                            tipoProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo de Prospección</option>');
+                $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
+            }
+        });
+
+        $('#tipo_prospeccion').change(function() {
+            var id_proyecto = $('#id_proyecto').val();
+            var tipo_prospeccion = $(this).val();
+            if (id_proyecto && tipo_prospeccion) {
+                $.ajax({
+                    url: '{% url "obtener_id_prospecciones" %}',
+                    data: {
+                        'id_proyecto': id_proyecto,
+                        'tipo_prospeccion': tipo_prospeccion
+                    },
+                    success: function(data) {
+                        var idProspeccionSelect = $('#id_prospeccion');
+                        idProspeccionSelect.empty();
+                        idProspeccionSelect.append('<option value="">Seleccione Prospección</option>');
+                        $.each(data, function(key, value) {
+                            idProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
+            }
+        });
+
+        $('#id_prospeccion').change(function() {
+            var prospeccion_id = $(this).val();
+            if (prospeccion_id) {
+                $.ajax({
+                    url: '{% url "get_area" %}',
+                    data: {'prospeccion_id': prospeccion_id},
+                    success: function(data) {
+                        $('#id_area').val(data.area);
+                    }
+                });
+            } else {
+                $('#id_area').val('');
+            }
+        });
+    });
+</script>
+{% endblock %}

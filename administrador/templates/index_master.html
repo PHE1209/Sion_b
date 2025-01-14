@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="icon" href="images/favicon.ico" type="image/ico" />
 
-    <title>Gentelella Alela! | </title>
+    <title>WSP Gestor de campañas! | </title>
 
     <!-- Bootstrap -->
     <link href="{% static '/FrWork/admin_lte/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -30,7 +30,7 @@
     <!-- Custom Theme Style -->
     <link href="{% static '/FrWork/admin_lte/build/css/custom.min.css' %}" rel="stylesheet">
   </head>
-   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
 
   <body class="nav-md">
     <div class="container body">
@@ -38,7 +38,7 @@
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="index.html" class="site_title"><i class="fa fa-paw"></i> <span>WSP</span></a>
+              <a href="index.html" class="site_title"> <span>Gestor de campañas</span></a>
             </div>
 
             <div class="clearfix"></div>
@@ -46,11 +46,11 @@
             <!-- menu profile quick info -->
             <div class="profile clearfix">
               <div class="profile_pic">
-                <img src="images/img.jpg" alt="..." class="img-circle profile_img">
+                <img src="{% static 'FrWork/admin_lte/build/images/WSP.png' %}" alt="..." class="img-circle profile_img" width="120" height="60">
               </div>
               <div class="profile_info">
                 <span>Welcome,</span>
-                <h2>John Doe</h2>
+                <h2>{{ user.first_name }} {{ user.last_name }}</h2>
               </div>
             </div>
             <!-- /menu profile quick info -->
@@ -61,21 +61,155 @@
             <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
               <div class="menu_section">
                 <h3>General</h3>
+                
+                <br />
+                
                 <ul class="nav side-menu">
-                  <li><a>
-                    <i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
-                  </li>
-                  <li><a><i class="fa fa-usermenu"></i> Usuarios <span class="fa fa-chevron-down"></span></a>
+                  <li><a><i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
+                 
+                  <li><a><i class="fa fa-edit"></i> Proyectos <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-                      <li><a href="listar">Listar</a></li>
-                      <li><a href="agregar">agregar</a></li>
-                      <li><a href="actualizar">actualizar</a></li>
-                      <li><a href="eliminar">eliminar</a></li>
+                      <li><a href="listar_proyectos">Listar</a></li>
+                      <li><a href="agregar_proyectos">Agregar</a></li>
+                    </ul>
+                  </li> 
+                  
+                  <li><a><i class="fa fa-table"></i> Prospecciones <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="listar_prospecciones">Listar</a></li>
+                      <li><a href="agregar_prospecciones">Agregar</a></li>
+
+                      <li><a><i class="resumen_ensayos"></i> Ensayos <span class="fa fa-chevron-down"></span></a>
+                          <ul class="nav child_menu">
+ 
+                                <li><a><i class="resumen_estratigrafia"></i>Estratigrafia <span class="fa fa-chevron-down"></span></a>
+                                 <ul class="nav child_menu">
+                                  <li><a href="listar_estratigrafia">Listar</a></li>
+                                  <li><a href="agregar_estratigrafia">Agregar</a></li>
+                                  <li><a href="editar_estratigrafia">Editar</a></li>
+                                  <li><a href="eliminar_estratigrafia">Eliminar</a></li>
+                                  <li><a href="graficos_estratigrafia">Graficos</a></li>
+                                </ul>
+
+                                <li><a><i class="resumen_densidad"></i>Densidad <span class="fa fa-chevron-down"></span></a>
+                                  <ul class="nav child_menu">
+                                   <li><a href="listar_densidad">Listar</a></li>
+                                   <li><a href="agregar_densidad">Agregar</a></li>
+                                   <li><a href="editar_densidad">Editar</a></li>
+                                   <li><a href="eliminar_densidad">Eliminar</a></li>
+                                   <li><a href="graficos_densidad">Graficos</a></li>
+                                 </ul>
+
+                                <li><a><i class="resumen_permeabilidad"></i>Permeabilidad <span class="fa fa-chevron-down"></span></a>
+                                  <ul class="nav child_menu">
+                                   <li><a href="listar_permeabilidad">Listar</a></li>
+                                   <li><a href="agregar_permeabilidad">Agregar</a></li>
+                                   <li><a href="editar_permeabilidad">Editar</a></li>
+                                   <li><a href="eliminar_permeabilidad">Eliminar</a></li>
+                                   <li><a href="graficos_permeabilidad">Graficos</a></li>
+                                 </ul>                               
+                              </li>
+                            </ul>
+                          </li>
+
+                      <li><a><i class="resumen_muestreo"></i> Muestreo <span class="fa fa-chevron-down"></span></a>
+                          <ul class="nav child_menu"> 
+                                <li><a href="listar_muestreo">Listar</a></li>                              
+                                <li><a href="agregar_muestreo">Agregar</a></li>       
+                              </ul>
+                            </li>
+                      <li><a><i class="resumen_informe_diario"></i> Informe Diario <span class="fa fa-chevron-down"></span></a>
+                          <ul class="nav child_menu">
+                                <li><a><i class="listar_informe_diario"></i>Listar <span class="fa fa-chevron-down"></span></a>
+                                <li><a><i class="agregar_informe_diario"></i>Agregar <span class="fa fa-chevron-down"></span></a> 
+                               </ul>                               
+                            </li>
+                          </ul>
+                      </li>                              
+
+                  <li><a><i class="fa fa-bar-chart-o"></i>Laboratorios <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="resumen_programa">Programa</a></li>
+                      <li>
+                        <li><a><i class=""></i> Ensayos <span class="fa fa-chevron-down"></span></a>
+                          <ul class="nav child_menu">
+ 
+                                <!-- Clasificacion completa -->
+                               <li><a><i class="listar_clasificacion"></i>Clasificacion <span class="fa fa-chevron-down"></span></a>
+                                 <ul class="nav child_menu">
+                                  <li><a href="listar_clasificacion">Listar</a></li>
+                                  <li><a href="agregar_clasificacion">Agregar</a></li>
+                                  <li><a href="editar_clasificacion">Editar</a></li>
+                                  <li><a href="eliminar_clasificacion">Eliminar</a></li>
+                                  <li><a href="graficos_clasificacion">Graficos</a></li>
+                                </ul>
+  
+                               <li><a><i class="resumen_granulometria"></i>Humedad <span class="fa fa-chevron-down"></span></a>
+                                <ul class="nav child_menu">
+                                  <li><a href="listar_humedad">Listar</a></li>
+                                  <li><a href="agregar_humedad">Agregar</a></li>
+                                  <li><a href="editar_humedad">Editar</a></li>
+                                  <li><a href="eliminar_humedad">Eliminar</a></li>
+                                  <li><a href="graficos_humedad">Graficos</a></li>
+                                </ul>
+
+                               <li><a><i class="resumen_granulometria"></i>Granulometria <span class="fa fa-chevron-down"></span></a>
+                                <ul class="nav child_menu">
+                                  <li><a href="listar_granulometria">Listar</a></li>
+                                  <li><a href="agregar_granulometria">Agregar</a></li>
+                                  <li><a href="editar_granulometria">Editar</a></li>
+                                  <li><a href="eliminar_granulometria">Eliminar</a></li>
+                                  <li><a href="graficos_granulometria">Graficos</a></li>
+                                </ul>
+                               <!-- Impurezas Organicas -->
+                               <li><a><i class="resumen_impuresas"></i>Impurezas <span class="fa fa-chevron-down"></span></a> 
+                                <ul class="nav child_menu">
+                                  <li><a href="listar_impurezas">Listar</a></li>
+                                  <li><a href="agregar_impurezas">Agregar</a></li>
+                                  <li><a href="editar_impurezas">Editar</a></li>
+                                  <li><a href="eliminar_impurezas">Eliminar</a></li>
+                                  <li><a href="graficos_impurezas">Graficos</a></li>
+                                </ul>
+
+                               <li><a><i class="resumen_sales_solubles"></i>Sales solubles <span class="fa fa-chevron-down"></span></a>
+                                <ul class="nav child_menu">
+                                  <li><a href="listar_sales_solubles">Listar</a></li>
+                                  <li><a href="agregar_sales_solubles">Agregar</a></li>
+                                  <li><a href="editar_sales_solubles">Editar</a></li>
+                                  <li><a href="eliminar_sales_solubles">Eliminar</a></li>
+                                  <li><a href="graficos_sales_solubles">Graficos</a></li>
+                                </ul>
+
+                                <li><a href="resumen_ensayox">Ensayo x</a></li>
+
+                              </ul>
+                            </li>
+                          <li><a href="eliminar_ensayox">Eliminar</a></li>
+                    </ul>
+                  </li>
+
+                  <li><a><i class="fa fa-clone"></i>Report <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="listar_reporte">Listar</a></li>
+                      <li><a href="agregar_reporte">Agregar</a></li>
+                      <li><a href="editar_reporte">Editar</a></li>
+                      <li><a href="eliminar_reporte">Eliminar</a></li>
                     </ul>
                   </li>
 
 
+
+                  <li><a><i class="fa fa-sitemap"></i>Usuarios <span class="fa fa-chevron-down"></span></a>
+                    <ul class="nav child_menu">
+                      <li><a href="listar_usuarios">Listar</a></li>
+                      <li><a href="agregar_usuarios">Agregar</a></li>
+                      <li><a href="editar_usuarios">Editar</a></li>
+                      <li><a href="eliminar_usuarios">Eliminar</a></li>
+                    </ul>
+                  </li>
+
               </div>
+
 
             </div>
             <!-- /sidebar menu -->
@@ -109,7 +243,7 @@
               <ul class=" navbar-right">
                 <li class="nav-item dropdown open" style="padding-left: 15px;">
                   <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown" data-toggle="dropdown" aria-expanded="false">
-                    <img src="images/img.jpg" alt="">John Doe
+                    <img src="images/img.jpg" alt="">{{ user.first_name }}
                   </a>
                   <div class="dropdown-menu dropdown-usermenu pull-right" aria-labelledby="navbarDropdown">
                     <a class="dropdown-item"  href="javascript:;"> Profile</a>
@@ -118,7 +252,17 @@
                         <span>Settings</span>
                       </a>
                   <a class="dropdown-item"  href="javascript:;">Help</a>
-                    <a class="dropdown-item"  href="login.html"><i class="fa fa-sign-out pull-right"></i> Log Out</a>
+                        
+                  <div class="dropdown">
+                    <a class="dropdown-item" href="#" onclick="document.getElementById('logout-form').submit();">
+                        <i class="fa fa-sign-out pull-right"></i> Log Out
+                    </a>
+                    <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+                        {% csrf_token %}
+                    </form>
+                </div>
+
+
                   </div>
                 </li>
 
@@ -203,7 +347,7 @@
         <!-- footer content -->
         <footer>
           <div class="pull-right">
-            Gentelella - Bootstrap Admin Template by <a href="https://colorlib.com">Colorlib</a>
+            WSP MINING - CONSTRUCCIÓN - andres.rios.d@wsp.com<a href="https://colorlib.com"></a>
           </div>
           <div class="clearfix"></div>
         </footer>

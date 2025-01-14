@@ -1,0 +1,137 @@
+{% extends '../index_master.html' %}
+
+{% block content %}
+    <!-- page content -->
+    <div class="right_col" role="main">
+        <h1>AGREGAR PROYECTO</h1>
+
+        {% if error %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="{% url 'agregar_proyectos' %}" method="POST">
+            {% csrf_token %}
+
+            <div class="form-group row">
+                <label for="estatus_proyecto" class="col-4 col-form-label">Estatus Proyecto</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-500px"></i>
+                            </div>
+                        </div>
+                        {{ form.estatus_proyecto }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id" class="col-4 col-form-label">ID</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-500px"></i>
+                            </div>
+                        </div>
+                        {{ form.id }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="pm" class="col-4 col-form-label">PM</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-address-card-o"></i>
+                            </div>
+                        </div>
+                        {{ form.pm }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="empresa" class="col-4 col-form-label">Empresa</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-bank"></i>
+                            </div>
+                        </div>
+                        {{ form.empresa }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="nombre" class="col-4 col-form-label">Nombre del proyecto</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-external-link"></i>
+                            </div>
+                        </div>
+                        {{ form.nombre }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="fecha_inicio" class="col-4 col-form-label">Fecha inicio</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                        </div>
+                        <input type="date" name="fecha_inicio" id="id_fecha_inicio" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="fecha_termino" class="col-4 col-form-label">Fecha término</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                        </div>
+                        <input type="date" name="fecha_termino" id="id_fecha_termino" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="alcance" class="col-4 col-form-label">Alcance</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-pencil"></i>
+                            </div>
+                        </div>
+                        {{ form.alcance }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-8 offset-4">
+                    <button type="submit" class="btn btn-primary">Agregar Proyecto</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- /page content -->
+{% endblock %}

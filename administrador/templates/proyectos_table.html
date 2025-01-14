@@ -1,0 +1,12 @@
+{% for proyecto in page_obj %}
+<tr>
+    <td>{{ proyecto.id }}</td>
+    <td>{{ proyecto.estatus_proyecto }}</td>
+    <td>{{ proyecto.pm }}</td>
+    <td>{{ proyecto.empresa }}</td>
+    <td>{{ proyecto.nombre }}</td>
+    <td>{{ proyecto.fecha_inicio }}</td>
+    <td>{{ proyecto.fecha_termino }}</td>
+    <td>{{ proyecto.alcance }}</td>   
+</tr>
+{% endfor %}
