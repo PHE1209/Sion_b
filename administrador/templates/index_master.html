@@ -38,7 +38,7 @@
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="index.html" class="site_title"> <span>Gestor de campañas</span></a>
+              <a href="index" class="site_title"> <span>Gestor de campañas</span></a>
             </div>
 
             <div class="clearfix"></div>
@@ -72,16 +72,26 @@
                       <li><a href="listar_proyectos">Listar</a></li>
                       <li><a href="agregar_proyectos">Agregar</a></li>
                     </ul>
-                  </li> 
-                  
-                  <li><a><i class="fa fa-table"></i> Prospecciones <span class="fa fa-chevron-down"></span></a>
+                  </li>
+
+                  <li><a><i class="fa fa-table"></i> Terreno <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
-                      <li><a href="listar_prospecciones">Listar</a></li>
-                      <li><a href="agregar_prospecciones">Agregar</a></li>
+                      <li><a><i class="resumen_prospecciones"></i> Prospecciones <span class="fa fa-chevron-down"></span></a>
+                        <ul class="nav child_menu">
+                                <li><a href="listar_prospecciones">Listar</a></li>
+                                <li><a href="agregar_prospecciones">Agregar</a></li>
+                              </ul>
+                            </li>
+
+                      <li><a><i class="resumen_muestreo"></i> Muestreo <span class="fa fa-chevron-down"></span></a>
+                          <ul class="nav child_menu"> 
+                                <li><a href="listar_muestreo">Listar</a></li>                              
+                                <li><a href="agregar_muestreo">Agregar</a></li>       
+                              </ul>
+                            </li>
 
                       <li><a><i class="resumen_ensayos"></i> Ensayos <span class="fa fa-chevron-down"></span></a>
-                          <ul class="nav child_menu">
- 
+                          <ul class="nav child_menu"> 
                                 <li><a><i class="resumen_estratigrafia"></i>Estratigrafia <span class="fa fa-chevron-down"></span></a>
                                  <ul class="nav child_menu">
                                   <li><a href="listar_estratigrafia">Listar</a></li>
@@ -90,7 +100,6 @@
                                   <li><a href="eliminar_estratigrafia">Eliminar</a></li>
                                   <li><a href="graficos_estratigrafia">Graficos</a></li>
                                 </ul>
-
                                 <li><a><i class="resumen_densidad"></i>Densidad <span class="fa fa-chevron-down"></span></a>
                                   <ul class="nav child_menu">
                                    <li><a href="listar_densidad">Listar</a></li>
@@ -99,7 +108,6 @@
                                    <li><a href="eliminar_densidad">Eliminar</a></li>
                                    <li><a href="graficos_densidad">Graficos</a></li>
                                  </ul>
-
                                 <li><a><i class="resumen_permeabilidad"></i>Permeabilidad <span class="fa fa-chevron-down"></span></a>
                                   <ul class="nav child_menu">
                                    <li><a href="listar_permeabilidad">Listar</a></li>
@@ -112,12 +120,6 @@
                             </ul>
                           </li>
 
-                      <li><a><i class="resumen_muestreo"></i> Muestreo <span class="fa fa-chevron-down"></span></a>
-                          <ul class="nav child_menu"> 
-                                <li><a href="listar_muestreo">Listar</a></li>                              
-                                <li><a href="agregar_muestreo">Agregar</a></li>       
-                              </ul>
-                            </li>
                       <li><a><i class="resumen_informe_diario"></i> Informe Diario <span class="fa fa-chevron-down"></span></a>
                           <ul class="nav child_menu">
                                 <li><a><i class="listar_informe_diario"></i>Listar <span class="fa fa-chevron-down"></span></a>
@@ -125,9 +127,9 @@
                                </ul>                               
                             </li>
                           </ul>
-                      </li>                              
+                      </li>      
 
-                  <li><a><i class="fa fa-bar-chart-o"></i>Laboratorios <span class="fa fa-chevron-down"></span></a>
+                  <li><a><i class="fa fa-bar-chart-o"></i>Laboratorio <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li><a href="resumen_programa">Programa</a></li>
                       <li>
@@ -199,7 +201,7 @@
 
 
 
-                  <li><a><i class="fa fa-sitemap"></i>Usuarios <span class="fa fa-chevron-down"></span></a>
+                  <li><a><i class="fa fa-sitemap"></i>Dotacion <span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                       <li><a href="listar_usuarios">Listar</a></li>
                       <li><a href="agregar_usuarios">Agregar</a></li>

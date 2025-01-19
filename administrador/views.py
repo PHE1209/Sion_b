@@ -6,7 +6,7 @@ import pandas as pd
 from .models import Usuarios, Proyectos, Prospecciones, Humedad, Area, Muestreo
 from .forms import forms  # Asegúrate de importar tu formulario
 from datetime import datetime
-from .forms import LoginForm, ProyectoEditForm, ProspeccionesForm, HumedadForm
+from .forms import LoginForm, ProyectoEditForm, ProspeccionesForm, HumedadForm, Muestreo
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -24,7 +24,7 @@ from io import BytesIO
 import base64
 from django.http import JsonResponse
 from .forms import ProyectoEditForm, MuestreoForm
-from django.db.models import Q, CharField, TextField, DateField, DateTimeField
+from django.db.models import Q, CharField, TextField, DateField, DateTimeField, ForeignKey
 from django.apps import apps
 
 
@@ -38,7 +38,14 @@ TEMPLATE_DIR = (
 
 #### INICIO DE SESION  #############################################################################
 
-# Inicio de sesion
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def index_view(request):
+    return render(request, 'index.html')
+
+# Inicio de sesión
 def home_view(request):
     return render(request, 'home.html')
 
@@ -50,7 +57,7 @@ def login_view(request):
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             
-            # Autenticación usando el email
+            # Autenticación usando el correo electrónico
             try:
                 user = User.objects.get(email=email)
             except User.DoesNotExist:
@@ -60,7 +67,7 @@ def login_view(request):
                 user = authenticate(request, username=user.username, password=password)
                 if user is not None:
                     login(request, user)
-                    return redirect('index')  # Redirige a index_master.html
+                    return redirect('index')  # Redirecciona a la vista index después de iniciar sesión
                 else:
                     form.add_error(None, 'Email o contraseña incorrectos.')
             else:
@@ -69,7 +76,6 @@ def login_view(request):
         form = LoginForm()
     
     return render(request, 'login.html', {'form': form})
-
 
 # Vista protegida usando decorador
 @login_required
@@ -80,6 +86,10 @@ def mi_vista_protegida(request):
 class MiVistaProtegida(LoginRequiredMixin, TemplateView):
     template_name = 'index.html'
 
+# Vista index
+@login_required
+def index_view(request):
+    return render(request, 'index.html')
 
 #### USUARIOS #############################################################################
 
@@ -288,7 +298,7 @@ def agregar_prospecciones(request):
 # Listar prospecciones##############################################
 def listar_prospecciones(request):
     # Obtener todas las prospecciones y ordenarlas por un campo específico, por ejemplo, 'n'
-    prospecciones = Prospecciones.objects.all().order_by('n')  # Asegúrate de usar el campo que desees para ordenar
+    prospecciones = Prospecciones.objects.all().order_by('n')
     
     # Obtener el término de búsqueda
     query = request.GET.get('q', '')  # Obtener el término de búsqueda, o una cadena vacía si no existe
@@ -297,7 +307,7 @@ def listar_prospecciones(request):
         Prospecciones_model = apps.get_model('administrador', 'Prospecciones')
         
         # Obtener todos los nombres de los campos del modelo Prospecciones
-        fields = [field.name for field in Prospecciones_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField))]
+        fields = [field.name for field in Prospecciones_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
         
         # Crear un objeto Q vacío
         query_filter = Q()
@@ -309,6 +319,12 @@ def listar_prospecciones(request):
                 query_filter |= Q(**{f"{field}__year__icontains": query})  # Filtrar por año
                 query_filter |= Q(**{f"{field}__month__icontains": query})  # Filtrar por mes
                 query_filter |= Q(**{f"{field}__day__icontains": query})  # Filtrar por día
+            elif isinstance(Prospecciones_model._meta.get_field(field), ForeignKey):
+                # Para campos de clave foránea, buscar en campos específicos del modelo relacionado
+                related_model = Prospecciones_model._meta.get_field(field).related_model
+                related_fields = [f"{field}__{related_field.name}" for related_field in related_model._meta.get_fields() if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    query_filter |= Q(**{f"{related_field}__icontains": query})
             else:
                 query_filter |= Q(**{f"{field}__icontains": query})
         
@@ -326,6 +342,8 @@ def listar_prospecciones(request):
 
     return render(request, 'prospecciones/listar_prospecciones.html', {'page_obj': page_obj, 'query': query})
 
+
+
 # Exportar el arhivo excel ######
 def export_to_excel_prospecciones(request):
     # Obtener todas las prospecciones
@@ -342,8 +360,6 @@ def export_to_excel_prospecciones(request):
     df.to_excel(response, index=False)
 
     return response
-
-
 
 
 def export_to_pdf_prospecciones(request):
@@ -439,49 +455,81 @@ def agregar_muestreo(request):
 
 
 #listar ##############################################
-
 def listar_muestreo(request):
+    # Obtener todos los registros de muestreo y ordenarlos por un campo específico, por ejemplo, 'n'
+    muestreo = Muestreo.objects.all().order_by('n')
+    
+    # Obtener el término de búsqueda
     query = request.GET.get('q', '')  # Obtener el término de búsqueda, o una cadena vacía si no existe
     if query:
-        # Filtrar por múltiples columnas usando icontains para búsqueda parcial
-        muestreo_list = Muestreo.objects.filter(
-            Q(id_proyecto__id__icontains=query) |  # Busca en el campo 'id' del modelo 'Proyectos'
-            Q(id_prospeccion__id_prospeccion__icontains=query) |  # Busca en el campo 'id_prospeccion' del modelo 'Prospecciones'
-            Q(tipo_prospeccion__icontains=query) |
-            Q(fecha_muestreo__icontains=query) |
-            Q(n_muestra__icontains=query) |
-            Q(embalaje__icontains=query) |
-            Q(peso__icontains=query) |
-            Q(cota_desde__icontains=query) |
-            Q(cota_hasta__icontains=query) |
-            Q(estrato__icontains=query) |
-            Q(tipo__icontains=query) |
-            Q(area__icontains=query)
-        )
-    else:
-        muestreo_list = Muestreo.objects.all()
+        # Obtener el modelo Muestreo
+        Muestreo_model = apps.get_model('administrador', 'Muestreo')
+        
+        # Obtener todos los nombres de los campos del modelo Muestreo
+        fields = [field.name for field in Muestreo_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+        
+        # Crear un objeto Q vacío
+        query_filter = Q()
+        
+        # Iterar sobre todos los campos y agregar un filtro Q para cada campo
+        for field in fields:
+            if isinstance(Muestreo_model._meta.get_field(field), (DateField, DateTimeField)):
+                # Convertir fechas a cadenas y aplicar icontains
+                query_filter |= Q(**{f"{field}__year__icontains": query})  # Filtrar por año
+                query_filter |= Q(**{f"{field}__month__icontains": query})  # Filtrar por mes
+                query_filter |= Q(**{f"{field}__day__icontains": query})  # Filtrar por día
+            elif isinstance(Muestreo_model._meta.get_field(field), ForeignKey):
+                # Para campos de clave foránea, buscar en campos específicos del modelo relacionado
+                related_model = Muestreo_model._meta.get_field(field).related_model
+                related_fields = [f"{field}__{related_field.name}" for related_field in related_model._meta.get_fields() if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    query_filter |= Q(**{f"{related_field}__icontains": query})
+            else:
+                query_filter |= Q(**{f"{field}__icontains": query})
+        
+        # Aplicar el filtro al queryset
+        muestreo = muestreo.filter(query_filter)
 
-    paginator = Paginator(muestreo_list, 10)  # Número de elementos por página
+    # Configurar la paginación
+    paginator = Paginator(muestreo, 10)  # 10 registros de muestreo por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # Verificar si la solicitud es AJAX
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'prospecciones/muestreo/muestreo_table.html', {'page_obj': page_obj})
+
     return render(request, 'prospecciones/muestreo/listar_muestreo.html', {'page_obj': page_obj, 'query': query})
 
 
-
+#Exportar a excel ########################################
 def export_to_excel_muestreo(request):
-    # Lógica para exportar muestreo a Excel
-    pass
+    # Obtener todos los muestreos
+    muestreo = Muestreo.objects.all().values()  # Obtener todos los campos
 
+    # Crear un DataFrame de pandas
+    df = pd.DataFrame(muestreo)
+
+    # Crear una respuesta HTTP
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=muestreo.xlsx'
+
+    # Guardar el DataFrame en el archivo Excel
+    df.to_excel(response, index=False)
+
+    return response
+
+#Exportar a pdf ########################################
 def export_to_pdf_muestreo(request):
     # Lógica para exportar muestreo a PDF
     pass
 
-
+#Ver muestras ########################################
 def ver_muestreo(request, n):
     muestreo = get_object_or_404(Muestreo, pk=n)
     return render(request, 'prospecciones/muestreo/ver_muestreo.html', {'muestreo': muestreo})
 
-
+#Editar muestreo ########################################
 @login_required  # Asegura que solo usuarios autenticados accedan a la vista
 def editar_muestreo(request, n):
     muestreo = get_object_or_404(Muestreo, pk=n)

@@ -136,7 +136,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'  # URL para la página de inicio de sesión
 
-LOGIN_REDIRECT_URL = 'indexx'  # URL a la que se redirige después de iniciar sesión
+LOGIN_REDIRECT_URL = 'index'  # URL a la que se redirige después de iniciar sesión
 
 # settings.py
 # settings.py

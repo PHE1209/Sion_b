@@ -20,17 +20,22 @@ from .views import login_view, mi_vista_protegida, home_view, export_to_excel, e
 from django.contrib.auth.views import LogoutView  # Importa LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.urls import path
+from django.contrib.auth.views import LogoutView
+from .views import home_view, login_view, mi_vista_protegida, MiVistaProtegida, index_view
 
 
 
 urlpatterns = [
     
-    path('', home_view, name="home"), # Redirige la raíz a la vista de inicio
-    path('login', login_view, name='login'), # Inicio de Sesion
-    path('index', mi_vista_protegida, name="index"), 
-    path('', LogoutView.as_view(), name='logout'), # Agrega la URL de cierre de sesión
-    path('indexx', views.indexx, name='indexx'), 
-                
+
+    path('', home_view, name="home"),  # Redirige la raíz a la vista de inicio
+    path('login', login_view, name='login'),  # Inicio de Sesion
+    path('mi-vista-protegida', mi_vista_protegida, name="mi_vista_protegida"),  # Vista protegida
+    path('otra-vista-protegida', MiVistaProtegida.as_view(), name="otra_vista_protegida"),  # Otra vista protegida
+    path('logout', LogoutView.as_view(next_page='home'), name='logout'),  # Cierre de sesión
+    path('index', index_view, name='index'),  # Vista index
+
     path('listar_usuarios', views.listar_usuarios, name="listar_usuarios"),
     path('agregar_usuarios', views.agregar_usuarios, name="agregar_usuarios"),
     path('editar_usuarios', views.editar_usuarios, name="editar_usuarios"),

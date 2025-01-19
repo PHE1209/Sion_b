@@ -5,11 +5,11 @@ from django.forms.widgets import TextInput, DateInput
 import re
 
 
+#formulario de inicio de sesión definido.
 
 class LoginForm(forms.Form):
-    email = forms.EmailField(required=True)
-    password = forms.CharField(widget=forms.PasswordInput, required=True)
-
+    email = forms.EmailField()
+    password = forms.CharField(widget=forms.PasswordInput)
 
 ## CREAR PROYECTOS ###############################################
 class ProyectoEditForm(forms.ModelForm):
