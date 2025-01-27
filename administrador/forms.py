@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from .models import Proyectos, Prospecciones, Proyectos, Humedad, Muestreo # Asegúrate de importar tu modelo
+from .models import Proyectos, Prospecciones, Proyectos, Humedad, Muestreo, Programa # Asegúrate de importar tu modelo
 from django.forms.widgets import TextInput, DateInput
 import re
 
@@ -52,15 +52,14 @@ class ProyectoEditForm(forms.ModelForm):
             self.fields[field_name] = add_class(field, 'form-control')
 
 ######################################################################
-
-#PARA PROSPECCIONES
-#Agregar prospecciones
+# PARA PROSPECCIONES
+# Agregar prospecciones
 class ProspeccionesForm(forms.ModelForm):
     id_proyecto = forms.ModelChoiceField(
-        queryset=Proyectos.objects.all(),  # Obtiene todos los proyectos
-        empty_label="Seleccione un proyecto",  # Etiqueta predeterminada para un campo vacío
-        to_field_name="id",  # Especificamos que el valor a enviar será el 'id', no el 'nombre'
-        widget=forms.Select,  # Puedes personalizar el widget si lo deseas
+        queryset=Proyectos.objects.all(),
+        empty_label="Seleccione un proyecto",
+        to_field_name="id",
+        widget=forms.Select,
     )
 
     class Meta:
@@ -69,35 +68,24 @@ class ProspeccionesForm(forms.ModelForm):
             'tipo_prospeccion', 'area', 'fecha_inicio', 'fecha_termino', 'id_proyecto', 'id_prospeccion',
             'coordenada_este', 'coordenada_norte', 'elevacion', 'profundidad', 'observacion', 'verificacion_puntos',
             'plataforma', 'inclinacion', 'diametro', 'tapado', 'contratista', 'marca_maquina1', 'modelo_maquina1',
-            'ppu1', 'marca_maquina2', 'modelo_maquina2', 'ppu2', 'image'  # Incluir el campo de imagen
+            'ppu1', 'marca_maquina2', 'modelo_maquina2', 'ppu2', 'image'
         ]
 
-    
-    # Validación personalizada para el campo 'id_proyecto'
     def clean_id_proyecto(self):
         id_proyecto = self.cleaned_data.get('id_proyecto')
-        # Validación de existencia del proyecto (si quieres personalizarlo más)
         if not Proyectos.objects.filter(id=id_proyecto).exists():
             raise forms.ValidationError("Este proyecto no existe en la base de datos.")
         return id_proyecto
 
+# PARA MUESTREO
+# forms.py
+from django import forms
+from .models import Muestreo
 
-######################################################################
-##MUESTREO
 class MuestreoForm(forms.ModelForm):
     class Meta:
         model = Muestreo
         fields = '__all__'
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        n_muestra = cleaned_data.get("n_muestra")
-        embalaje = cleaned_data.get("embalaje")
-
-        if n_muestra and embalaje and n_muestra == embalaje:
-            self.add_error('n_muestra', "El número de muestra y el embalaje no pueden ser los mismos.")
-            self.add_error('embalaje', "El número de muestra y el embalaje no pueden ser los mismos.")
-        return cleaned_data
 
 ######################################################################
 
@@ -112,3 +100,9 @@ class HumedadForm(forms.ModelForm):
         fields = ['id_proyecto', 'id_prospeccion', 'tipo_prospeccion', 'humedad', 'profundidad_promedio', 'area']
 
 
+
+#Agregar programa
+class ProgramaForm(forms.ModelForm):
+    class Meta:
+        model = Programa
+        fields = '__all__'

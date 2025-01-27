@@ -1,0 +1,78 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Estatus del Programa</h1>
+
+    <form id="filtrosForm" class="form-inline mb-3" method="GET" action="{% url 'estatus_programa' %}">
+        <div class="form-group mr-3">
+            <label for="id_proyecto">Proyecto:</label>
+            <select id="id_proyecto" name="id_proyecto" class="form-control">
+                <option value="">Seleccione Proyecto</option>
+                {% for proyecto in proyectos %}
+                <option value="{{ proyecto.id }}" {% if request.GET.id_proyecto == proyecto.id %}selected{% endif %}>{{ proyecto.id }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group mr-3">
+            <label for="tipo_prospeccion">Tipo de Prospección:</label>
+            <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
+                <option value="">Seleccione Tipo de Prospección</option>
+                <!-- Las opciones se llenarán dinámicamente con AJAX -->
+            </select>
+        </div>
+
+        <div class="form-group mr-3">
+            <label for="objetivo">Objetivo:</label>
+            <select id="objetivo" name="objetivo" class="form-control">
+                <option value="">Seleccione Objetivo</option>
+                {% for key, value in form.objetivo.field.choices %}
+                <option value="{{ key }}" {% if request.GET.objetivo == key %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Actualizar Gráfico</button>
+    </form>
+    
+    <h2>Gráfico de Estatus del Programa</h2>
+    <div id="grafico">
+        <img id="grafico_estatus_programa_barras" src="data:image/png;base64,{{ image_base64_barras }}" class="img-fluid" alt="Gráfico de Estatus del Programa">
+    </div>
+
+    <h2>Gráfico de Porcentaje Total de Avance</h2>
+    <div id="grafico_anillo">
+        <img id="grafico_estatus_programa_anillo" src="data:image/png;base64,{{ image_base64_anillo }}" class="img-fluid" alt="Gráfico de Porcentaje Total de Avance">
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_proyecto').change(function() {
+            var id_proyecto = $(this).val();
+            if (id_proyecto) {
+                $.ajax({
+                    url: '{% url "obtener_tipos_prospeccion" %}',
+                    data: {'id_proyecto': id_proyecto},
+                    success: function(data) {
+                        var tipoProspeccionSelect = $('#tipo_prospeccion');
+                        tipoProspeccionSelect.empty();
+                        tipoProspeccionSelect.append('<option value="">Seleccione Tipo de Prospección</option>');
+                        $.each(data, function(key, value) {
+                            tipoProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error al obtener los tipos de prospección: ", error);
+                    }
+                });
+            } else {
+                $('#tipo_prospeccion').empty();
+                $('#tipo_prospeccion').append('<option value="">Seleccione Tipo de Prospección</option>'); 
+            }
+        });
+    });
+</script>
+{% endblock %}

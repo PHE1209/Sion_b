@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.forms.models import model_to_dict
 import json
 from django.core.exceptions import ValidationError
-
+from simple_history.models import HistoricalRecords
 
 
 """
@@ -82,11 +82,11 @@ class Prospecciones(models.Model):
     ], null=False)
     id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
     id_prospeccion = models.CharField(max_length=25, null=False, unique=True)  # Asegurando unicidad en Prospecciones
-    area = models.CharField(max_length=50, null=False, blank=False)
+    area = models.CharField(max_length=50, null=False, blank=False, default='') 
     fecha_inicio = models.DateField(null=True, blank=True)
     fecha_termino = models.DateField(null=True, blank=True)
-    coordenada_este = models.CharField(max_length=6, null=True, blank=True)
-    coordenada_norte = models.CharField(max_length=7, null=True, blank=True)
+    coordenada_este = models.CharField(max_length=20, null=True, blank=True)
+    coordenada_norte = models.CharField(max_length=20, null=True, blank=True)
     elevacion = models.IntegerField(null=True, blank=True)
     profundidad = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     observacion = models.CharField(max_length=255, null=True, blank=True)
@@ -113,6 +113,7 @@ class Prospecciones(models.Model):
     ppu2 = models.CharField(max_length=10, null=True, blank=True)
     image = models.ImageField(upload_to='images', null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # Usuario que realiza la operación
+    history = HistoricalRecords()  # Agregar el historial de registros
 
     class Meta:
         db_table = 'prospecciones'
@@ -121,24 +122,29 @@ class Prospecciones(models.Model):
         return self.id_prospeccion
 
 
-#Muestreo########################
+
+# Muestreo########################
 class Muestreo(models.Model):
-    n = models.AutoField(primary_key=True)
-    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
+    n = models.AutoField(primary_key=True)   
+    id_embalaje = models.CharField(max_length=255, null=False, blank=False)  # Concatenar "id_prospeccion"_"(profundidad_desde-profundiad_hasta)"_"id_muestra"   
+    id_proyecto = models.ForeignKey('Proyectos', on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
     tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True)
-    id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion')
+    id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion', related_name='muestreos_por_id')   
+    area = models.CharField(max_length=50, null=False, blank=False)  # Se completa automático    
     fecha_muestreo = models.DateField(null=True, blank=True)
-    n_muestra = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    embalaje = models.CharField(max_length=25, choices=[
+    tipo_embalaje = models.CharField(max_length=25, choices=[
         ('caja_nucleo', 'caja_nucleo'),
         ('bolsa_muestra', 'bolsa_muestra'),
         ('saco_muestra', 'saco_muestra'),
         ('tubo_pvc', 'tubo_pvc'),
         ('tambor', 'tambor'),
     ], null=True, blank=True)
-    peso = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    cota_desde = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    cota_hasta = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    cantidad = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Mostrar en el HTML solo si "tipo_prospeccion" es = calicata
+    peso_unitario = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Mostrar en el HTML solo si "tipo_prospeccion" es = calicata
+    peso_total = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # Se calcula automático -> "peso_unitario" * "cantidad"    
+    id_muestra = models.CharField(max_length=50, null=False, blank=False)
+    profundidad_desde = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    profundidad_hasta = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)    
     estrato = models.CharField(max_length=25, choices=[
         ('h1', 'h1'),
         ('h2', 'h2'),
@@ -148,40 +154,80 @@ class Muestreo(models.Model):
         ('h6', 'h6'),
         ('h7', 'h7'),
         ('h8', 'h8'),
-    ], null=True, blank=True)
+    ], null=True, blank=True)  # Mostrar en el HTML solo si "tipo_prospeccion" es = calicata    
     tipo = models.CharField(max_length=25, choices=[
         ('perturbada', 'perturbada'),
         ('no_perturbada', 'no_perturbada'),
         ('colpa', 'colpa'),
     ], null=True, blank=True)
-    area = models.CharField(max_length=50, null=False, blank=False)
+    fecha_despacho = models.DateField(null=True, blank=True)
+    nombre_despachador = models.CharField(max_length=50, null=True, blank=True)
+    destino = models.CharField(max_length=50, null=True, blank=True)
+    orden_trasporte = models.CharField(max_length=50, null=True, blank=True)    
     observacion = models.CharField(max_length=255, null=True, blank=True)
-    tipo_prospeccion = models.CharField(max_length=25, null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-
     class Meta:
         db_table = 'muestreo'
 
     def __str__(self):
-        # Devolver una representación más detallada del muestreo
-        return f"Prospección: {self.id_prospeccion.id_prospeccion}, Muestra: {self.n_muestra}, Embalaje: {self.embalaje}"
-
-    # Validación personalizada para evitar duplicados de n_muestra y embalaje en la misma id_prospeccion
-    def clean(self):
-        # Verificar si ya existe una entrada con el mismo n_muestra y embalaje dentro de la misma id_prospeccion
-        if Muestreo.objects.filter(id_prospeccion=self.id_prospeccion, embalaje=self.embalaje, n_muestra=self.n_muestra).exists():
-            raise ValidationError('Ya existe una entrada con el mismo n_muestra y embalaje en la misma prospección.')
-
-    # Sobrescritura del método save para llamar a clean antes de guardar la instancia
-    def save(self, *args, **kwargs):
-        self.clean()  # Llamar a la validación personalizada
-        super(Muestreo, self).save(*args, **kwargs)  # Llamar al método save del modelo base
+        return f"Prospección: {self.id_prospeccion.id_prospeccion}, Muestra: {self.id_muestra}, Embalaje: {self.id_embalaje}"
 
 
+#Programa########################
+class Programa(models.Model):
+    n = models.AutoField(primary_key=True)
+    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
+    tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True)
+    id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion')
+    objetivo = models.CharField(max_length=255, choices=[
+        ('clasificacion completa','clasificacion completa'),
+        ('humedad','humedad'),
+        ('sales solubles, cloruros y sulfatos','sales solubles, cloruros y sulfatos'),
+        ('carbonatos','carbonatos'),
+        ('triaxial ciu/cid 15x30 hasta 6kg cm2','triaxial ciu/cid 15x30 hasta 6kg cm2'),
+        ('triaxial ciu/cid 15x30 hasta 9kg cm2','triaxial ciu/cid 15x30 hasta 9kg cm2'),
+        ('granulometria','granulometria'),
+        ('peso unitario','peso unitario'),
+        ('difraccion de rayos x','difraccion de rayos x'),
+        ('triaxial ciu/cid 5x10 hasta 6kg cm2','triaxial ciu/cid 5x10 hasta 6kg cm2'),
+        ('triaxial ciu/cid 5x10 hasta 30kg cm2','triaxial ciu/cid 5x10 hasta 30kg cm2'),
+        ('impurezas organicas','impurezas organicas'),
+        ('sales solubles totales','sales solubles totales'),
+        ('resistencia al desgaste, metodo los angeles','resistencia al desgaste, metodo los angeles'),
+        ('densidad in situ','densidad in situ'),
+        ('densidad aparente','densidad aparente'),
+        ('resistencia a la desintegracion','resistencia a la desintegracion'),
+        ('uscs','uscs'),
+        ('triaxial ciu/cid 10x20 hasta 6kg cm2','triaxial ciu/cid 10x20 hasta 6kg cm2'),
+        ('triaxial ciu/cid 10x20 hasta 12kg cm2','triaxial ciu/cid 10x20 hasta 12kg cm2'),
+        ('densidad maxima y minima','densidad maxima y minima'),
+        ('permeabilidad pared flexible carga constante (10x20 hasta 6 kg/cm2)','permeabilidad pared flexible carga constante (10x20 hasta 6 kg/cm2)'),
+        ('permeabilidad pared flexible carga constante (15x30 hasta 6 kg/cm2)','permeabilidad pared flexible carga constante (15x30 hasta 6 kg/cm2)'),
+        ('cbr','cbr'),
+        ('slake durability','slake durability'),
+        ('proctor modificado','proctor modificado'),
+        ('corte directo','corte directo'),
+        ('ph','ph'),
+        ('determinacion de propiedades fisicas','determinacion de propiedades fisicas'),
+        ('resistividad electrica','resistividad electrica'),
+        ('compresion simple','compresion simple'),
+        ('carga puntual','carga puntual'),
+        ('traccion indirecta, metodo brasileno','traccion indirecta, metodo brasileno'),
+        ('triaxial con medicion de deformacion axial y transversal','triaxial con medicion de deformacion axial y transversal'),
+    ], null=True, blank=True)
+    cantidad = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    fecha_ingreso_lab = models.DateField(null=True, blank=True)
+    id_ingreso = models.CharField(max_length=50, null=False, blank=False)
+    area = models.CharField(max_length=50, null=False, blank=False)
+    fecha_envio_programa = models.DateField(null=True, blank=True)
+    asignar_muestra = models.CharField(max_length=50, null=True, blank=True)
+    fecha_informe =  models.DateField(null=True, blank=True)
+    cantidad_recibida = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    n_informe = models.CharField(max_length=50, null=True, blank=True)
+    n_ep = models.CharField(max_length=50, null=True, blank=True)
 
 
-#########GRAFICOS############################################
-#Humedad
+#Humedad########################
 class Humedad(models.Model):
     n = models.AutoField(primary_key=True)
     id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')

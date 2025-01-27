@@ -1,0 +1,83 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<!-- page content -->
+<div class="right_col" role="main">
+    <h1>VER PROSPECCIÓN</h1>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="form-group row">
+        <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
+        <div class="col-8">
+            <p class="form-control-static">{{ prospeccion.tipo_prospeccion }}</p>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
+        <div class="col-8">
+            <p class="form-control-static">{{ prospeccion.id_proyecto }}</p>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
+        <div class="col-8">
+            <p class="form-control-static">{{ prospeccion.id_prospeccion }}</p>
+        </div>
+    </div>
+
+    <!-- Repite esta estructura para todos los campos de la prospección -->
+    <div class="form-group row">
+        <label for="area" class="col-4 col-form-label">Área</label>
+        <div class="col-8">
+            <p class="form-control-static">{{ prospeccion.area }}</p>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <label for="fecha_inicio" class="col-4 col-form-label">Fecha de Inicio</label>
+        <div class="col-8">
+            <p class="form-control-static">{{ prospeccion.fecha_inicio }}</p>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <label for="fecha_termino" class="col-4 col-form-label">Fecha de Término</label>
+        <div class="col-8">
+            <p class="form-control-static">{{ prospeccion.fecha_termino }}</p>
+        </div>
+    </div>
+
+    <!-- Campo para mostrar la imagen subida -->
+    <div class="form-group row">
+        <label for="imagen" class="col-4 col-form-label">Imagen Subida</label>
+        <div class="col-8">
+            {% if prospeccion.imagen %}
+                <img src="{{ prospeccion.imagen.url }}" alt="Imagen de la prospección" class="img-fluid">
+            {% else %}
+                <p>No se ha subido ninguna imagen.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Historial de modificaciones -->
+    <div class="form-group row">
+        <label for="historial_modificaciones" class="col-4 col-form-label">Historial de Modificaciones</label>
+        <div class="col-8">
+            <ul>
+                {% for modificacion in prospeccion.historial_modificaciones %}
+                    <li>{{ modificacion.fecha }} - {{ modificacion.descripcion }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+</div>
+<!-- /page content -->
+{% endblock %}

@@ -5,11 +5,13 @@
     <div class="right_col" role="main">
         <h1 class="mb-4">Lista de Muestreos</h1>
 
-        <form id="searchForm" class="form-inline mb-3">
+        <!-- Formulario de búsqueda -->
+        <form id="searchForm" class="form-inline mb-3" method="GET" action="">
             <input type="text" id="searchInput" name="q" value="{{ query }}" class="form-control mr-2" placeholder="Buscar...">
             <button type="submit" class="btn btn-primary">Buscar</button>
         </form>
 
+        <!-- Botones de acciones -->
         <div class="mb-3">
             <a href="{% url 'agregar_muestreo' %}" class="btn btn-success">
                 <i class="fa fa-plus"></i> Agregar Muestreo
@@ -22,39 +24,40 @@
             </a>
         </div>
 
+        <!-- Tabla de muestreos -->
         <table id="muestreoTable" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>N</th> <!-- Columna N -->
+                    <th>N</th>
                     <th>ID Proyecto</th>
-                    <th>ID Prospección</th> <!-- Columna ID Prospección -->
-                    <th>Tipo de Prospección</th> 
+                    <th>ID Prospección</th>
+                    <th>Tipo de Prospección</th>
                     <th>Fecha de Muestreo</th>
                     <th>Número de Muestra</th>
                     <th>Embalaje</th>
                     <th>Peso</th>
-                    <th>Cota Desde</th>
-                    <th>Cota Hasta</th>
+                    <th>Profundidad Desde</th> <!-- Cambiado de Cota Desde -->
+                    <th>Profundidad Hasta</th> <!-- Cambiado de Cota Hasta -->
                     <th>Estrato</th>
                     <th>Tipo</th>
                     <th>Área</th>
                     <th>Observación</th>
-                    <th>Acciones</th> <!-- Nueva columna para acciones -->
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="muestreoTableBody">
                 {% for muestreo in page_obj %}
                 <tr>
-                    <td>{{ muestreo.n }}</td> <!-- Muestra el valor de la columna N -->
-                    <td>{{ muestreo.id_proyecto.id }}</td> <!-- Muestra el ID del proyecto relacionado -->
-                    <td>{{ muestreo.id_prospeccion }}</td> <!-- Muestra el ID de la prospección -->
-                    <td>{{ muestreo.tipo_prospeccion }}</td> 
+                    <td>{{ muestreo.n }}</td>
+                    <td>{{ muestreo.id_proyecto.id }}</td>
+                    <td>{{ muestreo.id_prospeccion }}</td>
+                    <td>{{ muestreo.tipo_prospeccion }}</td>
                     <td>{{ muestreo.fecha_muestreo|date:"d/m/Y" }}</td>
                     <td>{{ muestreo.n_muestra }}</td>
                     <td>{{ muestreo.embalaje }}</td>
                     <td>{{ muestreo.peso }}</td>
-                    <td>{{ muestreo.cota_desde }}</td>
-                    <td>{{ muestreo.cota_hasta }}</td>
+                    <td>{{ muestreo.profundidad_desde }}</td> <!-- Cambiado de cota_desde -->
+                    <td>{{ muestreo.profundidad_hasta }}</td> <!-- Cambiado de cota_hasta -->
                     <td>{{ muestreo.estrato }}</td>
                     <td>{{ muestreo.tipo }}</td>
                     <td>{{ muestreo.area }}</td>
@@ -68,10 +71,15 @@
                         </form>
                     </td>
                 </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="15">No se encontraron muestreos</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
 
+        <!-- Paginación -->
         <div class="pagination-wrapper">
             <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
             <div class="pagination">

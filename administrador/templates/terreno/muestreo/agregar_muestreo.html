@@ -10,9 +10,10 @@
     </div>
     {% endif %}
 
-    <form action="{% url 'agregar_muestreo' %}" method="POST" enctype="multipart/form-data">
+    <form action="{% url 'agregar_muestreo' %}" method="POST">
         {% csrf_token %}
 
+        <!-- ID Proyecto -->
         <div class="form-group row">
             <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
             <div class="col-8">
@@ -37,125 +38,109 @@
             </div>
         </div>
 
+        <!-- Tipo de Prospección -->
         <div class="form-group row">
             <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
             <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fa fa-500px"></i>
-                        </div>
-                    </div>
-                    <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
-                        <option value="">Seleccione Tipo de Prospección</option>
-                    </select>
-                </div>
+                <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
+                    <option value="">Seleccione Tipo de Prospección</option>
+                </select>
             </div>
         </div>
 
+        <!-- ID Prospección -->
         <div class="form-group row">
             <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
             <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fa fa-address-card-o"></i>
-                        </div>
-                    </div>
-                    <select id="id_prospeccion" name="id_prospeccion" class="form-control">
-                        <option value="">Seleccione Prospección</option>
-                    </select>
-                </div>
+                <select id="id_prospeccion" name="id_prospeccion" class="form-control">
+                    <option value="">Seleccione Prospección</option>
+                </select>
             </div>
         </div>
 
+        <!-- Área -->
+        <div class="form-group row">
+            <label for="id_area" class="col-4 col-form-label">Área</label>
+            <div class="col-8">
+                <input type="text" class="form-control" id="id_area" name="area" readonly>
+            </div>
+        </div>
+
+        <!-- Fecha de Muestreo -->
         <div class="form-group row">
             <label for="fecha_muestreo" class="col-4 col-form-label">Fecha de Muestreo</label>
             <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fa fa-calendar"></i>
-                        </div>
-                    </div>
-                    {{ form.fecha_muestreo }}
-                </div>
+                {{ form.fecha_muestreo }}
             </div>
         </div>
 
+        <!-- ID Muestra -->
         <div class="form-group row">
-            <label for="n_muestra" class="col-4 col-form-label">Número de Muestra</label>
+            <label for="id_muestra" class="col-4 col-form-label">ID Muestra</label>
             <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fa fa-hashtag"></i>
-                        </div>
-                    </div>
-                    {{ form.n_muestra }}
-                    {% if form.n_muestra.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.n_muestra.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group row">
-            <label for="embalaje" class="col-4 col-form-label">Embalaje</label>
-            <div class="col-8">
-                {{ form.embalaje }}
-                {% if form.embalaje.errors %}
+                {{ form.id_muestra }}
+                {% if form.id_muestra.errors %}
                 <div class="alert alert-danger">
-                    {{ form.embalaje.errors }}
+                    {{ form.id_muestra.errors }}
                 </div>
                 {% endif %}
             </div>
         </div>
 
+        <!-- Tipo de Embalaje -->
         <div class="form-group row">
-            <label for="peso" class="col-4 col-form-label">Peso</label>
+            <label for="tipo_embalaje" class="col-4 col-form-label">Tipo de Embalaje</label>
             <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fa fa-balance-scale"></i>
-                        </div>
-                    </div>
-                    {{ form.peso }}
+                {{ form.tipo_embalaje }}
+                {% if form.tipo_embalaje.errors %}
+                <div class="alert alert-danger">
+                    {{ form.tipo_embalaje.errors }}
                 </div>
+                {% endif %}
             </div>
         </div>
 
+        <!-- Cantidad -->
         <div class="form-group row">
-            <label for="cota_desde" class="col-4 col-form-label">Cota Desde</label>
+            <label for="cantidad" class="col-4 col-form-label">Cantidad</label>
             <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fa fa-arrow-down"></i>
-                        </div>
-                    </div>
-                    {{ form.cota_desde }}
-                </div>
+                {{ form.cantidad }}
             </div>
         </div>
 
+        <!-- Peso Unitario -->
         <div class="form-group row">
-            <label for="cota_hasta" class="col-4 col-form-label">Cota Hasta</label>
+            <label for="peso_unitario" class="col-4 col-form-label">Peso Unitario</label>
             <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fa fa-arrow-up"></i>
-                        </div>
-                    </div>
-                    {{ form.cota_hasta }}
-                </div>
+                {{ form.peso_unitario }}
             </div>
         </div>
 
+        <!-- Peso Total -->
+        <div class="form-group row">
+            <label for="peso_total" class="col-4 col-form-label">Peso Total</label>
+            <div class="col-8">
+                {{ form.peso_total }}
+            </div>
+        </div>
+
+        <!-- Profundidad Desde -->
+        <div class="form-group row">
+            <label for="profundidad_desde" class="col-4 col-form-label">Profundidad Desde</label>
+            <div class="col-8">
+                {{ form.profundidad_desde }}
+            </div>
+        </div>
+
+        <!-- Profundidad Hasta -->
+        <div class="form-group row">
+            <label for="profundidad_hasta" class="col-4 col-form-label">Profundidad Hasta</label>
+            <div class="col-8">
+                {{ form.profundidad_hasta }}
+            </div>
+        </div>
+
+        <!-- Estrato -->
         <div class="form-group row">
             <label for="estrato" class="col-4 col-form-label">Estrato</label>
             <div class="col-8">
@@ -163,6 +148,7 @@
             </div>
         </div>
 
+        <!-- Tipo -->
         <div class="form-group row">
             <label for="tipo" class="col-4 col-form-label">Tipo</label>
             <div class="col-8">
@@ -170,13 +156,39 @@
             </div>
         </div>
 
+        <!-- Nombre del Despachador -->
         <div class="form-group row">
-            <label for="area" class="col-4 col-form-label">Área</label>
+            <label for="nombre_despachador" class="col-4 col-form-label">Nombre del Despachador</label>
             <div class="col-8">
-                {{ form.area }}
+                {{ form.nombre_despachador }}
             </div>
         </div>
 
+        <!-- Fecha de Despacho -->
+        <div class="form-group row">
+            <label for="fecha_despacho" class="col-4 col-form-label">Fecha de Despacho</label>
+            <div class="col-8">
+                {{ form.fecha_despacho }}
+            </div>
+        </div>
+
+        <!-- Destino -->
+        <div class="form-group row">
+            <label for="destino" class="col-4 col-form-label">Destino</label>
+            <div class="col-8">
+                {{ form.destino }}
+            </div>
+        </div>
+
+        <!-- Orden de Transporte -->
+        <div class="form-group row">
+            <label for="orden_trasporte" class="col-4 col-form-label">Orden de Transporte</label>
+            <div class="col-8">
+                {{ form.orden_trasporte }}
+            </div>
+        </div>
+
+        <!-- Observación -->
         <div class="form-group row">
             <label for="observacion" class="col-4 col-form-label">Observación</label>
             <div class="col-8">
@@ -184,6 +196,7 @@
             </div>
         </div>
 
+        <!-- Botón de Envío -->
         <div class="form-group row">
             <div class="col-8 offset-4">
                 <button type="submit" class="btn btn-primary">Agregar Muestreo</button>
@@ -191,7 +204,6 @@
         </div>
     </form>
 </div>
-<!-- /page content -->
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
@@ -257,4 +269,5 @@
         });
     });
 </script>
+
 {% endblock %}

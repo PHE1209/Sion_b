@@ -1,0 +1,281 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+    <!-- page content -->
+    <div class="right_col" role="main">
+        <h1>Editar Prospección</h1>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <form action="{% url 'editar_prospeccion' prospeccion.n %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group row">
+                <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
+                <div class="col-8">
+                    {{ form.tipo_prospeccion }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-500px"></i>
+                            </div>
+                        </div>
+                        {{ form.id_proyecto }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-address-card-o"></i>
+                            </div>
+                        </div>
+                        {{ form.id_prospeccion }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Area -->
+            <div class="form-group row">
+                <label for="area" class="col-4 col-form-label">Área</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-cogs"></i>
+                            </div>
+                        </div>
+                        {{ form.area }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fecha de inicio -->
+            <div class="form-group row">
+                <label for="fecha_inicio" class="col-4 col-form-label">Fecha de Inicio</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                        </div>
+                        {{ form.fecha_inicio }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fecha de término -->
+            <div class="form-group row">
+                <label for="fecha_termino" class="col-4 col-form-label">Fecha de Término</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-calendar"></i>
+                            </div>
+                        </div>
+                        {{ form.fecha_termino }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Otros campos -->
+            <div class="form-group row">
+                <label for="coordenada_este" class="col-4 col-form-label">Coordenada Este (Formato: 123456)</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-map-marker"></i>
+                            </div>
+                        </div>
+                        {{ form.coordenada_este }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="coordenada_norte" class="col-4 col-form-label">Coordenada Norte (Formato: 1234567)</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-map-marker"></i>
+                            </div>
+                        </div>
+                        {{ form.coordenada_norte }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="elevacion" class="col-4 col-form-label">Elevación (Formato: 12345)</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-arrow-up"></i>
+                            </div>
+                        </div>
+                        {{ form.elevacion }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="profundidad" class="col-4 col-form-label">Profundidad</label>
+                <div class="col-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <i class="fa fa-pencil"></i>
+                            </div>
+                        </div>
+                        {{ form.profundidad }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="observacion" class="col-4 col-form-label">Observación</label>
+                <div class="col-8">
+                    {{ form.observacion }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="verificacion_puntos" class="col-4 col-form-label">Verificación de Puntos</label>
+                <div class="col-8">
+                    {{ form.verificacion_puntos }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="plataforma" class="col-4 col-form-label">Plataforma</label>
+                <div class="col-8">
+                    {{ form.plataforma }}
+                </div>
+            </div>
+
+            <div class="form-group row" id="inclinacionField" style="display:none;">
+                <label for="inclinacion" class="col-4 col-form-label">Inclinación</label>
+                <div class="col-8">
+                    {{ form.inclinacion }}
+                </div>
+            </div>
+
+            <div class="form-group row" id="diametroField" style="display:none;">
+                <label for="diametro" class="col-4 col-form-label">Diámetro</label>
+                <div class="col-8">
+                    {{ form.diametro }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="tapado" class="col-4 col-form-label">Tapado</label>
+                <div class="col-8">
+                    {{ form.tapado }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="contratista" class="col-4 col-form-label">Contratista</label>
+                <div class="col-8">
+                    {{ form.contratista }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="marca_maquina1" class="col-4 col-form-label">Marca Máquina 1</label>
+                <div class="col-8">
+                    {{ form.marca_maquina1 }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="modelo_maquina1" class="col-4 col-form-label">Modelo Máquina 1</label>
+                <div class="col-8">
+                    {{ form.modelo_maquina1 }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="ppu1" class="col-4 col-form-label">PPU 1</label>
+                <div class="col-8">
+                    {{ form.ppu1 }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="marca_maquina2" class="col-4 col-form-label">Marca Máquina 2</label>
+                <div class="col-8">
+                    {{ form.marca_maquina2 }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="modelo_maquina2" class="col-4 col-form-label">Modelo Máquina 2</label>
+                <div class="col-8">
+                    {{ form.modelo_maquina2 }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="ppu2" class="col-4 col-form-label">PPU 2</label>
+                <div class="col-8">
+                    {{ form.ppu2 }}
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label for="image" class="col-4 col-form-label">Cargar Imagen</label>
+                <div class="col-8">
+                    <input type="file" name="image" id="image" class="form-control" accept="image/*">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-8 offset-4">
+                    <button type="submit" class="btn btn-primary">Actualizar Prospección</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- /page content -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tipoProspeccionField = document.getElementById('id_tipo_prospeccion');
+            var inclinacionField = document.getElementById('inclinacionField');
+            var diametroField = document.getElementById('diametroField');
+
+            tipoProspeccionField.addEventListener('change', function () {
+                if (tipoProspeccionField.value === 'sondajes') {
+                    inclinacionField.style.display = 'block';
+                    diametroField.style.display = 'block';
+                } else {
+                    inclinacionField.style.display = 'none';
+                    diametroField.style.display = 'none';
+                }
+            });
+
+            // Trigger change event on page load to set initial visibility
+            tipoProspeccionField.dispatchEvent(new Event('change'));
+        });
+    </script>
+{% endblock %}

@@ -36,6 +36,27 @@ urlpatterns = [
     path('logout', LogoutView.as_view(next_page='home'), name='logout'),  # Cierre de sesión
     path('index', index_view, name='index'),  # Vista index
 
+    #Buscar para obeter los datos
+    path('obtener_proyectos_prospecciones/', views.obtener_proyectos_prospecciones, name='obtener_proyectos_prospecciones'),
+    path('obtener_proyectos_humedad/', views.obtener_proyectos_humedad, name='obtener_proyectos_humedad'),
+    
+    path('obtener_tipos_prospeccion/', views.obtener_tipos_prospeccion, name='obtener_tipos_prospeccion'),
+    path('obtener_tipos_prospeccion_humedad/', views.obtener_tipos_prospeccion_humedad, name='obtener_tipos_prospeccion_humedad'),    
+    
+    path('obtener_id_prospecciones/', views.obtener_id_prospecciones, name='obtener_id_prospecciones'),
+    path('obtener_id_prospecciones_humedad/', views.obtener_id_prospecciones_humedad, name='obtener_id_prospecciones_humedad'),
+
+    path('obtener_areas_prospecciones/', views.obtener_areas_prospecciones, name='obtener_areas_prospecciones'),
+    path('obtener_areas_humedad/', views.obtener_areas_humedad, name='obtener_areas_humedad'),
+
+
+
+    path('get_area', views.get_area, name='get_area'),    
+
+
+
+
+
     path('listar_usuarios', views.listar_usuarios, name="listar_usuarios"),
     path('agregar_usuarios', views.agregar_usuarios, name="agregar_usuarios"),
     path('editar_usuarios', views.editar_usuarios, name="editar_usuarios"),
@@ -52,10 +73,8 @@ urlpatterns = [
     
     path('agregar_prospecciones', views.agregar_prospecciones, name='agregar_prospecciones'),
     path('listar_prospecciones', views.listar_prospecciones, name='listar_prospecciones'),  
-    path('obtener_tipos_prospeccion/', views.obtener_tipos_prospeccion, name='obtener_tipos_prospeccion'),
-    path('obtener_id_prospecciones/', views.obtener_id_prospecciones, name='obtener_id_prospecciones'),
-    path('get_area', views.get_area, name='get_area'),
-    path('ver_prospeccion/<int:n>', views.ver_prospeccion, name='ver_prospeccion'),
+
+    path('ver_prospecciones/<int:n>', views.ver_prospecciones, name='ver_prospecciones'),
     path('editar_prospeccion/<int:n>', views.editar_prospeccion, name='editar_prospeccion'),
     path('eliminar_prospeccion/<int:n>', views.eliminar_prospeccion, name='eliminar_prospeccion'),
     path('export_to_excel_prospecciones', views.export_to_excel_prospecciones, name='export_to_excel_prospecciones'),
@@ -80,10 +99,18 @@ urlpatterns = [
     path('eliminar_humedad/<int:pk>/', views.eliminar_humedad, name='eliminar_humedad'),
 
     path('graficos_humedad', views.graficos_humedad, name='graficos_humedad'),
-    path('obtener_areas/', views.obtener_areas, name='obtener_areas'),
 
+    path('listar_programa', views.listar_programa, name='listar_programa'),
+    path('agregar_programa', views.agregar_programa, name='agregar_programa'),
+    path('estatus_programa', views.estatus_programa, name='estatus_programa'),
+    path('exportar_to_excel_programa/', views.export_to_excel_programa, name='export_to_excel_programa'),
+    path('exportar_to_pdf_programa/', views.export_to_pdf_programa, name='export_to_pdf_programa'),
+    path('ver_programa/<int:n>/', views.ver_programa, name='ver_programa'),
+    path('editar_programa/<int:n>/editar/', views.editar_programa, name='editar_programa'),
+    path('eliminar_programa/<int:n>/eliminar/', views.eliminar_programa, name='eliminar_programa'),
+    
 
-
+    path('historial', views.historial, name='historial'),
 
 
 

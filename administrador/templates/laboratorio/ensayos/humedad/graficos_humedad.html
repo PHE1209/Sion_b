@@ -10,7 +10,7 @@
             <select id="id_proyecto" name="id_proyecto" class="form-control">
                 <option value="">Proyecto</option>
                 {% for proyecto in proyectos %}
-                <option value="{{ proyecto.id }}">{{ proyecto.id }}</option>
+                <option value="{{ proyecto.id_proyecto }}">{{ proyecto.id_proyecto }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -32,6 +32,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary">Actualizar Gráfico</button>
+        <button type="button" class="btn btn-secondary" id="limpiarBtn">Limpiar</button>
     </form>
     
     <h2>Gráfico de Áreas</h2>
@@ -45,8 +46,6 @@
     </div>
 </div>
 
-<button id="actualizarTabla" onclick="actualizarTabla()">Actualizar Tabla</button>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
@@ -55,7 +54,7 @@
             if (id_proyecto) {
                 // Cargar tipos de prospección
                 $.ajax({
-                    url: '{% url "obtener_tipos_prospeccion" %}',
+                    url: '{% url "obtener_tipos_prospeccion_humedad" %}',
                     data: {
                         'id_proyecto': id_proyecto
                     },
@@ -74,7 +73,7 @@
 
                 // Cargar áreas
                 $.ajax({
-                    url: '{% url "obtener_areas" %}',
+                    url: '{% url "obtener_areas_humedad" %}',
                     data: {
                         'id_proyecto': id_proyecto
                     },
@@ -97,17 +96,12 @@
                 $('#area').append('<option value="">Área</option>'); // Restablecer a la opción por defecto
             }
         });
-    });
 
-    function actualizarTabla() {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/ruta_a_tu_endpoint", true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                document.getElementById("tablaHumedad").innerHTML = xhr.responseText;
-            }
-        };
-        xhr.send();
-    }
+        // Agregar evento al botón Limpiar
+        $('#limpiarBtn').click(function() {
+            // Redirigir a la URL graficos_humedad
+            window.location.href = '{% url "graficos_humedad" %}';
+        });
+    });
 </script>
 {% endblock %}

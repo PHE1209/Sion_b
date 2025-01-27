@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.db.models import Q, F
 import pandas as pd
-from .models import Usuarios, Proyectos, Prospecciones, Humedad, Area, Muestreo
+from .models import Usuarios, Proyectos, Prospecciones, Humedad, Area, Muestreo, Programa
 from .forms import forms  # Asegúrate de importar tu formulario
 from datetime import datetime
 from .forms import LoginForm, ProyectoEditForm, ProspeccionesForm, HumedadForm, Muestreo
@@ -140,7 +140,7 @@ def editar_usuarios(request):
     if request.method == 'POST':
         user_id = request.POST.get('n')
         if user_id and all(key in request.POST for key in ['empresa', 'nombre', 'apellido', 'email', 'telefono']):
-            u = get_object_or_404(Usuarios, n=n)
+            u = get_object_or_404(Usuarios, n='n')
             u.empresa = request.POST.get('empresa')
             u.nombre = request.POST.get('nombre')
             u.apellido = request.POST.get('apellido')
@@ -292,7 +292,7 @@ def agregar_prospecciones(request):
             print(form.errors)  # Mostrar errores del formulario
 
     # Para el caso de GET o si el formulario no es válido, renderizar el formulario
-    return render(request, 'prospecciones/agregar_prospecciones.html', {'form': form})
+    return render(request, 'terreno/prospecciones/agregar_prospecciones.html', {'form': form})
 
 
 # Listar prospecciones##############################################
@@ -338,9 +338,9 @@ def listar_prospecciones(request):
 
     # Verificar si la solicitud es AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'prospecciones/prospecciones_table.html', {'page_obj': page_obj})
+        return render(request, 'terreno/prospecciones/prospecciones_table.html', {'page_obj': page_obj})
 
-    return render(request, 'prospecciones/listar_prospecciones.html', {'page_obj': page_obj, 'query': query})
+    return render(request, 'terreno/prospecciones/listar_prospecciones.html', {'page_obj': page_obj, 'query': query})
 
 
 
@@ -367,14 +367,45 @@ def export_to_pdf_prospecciones(request):
     pass
 
 #ver prospeccione##############################################
-def ver_prospeccion(request, n):
-    prospeccion = get_object_or_404(Prospecciones, pk=n)
-    return render(request, 'prospecciones/ver_prospeccion.html', {'prospeccion': prospeccion})
+# C:\Users\Mateo\OneDrive\AR\Sion_b\web_admin\administrador\views.py
+
+# C:\Users\Mateo\OneDrive\AR\Sion_b\web_admin\administrador\views.py
+
+from django.shortcuts import render, get_object_or_404
+from .models import Prospecciones
+
+def ver_prospecciones(request, prospeccion_id):
+    # Obtener la prospección por ID
+    prospeccion = get_object_or_404(Prospecciones, n=prospeccion_id)
+    return render(request, 'ver_prospecciones.html', {'prospeccion': prospeccion})
+
 
 #editar prospeccione##############################################
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Prospecciones, Proyectos
+from .forms import ProspeccionesForm
+
+@login_required
 def editar_prospeccion(request, n):
-    # Lógica para editar prospecciones
-    pass
+    prospeccion = get_object_or_404(Prospecciones, pk=n)
+    proyectos = Proyectos.objects.all()
+
+    if request.method == 'POST':
+        form = ProspeccionesForm(request.POST, request.FILES, instance=prospeccion)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_prospecciones')  # Redirige a la vista de lista de prospecciones después de guardar
+    else:
+        form = ProspeccionesForm(instance=prospeccion)
+
+    return render(request, 'terreno/prospecciones/editar_prospecciones.html', {
+        'form': form,
+        'prospeccion': prospeccion,
+        'proyectos': proyectos,
+    })
+
+
 
 #eliminar prospeccione##############################################
 def eliminar_prospeccion(request, n):
@@ -386,12 +417,14 @@ def eliminar_prospeccion(request, n):
 
 ####MUESTREO"################################################
 #agregar muestreo (filtros)##############################################
+# Obtener los tipos de prospección
 def obtener_tipos_prospeccion(request):
     id_proyecto = request.GET.get('id_proyecto')
     prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto).values('tipo_prospeccion').distinct()
     tipos_prospeccion = {pros['tipo_prospeccion']: pros['tipo_prospeccion'] for pros in prospecciones}
     return JsonResponse(tipos_prospeccion)
 
+# Obtener los IDs de prospección
 def obtener_id_prospecciones(request):
     id_proyecto = request.GET.get('id_proyecto')
     tipo_prospeccion = request.GET.get('tipo_prospeccion')
@@ -399,6 +432,7 @@ def obtener_id_prospecciones(request):
     id_prospecciones = {pros['n']: pros['id_prospeccion'] for pros in prospecciones}
     return JsonResponse(id_prospecciones)
 
+# Obtener el área de prospección
 def get_area(request):
     prospeccion_id = request.GET.get('prospeccion_id')
     try:
@@ -408,7 +442,7 @@ def get_area(request):
         area = ''
     return JsonResponse({'area': area})
 
-#agregar muestreo##############################################
+# Agregar muestreo
 @login_required
 def agregar_muestreo(request):
     proyectos = Proyectos.objects.all()
@@ -422,10 +456,8 @@ def agregar_muestreo(request):
             try:
                 proyecto = Proyectos.objects.get(id=proyecto_id)
                 post_data['id_proyecto'] = proyecto  # Asignar la instancia del proyecto
-                print(f"Proyecto asignado: {proyecto}")
             except Proyectos.DoesNotExist:
                 post_data['id_proyecto'] = None
-                print("Proyecto no encontrado")
 
         # Convertir el id_prospeccion a una instancia de Prospecciones utilizando el campo correcto
         prospeccion_id = post_data.get('id_prospeccion')
@@ -433,51 +465,53 @@ def agregar_muestreo(request):
             try:
                 prospeccion = Prospecciones.objects.get(n=prospeccion_id)
                 post_data['id_prospeccion'] = prospeccion  # Asignar la instancia de prospección
-                print(f"Prospección asignada: {prospeccion}")
             except Prospecciones.DoesNotExist:
                 post_data['id_prospeccion'] = None
-                print("Prospección no encontrada")
 
         form = MuestreoForm(post_data)
         if form.is_valid():
             muestreo = form.save(commit=False)  # No guardar todavía el objeto
             muestreo.user = request.user  # Asignar el usuario que realiza la operación
             muestreo.save()  # Ahora guardar el objeto
-
-            print("Formulario válido. Datos a guardar:", form.cleaned_data)
             return redirect('listar_muestreo')
-        else:
-            print("Formulario no válido. Errores:", form.errors)
     else:
         form = MuestreoForm()
     
-    return render(request, 'prospecciones/muestreo/agregar_muestreo.html', {'form': form, 'proyectos': proyectos})
+    return render(request, 'terreno/muestreo/agregar_muestreo.html', {'form': form, 'proyectos': proyectos})
+
 
 
 #listar ##############################################
+from django.shortcuts import render
+from django.db.models import Q, CharField, TextField, DateField, DateTimeField, ForeignKey
+from django.core.paginator import Paginator
+from django.apps import apps
+from .models import Muestreo
+
 def listar_muestreo(request):
-    # Obtener todos los registros de muestreo y ordenarlos por un campo específico, por ejemplo, 'n'
-    muestreo = Muestreo.objects.all().order_by('n')
-    
+    # Obtener todos los muestreos y ordenarlos por un campo específico, por ejemplo, 'n'
+    muestreos = Muestreo.objects.all().order_by('n')
+
     # Obtener el término de búsqueda
-    query = request.GET.get('q', '')  # Obtener el término de búsqueda, o una cadena vacía si no existe
+    query = request.GET.get('q', '')
+
     if query:
         # Obtener el modelo Muestreo
         Muestreo_model = apps.get_model('administrador', 'Muestreo')
         
         # Obtener todos los nombres de los campos del modelo Muestreo
-        fields = [field.name for field in Muestreo_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+        campos = [field.name for field in Muestreo_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
         
         # Crear un objeto Q vacío
         query_filter = Q()
         
         # Iterar sobre todos los campos y agregar un filtro Q para cada campo
-        for field in fields:
+        for field in campos:
             if isinstance(Muestreo_model._meta.get_field(field), (DateField, DateTimeField)):
                 # Convertir fechas a cadenas y aplicar icontains
                 query_filter |= Q(**{f"{field}__year__icontains": query})  # Filtrar por año
-                query_filter |= Q(**{f"{field}__month__icontains": query})  # Filtrar por mes
-                query_filter |= Q(**{f"{field}__day__icontains": query})  # Filtrar por día
+                query_filter |= Q(**{f"{field}__month__icontains": query}) # Filtrar por mes
+                query_filter |= Q(**{f"{field}__day__icontains": query})   # Filtrar por día
             elif isinstance(Muestreo_model._meta.get_field(field), ForeignKey):
                 # Para campos de clave foránea, buscar en campos específicos del modelo relacionado
                 related_model = Muestreo_model._meta.get_field(field).related_model
@@ -487,19 +521,19 @@ def listar_muestreo(request):
             else:
                 query_filter |= Q(**{f"{field}__icontains": query})
         
-        # Aplicar el filtro al queryset
-        muestreo = muestreo.filter(query_filter)
+        # Aplicar filtro a la consulta
+        muestreos = muestreos.filter(query_filter)
 
-    # Configurar la paginación
-    paginator = Paginator(muestreo, 10)  # 10 registros de muestreo por página
+    # Configurar paginación
+    paginator = Paginator(muestreos, 10)  # 10 muestreos por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     # Verificar si la solicitud es AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'prospecciones/muestreo/muestreo_table.html', {'page_obj': page_obj})
-
-    return render(request, 'prospecciones/muestreo/listar_muestreo.html', {'page_obj': page_obj, 'query': query})
+        return render(request, 'terreno/muestreo/muestreo_table.html', {'page_obj': page_obj})
+    
+    return render(request, 'terreno/muestreo/listar_muestreo.html', {'page_obj': page_obj, 'query': query})
 
 
 #Exportar a excel ########################################
@@ -527,7 +561,7 @@ def export_to_pdf_muestreo(request):
 #Ver muestras ########################################
 def ver_muestreo(request, n):
     muestreo = get_object_or_404(Muestreo, pk=n)
-    return render(request, 'prospecciones/muestreo/ver_muestreo.html', {'muestreo': muestreo})
+    return render(request, 'terreno/muestreo/ver_muestreo.html', {'muestreo': muestreo})
 
 #Editar muestreo ########################################
 @login_required  # Asegura que solo usuarios autenticados accedan a la vista
@@ -545,7 +579,7 @@ def editar_muestreo(request, n):
             print('Formulario no es válido')  # Mensaje de depuración
             print(form.errors)  # Mostrar errores del formulario
 
-    return render(request, 'prospecciones/muestreo/editar_muestreo.html', {'form': form})
+    return render(request, 'terreno/muestreo/editar_muestreo.html', {'form': form})
 
 
 
@@ -555,7 +589,7 @@ def eliminar_muestreo(request, pk):
     if request.method == 'POST':
         muestreo.delete()
         return redirect('listar_muestreo')
-    return render(request, 'prospecciones/muestreo/listar_muestreo.html', {'muestreo': muestreo})
+    return render(request, 'terreno/muestreo/listar_muestreo.html', {'muestreo': muestreo})
 
 
 
@@ -565,13 +599,48 @@ def eliminar_muestreo(request, pk):
 ####HUMEDAD"################################################
 
 #Agregar humedad##############################################
-##Para los filtros
+##Obtener Datos de los modelos (tablas), para que el filtro busque en los modelos correctos(tablas). Aplica a AGREGAR HUMEDAD, 
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import Proyectos, Prospecciones, Humedad
+from .forms import HumedadForm
+
+# Obtener id_proyecto desde el modelo Prospecciones
+def obtener_proyectos_prospecciones(request, as_json=False): 
+    proyectos = Prospecciones.objects.values('id_proyecto').distinct()
+    proyectos_list = [proj['id_proyecto'] for proj in proyectos if proj['id_proyecto']]
+    proyectos_dict = {proj: proj for proj in proyectos_list}
+    
+    if as_json:
+        return JsonResponse(proyectos_dict, safe=False)
+    return proyectos_list
+
+# Obtener id_proyecto desde el modelo Humedad
+def obtener_proyectos_humedad(request): 
+    humedades = Humedad.objects.values('id_proyecto').distinct()
+    proyectos_list = [proj['id_proyecto'] for proj in humedades if proj['id_proyecto']]
+    proyectos_dict = {proj: proj for proj in proyectos_list}
+    return JsonResponse(proyectos_dict, safe=False)
+
+# Obtener tipo_prospecciones desde el modelo Prospecciones
 def obtener_tipos_prospeccion(request):
     id_proyecto = request.GET.get('id_proyecto')
     prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto).values('tipo_prospeccion').distinct()
     tipos_prospeccion = {pros['tipo_prospeccion']: pros['tipo_prospeccion'] for pros in prospecciones}
     return JsonResponse(tipos_prospeccion)
 
+# Obtener tipo_prospecciones desde el modelo Humedad
+def obtener_tipos_prospeccion_humedad(request):
+    id_proyecto = request.GET.get('id_proyecto')
+    if id_proyecto:
+        humedades = Humedad.objects.filter(id_proyecto=id_proyecto).values('tipo_prospeccion').distinct()
+        tipos_prospeccion = {hum['tipo_prospeccion']: hum['tipo_prospeccion'] for hum in humedades}
+        return JsonResponse(tipos_prospeccion)
+    return JsonResponse({})
+
+# Obtener id_prospecciones desde el modelo Prospecciones
 def obtener_id_prospecciones(request):
     id_proyecto = request.GET.get('id_proyecto')
     tipo_prospeccion = request.GET.get('tipo_prospeccion')
@@ -579,10 +648,48 @@ def obtener_id_prospecciones(request):
     id_prospecciones = {pros['n']: pros['id_prospeccion'] for pros in prospecciones}
     return JsonResponse(id_prospecciones)
 
-##Agregar humedad
+# Obtener id_prospecciones desde el modelo Humedad
+def obtener_id_prospecciones_humedad(request):
+    id_proyecto = request.GET.get('id_proyecto')
+    tipo_prospeccion = request.GET.get('tipo_prospeccion')
+    humedades = Humedad.objects.filter(id_proyecto=id_proyecto, tipo_prospeccion=tipo_prospeccion).values('n', 'id_prospeccion').distinct()
+    id_prospecciones = {pros['n']: pros['id_prospeccion'] for pros in humedades}
+    return JsonResponse(id_prospecciones)
+
+# Obtener área desde el modelo Prospecciones
+def obtener_areas_prospecciones(request):
+    id_proyecto = request.GET.get('id_proyecto')
+    if id_proyecto:
+        prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto).values('area').distinct()
+        areas = [pros['area'] for pros in prospecciones if pros['area']]
+        areas_dict = {area: area for area in areas}
+        return JsonResponse(areas_dict)
+    return JsonResponse({})
+
+# Obtener área desde el modelo Humedad
+def obtener_areas_humedad(request):
+    id_proyecto = request.GET.get('id_proyecto')
+    if id_proyecto:
+        humedades = Humedad.objects.filter(id_proyecto=id_proyecto).values('area').distinct()
+        areas = [hum['area'] for hum in humedades if hum['area']]
+        areas_dict = {area: area for area in areas}
+        return JsonResponse(areas_dict)
+    return JsonResponse({})
+
+# Obtener área desde el modelo Prospecciones
+def get_area(request):
+    prospeccion_id = request.GET.get('prospeccion_id')
+    try:
+        prospeccion = Prospecciones.objects.get(n=prospeccion_id)
+        area = prospeccion.area
+    except Prospecciones.DoesNotExist:
+        area = ''
+    return JsonResponse({'area': area})
+
+# Agregar humedad
 @login_required  # Asegura que solo usuarios autenticados accedan a la vista
 def agregar_humedad(request):
-    proyectos = Proyectos.objects.all()
+    proyectos = obtener_proyectos_prospecciones(request)  # Usar la función para obtener proyectos
 
     if request.method == 'POST':
         post_data = request.POST.copy()
@@ -624,17 +731,33 @@ def agregar_humedad(request):
     
     return render(request, 'laboratorio/ensayos/humedad/agregar_humedad.html', {'form': form, 'proyectos': proyectos})
 
+# Listar humedad
+def listar_humedad(request):
+    humedades = Humedad.objects.all().order_by('n')
+    
+    # Obtener el término de búsqueda
+    query = request.GET.get('q', '')  # Obtener el término de búsqueda, o una cadena vacía si no existe
+    if query:
+        # Filtrar por múltiples columnas usando icontains para búsqueda parcial
+        humedades = humedades.filter(
+            Q(id_proyecto__id__icontains=query) |  # Busca en el campo 'id' del modelo 'Proyectos'
+            Q(id_prospeccion__id_prospeccion__icontains=query) |  # Busca en el campo 'id_prospeccion' del modelo 'Prospecciones'
+            Q(tipo_prospeccion__icontains=query) |
+            Q(humedad__icontains=query) |
+            Q(profundidad_promedio__icontains=query) |
+            Q(area__icontains=query)
+        )
 
-##Traer el campo de area automaticamente
-def get_area(request):
-    prospeccion_id = request.GET.get('prospeccion_id')
-    try:
-        prospeccion = Prospecciones.objects.get(n=prospeccion_id)
-        area = prospeccion.area
-    except Prospecciones.DoesNotExist:
-        area = ''
-    return JsonResponse({'area': area})
+    # Configurar la paginación
+    paginator = Paginator(humedades, 10)  # 10 registros por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
+    # Verificar si la solicitud es AJAX
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'laboratorio/ensayos/humedad/humedad_table.html', {'page_obj': page_obj})
+
+    return render(request, 'laboratorio/ensayos/humedad/listar_humedad.html', {'page_obj': page_obj, 'query': query})
 
 
 #Listar humedad############################
@@ -726,37 +849,45 @@ def eliminar_humedad(request, pk):
 
 #Grafico de humedad############################
 
-# Obtener áreas
-def obtener_areas(request):
-    id_proyecto = request.GET.get('id_proyecto')
-    prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto).values('area').distinct()
-    areas = [pros['area'] for pros in prospecciones if pros['area']]
-    areas_dict = {area: area for area in areas}
-    return JsonResponse(areas_dict)
+# Vista para generar gráficos de humedad
+def graficos_humedad(request):
+    proyectos = Humedad.objects.values('id_proyecto').distinct()
+    areas = Humedad.objects.values_list('area', flat=True).distinct()
+    humedades = Humedad.objects.all()
 
-def obtener_tipos_prospeccion(request):
-    id_proyecto = request.GET.get('id_proyecto')
-    prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto).values('tipo_prospeccion').distinct()
-    tipos_prospeccion = {pros['tipo_prospeccion']: pros['tipo_prospeccion'] for pros in prospecciones}
-    return JsonResponse(tipos_prospeccion)
+    id_proyecto = request.GET.getlist('id_proyecto')
+    tipo_prospeccion = request.GET.get('tipo_prospeccion')
+    area = request.GET.get('area')
 
-def obtener_areas(request):
-    id_proyecto = request.GET.get('id_proyecto')
-    prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto).values('area').distinct()
-    areas = [pros['area'] for pros in prospecciones if pros['area']]
-    areas_dict = {area: area for area in areas}
-    return JsonResponse(areas_dict)
+    if id_proyecto:
+        humedades = humedades.filter(id_proyecto__in=id_proyecto)
+    if tipo_prospeccion:
+        humedades = humedades.filter(tipo_prospeccion__icontains=tipo_prospeccion)
+    if area:
+        humedades = humedades.filter(area__icontains=area)
 
+    df = pd.DataFrame.from_records(humedades.values('id_proyecto', 'id_prospeccion', 'humedad', 'profundidad_promedio', 'area'))
 
-# Generar gráfico de humedad por área
+    image_base64_area = generar_grafico_humedad_area(df) if not df.empty else None
+    image_base64_prospeccion = generar_grafico_humedad_prospeccion(df) if not df.empty else None
+
+    return render(request, 'laboratorio/ensayos/humedad/graficos_humedad.html', {
+        'image_base64_area': image_base64_area,
+        'image_base64_prospeccion': image_base64_prospeccion,
+        'proyectos': proyectos,
+        'areas': areas
+    })
+
+# Funciones para generar gráficos
 def generar_grafico_humedad_area(df):
+    # Generar gráfico de humedad por área
     areas_unicas = df['area'].unique()
     colores = {area: np.random.rand(3,) for area in areas_unicas}
 
-    plt.figure()
+    fig, ax = plt.subplots(figsize=(6, 6))
     for area in areas_unicas:
         datos_area = df[df['area'] == area]
-        plt.scatter(
+        ax.scatter(
             datos_area['humedad'],
             datos_area['profundidad_promedio'],
             color=colores[area],
@@ -765,106 +896,60 @@ def generar_grafico_humedad_area(df):
             marker='+'
         )
 
-    plt.gca().xaxis.set_ticks_position("top")
-    plt.gca().xaxis.set_label_position("top")
-    plt.gca().invert_yaxis()
-    plt.xlabel("Humedad (%)")
-    plt.ylabel("Profundidad (m)")
-    plt.grid(True)
-    plt.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
-    plt.tight_layout()
-
+    ax.xaxis.set_ticks_position("top")
+    ax.xaxis.set_label_position("top")
+    ax.invert_yaxis()
+    ax.set_xlabel("Humedad (%)")
+    ax.set_ylabel("Profundidad (m)")
+    ax.grid(True)
+    plt.subplots_adjust(right=0.75)
+    num_columns = (len(areas_unicas) + 24) // 25  # Ajustar columnas para 25 etiquetas por columna
+    legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
+    
     buffer = BytesIO()
-    plt.savefig(buffer, format='png', bbox_inches='tight')
+    fig.savefig(buffer, format='png', bbox_inches='tight', bbox_extra_artists=[legend])
     buffer.seek(0)
     plt.close()
-
     image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return image_base64
 
-import pandas as pd
-
 def generar_grafico_humedad_prospeccion(df):
-    # Convertir id_prospeccion a tipo string si es necesario
+    # Generar gráfico de humedad por prospección
     df['id_prospeccion'] = df['id_prospeccion'].astype(str)
-    
-    # Crear una columna con el número secuencial para cada 'id_prospeccion'
     df['id_prospeccion_unico'] = df.groupby('id_prospeccion').cumcount() + 1
-    
-    # Crear la etiqueta con el formato 'id_prospeccion-id_unico'
     df['etiqueta'] = df['id_prospeccion'] + '-' + df['id_prospeccion_unico'].astype(str)
   
-    prospecciones_unicas = df['etiqueta'].unique()  # Usamos la columna 'etiqueta'
-    print("Valores únicos de 'etiqueta':", prospecciones_unicas)
-
+    prospecciones_unicas = df['etiqueta'].unique()
     colores = {prospeccion: np.random.rand(3,) for prospeccion in prospecciones_unicas}
 
-    plt.figure()
+    fig, ax = plt.subplots(figsize=(6, 6))
     for prospeccion in prospecciones_unicas:
         datos_prospeccion = df[df['etiqueta'] == prospeccion]
-        plt.scatter(
+        ax.scatter(
             datos_prospeccion['humedad'],
             datos_prospeccion['profundidad_promedio'],
             color=colores[prospeccion],
             s=100,
-            label=prospeccion,  # Usamos la etiqueta completa 'TPP-id_prospeccion-id_unico'
+            label=prospeccion,
             marker='+'
         )
 
-    plt.gca().xaxis.set_ticks_position("top")
-    plt.gca().xaxis.set_label_position("top")
-    plt.gca().invert_yaxis()
-    plt.xlabel("Humedad (%)")
-    plt.ylabel("Profundidad (m)")
-    plt.grid(True)
-    plt.legend(loc='center left', bbox_to_anchor=(1.0, 0.5))
-    plt.tight_layout()
+    ax.xaxis.set_ticks_position("top")
+    ax.xaxis.set_label_position("top")
+    ax.invert_yaxis()
+    ax.set_xlabel("Humedad (%)")
+    ax.set_ylabel("Profundidad (m)")
+    ax.grid(True)
+    plt.subplots_adjust(right=0.75)
+    num_columns = (len(prospecciones_unicas) + 24) // 25  # Ajustar columnas para 25 etiquetas por columna
+    legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
 
     buffer = BytesIO()
-    plt.savefig(buffer, format='png', bbox_inches='tight')
+    fig.savefig(buffer, format='png', bbox_inches='tight', bbox_extra_artists=[legend])
     buffer.seek(0)
     plt.close()
-
     image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return image_base64
-
-
-def graficos_humedad(request):
-    proyectos = Proyectos.objects.all()
-    prospecciones = Prospecciones.objects.all()
-    areas = Humedad.objects.values_list('area', flat=True).distinct()
-    humedades = Humedad.objects.all()
-
-    id_proyecto = request.GET.getlist('id_proyecto')
-    area = request.GET.get('area')
-
-    if id_proyecto:
-        humedades = humedades.filter(id_proyecto__in=id_proyecto)
-    if area:
-        humedades = humedades.filter(area__icontains=area)
-
-    df = pd.DataFrame.from_records(humedades.values('id_proyecto', 'id_prospeccion', 'humedad', 'profundidad_promedio', 'area'))
-
-
-    image_base64_area = generar_grafico_humedad_area(df) if not df.empty else None
-    image_base64_prospeccion = generar_grafico_humedad_prospeccion(df) if not df.empty else None
-
-    if image_base64_area and image_base64_prospeccion:
-        return render(request, 'laboratorio/ensayos/humedad/graficos_humedad.html', {
-            'image_base64_area': image_base64_area,
-            'image_base64_prospeccion': image_base64_prospeccion,
-            'proyectos': proyectos,
-            'areas': areas
-        })
-    else:
-        return JsonResponse({'error': 'No data available for the given filters.'})
-
-
-from django.shortcuts import render
-
-def indexx(request):
-    return render(request, 'indexx.html')
-
 
 ############ENSAYOS LABORATORIO########################################
 
@@ -882,3 +967,272 @@ def indexx(request):
 
 ####SALES SOLUBLES TOTALES################################################
 
+############PROGRAMA########################################
+# Agregar programas ##############################################
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Proyectos, Prospecciones, Programa
+from .forms import ProgramaForm
+
+@login_required  # Asegura que solo usuarios autenticados accedan a la vista
+def agregar_programa(request):
+    proyectos = Proyectos.objects.all()
+
+    if request.method == 'POST':
+        post_data = request.POST.copy()
+
+        # Convertir el id_proyecto a una instancia de Proyectos utilizando el campo correcto
+        proyecto_id = post_data.get('id_proyecto')
+        if proyecto_id:
+            try:
+                proyecto = Proyectos.objects.get(id=proyecto_id)
+                post_data['id_proyecto'] = proyecto  # Asignar la instancia del proyecto
+                print(f"Proyecto asignado: {proyecto}")
+            except Proyectos.DoesNotExist:
+                post_data['id_proyecto'] = None
+                print("Proyecto no encontrado")
+
+        # Convertir el id_prospeccion a una instancia de Prospecciones utilizando el campo correcto
+        prospeccion_id = post_data.get('id_prospeccion')
+        if prospeccion_id:
+            try:
+                prospeccion = Prospecciones.objects.get(n=prospeccion_id)
+                post_data['id_prospeccion'] = prospeccion  # Asignar la instancia de prospección
+                print(f"Prospección asignada: {prospeccion}")
+            except Prospecciones.DoesNotExist:
+                post_data['id_prospeccion'] = None
+                print("Prospección no encontrada")
+
+        form = ProgramaForm(post_data)
+        if form.is_valid():
+            programa = form.save(commit=False)  # No guardar todavía el objeto
+            programa.user = request.user  # Asignar el usuario que realiza la operación
+            programa.save()  # Ahora guardar el objeto
+
+            print("Formulario válido. Datos a guardar:", form.cleaned_data)
+            return redirect('listar_programa')
+        else:
+            print("Formulario no válido. Errores:", form.errors)
+    else:
+        form = ProgramaForm()
+    
+    return render(request, 'laboratorio/programa/agregar_programa.html', {'form': form, 'proyectos': proyectos})
+
+## Traer el campo de área automáticamente
+def get_area(request):
+    prospeccion_id = request.GET.get('prospeccion_id')
+    try:
+        prospeccion = Prospecciones.objects.get(n=prospeccion_id)
+        area = prospeccion.area
+    except Prospecciones.DoesNotExist:
+        area = ''
+    return JsonResponse({'area': area})
+
+
+# Listar programas ##############################################
+def listar_programa(request):
+    programas = Programa.objects.all().order_by('n')
+    
+    query = request.GET.get('q', '')
+    if query:
+        Programa_model = apps.get_model('administrador', 'Programa')
+        fields = [field.name for field in Programa_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+        query_filter = Q()
+        for field in fields:
+            if isinstance(Programa_model._meta.get_field(field), (DateField, DateTimeField)):
+                query_filter |= Q(**{f"{field}__year__icontains": query})
+                query_filter |= Q(**{f"{field}__month__icontains": query})
+                query_filter |= Q(**{f"{field}__day__icontains": query})
+            elif isinstance(Programa_model._meta.get_field(field), ForeignKey):
+                related_model = Programa_model._meta.get_field(field).related_model
+                related_fields = [f"{field}__{related_field.name}" for related_field in related_model._meta.get_fields() if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    query_filter |= Q(**{f"{related_field}__icontains": query})
+            else:
+                query_filter |= Q(**{f"{field}__icontains": query})
+        programas = programas.filter(query_filter)
+
+    paginator = Paginator(programas, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'laboratorio/programa/programa_table.html', {'page_obj': page_obj})
+
+    return render(request, 'laboratorio/programa/listar_programa.html', {'page_obj': page_obj, 'query': query})
+
+# Exportar el archivo excel ######
+def export_to_excel_programa(request):
+    programas = Programa.objects.all().values()
+    df = pd.DataFrame(programas)
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=programas.xlsx'
+    df.to_excel(response, index=False)
+    return response
+
+def export_to_pdf_programa(request):
+    # Lógica para exportar programas a PDF
+    pass
+
+# Ver programa ##############################################
+def ver_programa(request, n):
+    programa = get_object_or_404(programa, pk=n)
+    return render(request, 'laboratorio/programa/listar_programa.html', {'programa': programa})
+
+# Editar programa ##############################################
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Programa, Proyectos, Prospecciones
+from .forms import ProgramaForm
+
+@login_required
+def editar_programa(request, n):
+    programa = get_object_or_404(Programa, pk=n)
+    proyectos = Proyectos.objects.all()
+    prospecciones = Prospecciones.objects.all()
+
+    if request.method == 'POST':
+        form = ProgramaForm(request.POST, instance=programa)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_programa')
+    else:
+        form = ProgramaForm(instance=programa)
+
+    return render(request, 'laboratorio/programa/editar_programa.html', {
+        'form': form,
+        'programa': programa,
+        'proyectos': proyectos,
+        'prospecciones': prospecciones
+    })
+
+
+# Eliminar programa ##############################################
+def eliminar_programa(request, n):
+    programa = get_object_or_404(programa, pk=n)
+    programa.delete()
+    return redirect('listar_programa')
+
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Programa, Proyectos
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from io import BytesIO
+import base64
+from decimal import Decimal
+from matplotlib.ticker import MaxNLocator
+
+@login_required
+def estatus_programa(request):
+    id_proyecto = request.GET.get('id_proyecto')
+    tipo_prospeccion = request.GET.get('tipo_prospeccion')
+    objetivo = request.GET.get('objetivo')
+
+    programas = Programa.objects.all()
+    if id_proyecto:
+        programas = programas.filter(id_proyecto=id_proyecto)
+    if tipo_prospeccion:
+        programas = programas.filter(tipo_prospeccion=tipo_prospeccion)
+    if objetivo:
+        programas = programas.filter(objetivo=objetivo)
+
+    # Convertir datos a DataFrame
+    df = pd.DataFrame.from_records(programas.values('objetivo', 'cantidad', 'cantidad_recibida'))
+
+    # Contar objetivos y calcular avance
+    objetivo_counts = df.groupby('objetivo')['cantidad'].sum().sort_index()
+    avance_counts = df.groupby('objetivo')['cantidad_recibida'].sum().sort_index()
+
+    # Asegurarse de que ambos arrays tengan la misma longitud
+    if len(objetivo_counts) != len(avance_counts):
+        # Rellenar avance_counts con ceros para los objetivos que no tienen avances
+        avance_counts = avance_counts.reindex(objetivo_counts.index, fill_value=0)
+
+    # Convertir Decimal a float
+    objetivo_counts = objetivo_counts.astype(float)
+    avance_counts = avance_counts.astype(float)
+
+    # Calcular totales
+    total_count = float(objetivo_counts.sum())
+    total_avance = float(avance_counts.sum())
+
+    # Generar gráfico de barras laterales con superposición
+    plt.figure(figsize=(12, len(objetivo_counts) * 0.5))
+    indices = np.arange(len(objetivo_counts))
+    bar_width = 0.35
+
+    plt.barh(indices, objetivo_counts, bar_width, label='Total', color='lightgray')
+    plt.barh(indices, avance_counts, bar_width, label='Avance', color='blue')
+
+    plt.xlabel('Conteo')
+    plt.ylabel('Objetivo')
+    plt.title('Estatus de Programas')
+    plt.yticks(indices, objetivo_counts.index)
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))  # Asegura que el eje de conteo use números enteros
+    plt.legend(loc='upper right')
+
+    for i, (total, avance) in enumerate(zip(objetivo_counts, avance_counts)):
+        plt.text(total + 0.5, i, f'{avance}', va='center', color='blue')
+
+    plt.tight_layout()
+
+    # Guardar gráfico de barras en memoria
+    buffer_barras = BytesIO()
+    plt.savefig(buffer_barras, format='png')
+    buffer_barras.seek(0)
+    image_base64_barras = base64.b64encode(buffer_barras.getvalue()).decode('utf-8')
+    plt.close()
+
+    # Generar gráfico de anillo más pequeño
+    plt.figure(figsize=(4, 4))  # Tamaño reducido al 50%
+    labels = ['Avance', 'Pendiente']
+    sizes = [total_avance, total_count - total_avance]
+    colors = ['blue', 'lightgray']
+    plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=140, colors=colors)
+    centre_circle = plt.Circle((0, 0), 0.70, fc='white')
+    fig = plt.gcf()
+    fig.gca().add_artist(centre_circle)
+    plt.title('Porcentaje Total de Avance')
+
+    plt.tight_layout()
+
+    # Guardar gráfico de anillo en memoria
+    buffer_anillo = BytesIO()
+    plt.savefig(buffer_anillo, format='png')
+    buffer_anillo.seek(0)
+    image_base64_anillo = base64.b64encode(buffer_anillo.getvalue()).decode('utf-8')
+    plt.close()
+
+    proyectos = Proyectos.objects.all()
+    return render(request, 'laboratorio/programa/estatus_programa.html', {
+        'image_base64_barras': image_base64_barras,
+        'image_base64_anillo': image_base64_anillo,
+        'proyectos': proyectos
+    })
+    
+    
+    
+    
+#auditoria prospecciones    
+def historial(request):
+    historiales = Prospecciones.history.all()
+    cambios = []
+    
+    for historial in historiales:
+        if historial.prev_record:
+            diff = historial.diff_against(historial.prev_record)
+            for change in diff.changes:
+                cambios.append({
+                    'fecha': historial.history_date,
+                    'usuario': historial.history_user,
+                    'campo': change.field,
+                    'valor_anterior': change.old,
+                    'valor_nuevo': change.new,
+                    'resumen': f"En la fecha {historial.history_date} se modificó el campo {change.field} de {change.old} a {change.new}"
+                })
+
+    return render(request, 'historial.html', {'cambios': cambios})
