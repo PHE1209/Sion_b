@@ -1,0 +1,434 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="right_col" role="main">
+    <h1>AGREGAR GRANULOMETRÍA</h1>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form action="{% url 'agregar_granulometria' %}" method="POST">
+        {% csrf_token %}
+
+        <div class="form-group row">
+            <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-500px"></i>
+                        </div>
+                    </div>
+                    <select id="id_proyecto" name="id_proyecto" class="form-control">
+                        <option value="">Seleccione Proyecto</option>
+                        {% for proyecto in proyectos %}
+                        <option value="{{ proyecto }}">{{ proyecto }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.id_proyecto.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.id_proyecto.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-500px"></i>
+                        </div>
+                    </div>
+                    <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
+                        <option value="">Seleccione Tipo de Prospección</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="id_prospeccion" class="col-4 col-form-label">Prospección</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-500px"></i>
+                        </div>
+                    </div>
+                    <select id="id_prospeccion" name="id_prospeccion" class="form-control">
+                        <option value="">Seleccione Prospección</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_0075" class="col-4 col-form-label">0.075 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_0075 }}
+                    {% if form.n_0075.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_0075.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_0110" class="col-4 col-form-label">0.110 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_0110 }}
+                    {% if form.n_0110.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_0110.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_0250" class="col-4 col-form-label">0.250 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_0250 }}
+                    {% if form.n_0250.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_0250.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_0420" class="col-4 col-form-label">0.420 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_0420 }}
+                    {% if form.n_0420.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_0420.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_0840" class="col-4 col-form-label">0.840 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_0840 }}
+                    {% if form.n_0840.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_0840.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_2000" class="col-4 col-form-label">2.000 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_2000 }}
+                    {% if form.n_2000.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_2000.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group row">
+            <label for="n_4760" class="col-4 col-form-label">4.760 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_4760 }}
+                    {% if form.n_4760.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_4760.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_9520" class="col-4 col-form-label">9.520 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_9520 }}
+                    {% if form.n_9520.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_9520.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_19000" class="col-4 col-form-label">19.000 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_19000 }}
+                    {% if form.n_19000.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_19000.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_25400" class="col-4 col-form-label">25.400 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_25400 }}
+                    {% if form.n_25400.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_25400.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_38100" class="col-4 col-form-label">38.100 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_38100 }}
+                    {% if form.n_38100.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_38100.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_50800" class="col-4 col-form-label">50.800 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_50800 }}
+                    {% if form.n_50800.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_50800.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_63500" class="col-4 col-form-label">63.500 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_63500 }}
+                    {% if form.n_63500.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_63500.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="n_75000" class="col-4 col-form-label">75.000 mm</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-tint"></i>
+                        </div>
+                    </div>
+                    {{ form.n_75000 }}
+                    {% if form.n_75000.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.n_75000.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label for="area" class="col-4 col-form-label">Área</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fa fa-area-chart"></i>
+                        </div>
+                    </div>
+                    <input type="text" id="area" name="area" class="form-control" value="{{ form.area.value }}">
+                    {% if form.area.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.area.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-8 offset-4">
+                <button type="submit" class="btn btn-primary">Agregar Granulometría</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#id_proyecto').change(function() {
+            var id_proyecto = $(this).val();
+            if (id_proyecto) {
+                // Obtener tipos de prospección
+                $.ajax({
+                    url: '{% url "obtener_tipos_prospeccion" %}',
+                    data: {'id_proyecto': id_proyecto},
+                    success: function(data) {
+                        var tipoProspeccionSelect = $('#tipo_prospeccion');
+                        tipoProspeccionSelect.empty();
+                        tipoProspeccionSelect.append('<option value="">Seleccione Tipo de Prospección</option>');
+                        $.each(data, function(key, value) {
+                            tipoProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo de Prospección</option>');
+                $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
+            }
+        });
+
+        $('#tipo_prospeccion').change(function() {
+            var id_proyecto = $('#id_proyecto').val();
+            var tipo_prospeccion = $(this).val();
+            if (id_proyecto && tipo_prospeccion) {
+                // Obtener ID de prospecciones
+                $.ajax({
+                    url: '{% url "obtener_id_prospecciones" %}',
+                    data: {
+                        'id_proyecto': id_proyecto,
+                        'tipo_prospeccion': tipo_prospeccion
+                    },
+                    success: function(data) {
+                        var idProspeccionSelect = $('#id_prospeccion');
+                        idProspeccionSelect.empty();
+                        idProspeccionSelect.append('<option value="">Seleccione Prospección</option>');
+                        $.each(data, function(key, value) {
+                            idProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
+            }
+        });
+
+        $('#id_prospeccion').change(function() {
+            var prospeccion_id = $(this).val();
+            if (prospeccion_id) {
+                // Obtener área
+                $.ajax({
+                    url: '{% url "get_area" %}',
+                    data: {'prospeccion_id': prospeccion_id},
+                    success: function(data) {
+                        $('#area').val(data.area);
+                    }
+                });
+            } else {
+                $('#area').val('');
+            }
+        });
+    });
+</script>
+{% endblock %}

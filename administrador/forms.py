@@ -100,9 +100,70 @@ class HumedadForm(forms.ModelForm):
         fields = ['id_proyecto', 'id_prospeccion', 'tipo_prospeccion', 'humedad', 'profundidad_promedio', 'area']
 
 
-
 #Agregar programa
 class ProgramaForm(forms.ModelForm):
     class Meta:
         model = Programa
         fields = '__all__'
+        
+        
+##Granulometria
+from django import forms
+from .models import Granulometria
+
+class GranulometriaForm(forms.ModelForm):
+    class Meta:
+        model = Granulometria
+        fields = [
+            'id_proyecto', 'id_prospeccion', 'n_0075', 'n_0110', 'n_0250', 
+            'n_0420', 'n_0840', 'n_2000', 'n_4760', 'n_9520', 'n_19000', 
+            'n_25400', 'n_38100', 'n_50800', 'n_63500', 'n_75000', 'area', 'tipo_prospeccion'
+        ]
+        
+        
+        
+# administrador/forms.py
+# from django import forms
+# from .models import Nomina, Proyectos
+
+# class NominaForm(forms.ModelForm):
+#     class Meta:
+#         model = Nomina
+#         fields = [
+#             'id_proyecto', 'empresa', 'fecha_ingreso', 'nombre', 'apellido', 'rut', 'email', 
+#             'telefono', 'cargo', 'titulo', 'turno', 'primer_dia', 'ultimo_dia',
+#         ]
+#         widgets = {
+#             'id_proyecto': forms.Select(attrs={'class': 'form-control'}),
+#             'empresa': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '25'}),
+#             'fecha_ingreso': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+#             'nombre': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '50'}),
+#             'apellido': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '50'}),
+#             'rut': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '25'}),
+#             'email': forms.EmailInput(attrs={'class': 'form-control', 'maxlength': '50'}),
+#             'telefono': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15'}),
+#             'cargo': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '25'}),
+#             'titulo': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '25'}),
+#             'turno': forms.Select(attrs={'class': 'form-control'}),
+#             'primer_dia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+#             'ultimo_dia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+#         }
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fields['id_proyecto'].queryset = Proyectos.objects.all()
+        
+        
+from django import forms
+from .models import Nomina
+
+class NominaForm(forms.ModelForm):
+    class Meta:
+        model = Nomina
+        fields = '__all__'
+        exclude = ['user', 'horas_por_dia_lista', 'total_horas', 'horas_semanales', 'horas_mensuales', 'history']
+        widgets = {
+            'fecha_ingreso': forms.DateInput(attrs={'type': 'date'}),
+            'primer_dia': forms.DateInput(attrs={'type': 'date'}),
+            'ultimo_dia': forms.DateInput(attrs={'type': 'date'}),
+        }

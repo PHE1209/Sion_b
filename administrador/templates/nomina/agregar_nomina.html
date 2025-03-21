@@ -1,0 +1,167 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>AGREGAR NÓMINA</h1>
+
+    {% if errors %}
+    <div class="alert alert-danger">
+        {% for field, error_list in errors.items %}
+        <p>{{ field }}: {{ error_list|join:", " }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form action="{% url 'agregar_nomina' %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group row">
+            <label for="id_id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-500px"></i></div>
+                    </div>
+                    {{ form.id_proyecto }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_empresa" class="col-4 col-form-label">Empresa</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-building"></i></div>
+                    </div>
+                    {{ form.empresa }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_fecha_ingreso" class="col-4 col-form-label">Fecha Ingreso</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                    </div>
+                    {{ form.fecha_ingreso }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_nombre" class="col-4 col-form-label">Nombre</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-user"></i></div>
+                    </div>
+                    {{ form.nombre }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_apellido" class="col-4 col-form-label">Apellido</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-user"></i></div>
+                    </div>
+                    {{ form.apellido }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_rut" class="col-4 col-form-label">RUT</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-id-card"></i></div>
+                    </div>
+                    {{ form.rut }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_email" class="col-4 col-form-label">Email</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-envelope"></i></div>
+                    </div>
+                    {{ form.email }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_telefono" class="col-4 col-form-label">Teléfono</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-phone"></i></div>
+                    </div>
+                    {{ form.telefono }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_cargo" class="col-4 col-form-label">Cargo</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-briefcase"></i></div>
+                    </div>
+                    {{ form.cargo }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_titulo" class="col-4 col-form-label">Título</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-graduation-cap"></i></div>
+                    </div>
+                    {{ form.titulo }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_turno" class="col-4 col-form-label">Turno</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-clock-o"></i></div>
+                    </div>
+                    {{ form.turno }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_primer_dia" class="col-4 col-form-label">Primer Día</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                    </div>
+                    {{ form.primer_dia }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label for="id_ultimo_dia" class="col-4 col-form-label">Último Día</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                    </div>
+                    {{ form.ultimo_dia }}
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-8 offset-4">
+                <button type="submit" class="btn btn-primary">Agregar Nómina</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

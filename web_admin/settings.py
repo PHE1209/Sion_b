@@ -82,6 +82,24 @@ WSGI_APPLICATION = 'web_admin.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# PARA MICROSOFT SQL SERVER
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'mssql',
+#         'NAME': 'terrenos',
+#         'USER': 'UserTerrenos',
+#         'PASSWORD': 'UyUfcT91\\UyUfcT)8=',
+#         'HOST': 'CLSCL500SQL03.corp.pbwan.net',
+#         'PORT': '1433',
+#         'OPTIONS': {
+#             'driver': 'ODBC Driver 17 for SQL Server',
+#             'extra_params': 'TrustServerCertificate=yes',
+#         },
+#     },
+# }
+
+
+#PARA MYSQL
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -92,6 +110,8 @@ DATABASES = {
         'PORT': '3306',       # Puerto por defecto de MySQL
     }
 }
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

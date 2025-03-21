@@ -1,0 +1,85 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1 class="mb-4">Lista de Nómina</h1>
+
+    <form id="searchForm" class="form-inline mb-3">
+        <input type="text" id="searchInput" name="q" value="{{ consulta }}" class="form-control mr-2" placeholder="Buscar...">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+
+    <div class="mb-3">
+        <a href="{% url 'agregar_nomina' %}" class="btn btn-success"><i class="fa fa-plus"></i> Agregar Nómina</a>
+        <a href="{% url 'export_to_excel_nomina' %}" class="btn btn-success"><i class="fa fa-file-excel-o"></i> Exportar a Excel</a>
+        <a href="{% url 'export_to_pdf_nomina' %}" class="btn btn-danger"><i class="fa fa-file-pdf-o"></i> Exportar a PDF</a>
+    </div>
+
+    <table id="nominaTable" class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Proyecto</th>
+                <th>Empresa</th>
+                <th>Fecha Ingreso</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>RUT</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Cargo</th>
+                <th>Título</th>
+                <th>Turno</th>
+                <th>Horas Semanales</th>
+                <th>Primer Día</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for nomina in nomina_list %}
+            <tr>
+                <td>{{ nomina.id }}</td>
+                <td>{{ nomina.id_proyecto|default:"N/A" }}</td>
+                <td>{{ nomina.empresa|default:"N/A" }}</td>
+                <td>{{ nomina.fecha_ingreso|date:"d/m/Y"|default:"N/A" }}</td>
+                <td>{{ nomina.nombre|default:"N/A" }}</td>
+                <td>{{ nomina.apellido|default:"N/A" }}</td>
+                <td>{{ nomina.rut|default:"N/A" }}</td>
+                <td>{{ nomina.email|default:"N/A" }}</td>
+                <td>{{ nomina.telefono|default:"N/A" }}</td>
+                <td>{{ nomina.cargo|default:"N/A" }}</td>
+                <td>{{ nomina.titulo|default:"N/A" }}</td>
+                <td>{{ nomina.turno|default:"N/A" }}</td>
+                <td>{{ nomina.horas_semanales|floatformat:2|default:"N/A" }}</td>
+                <td>{{ nomina.primer_dia|date:"d/m/Y"|default:"N/A" }}</td>
+                <td>
+                    <a href="{% url 'ver_nomina' nomina.id %}" class="btn btn-info btn-sm">Ver</a>
+                    <a href="{% url 'editar_nomina' nomina.id %}" class="btn btn-warning btn-sm">Editar</a>
+                    <form action="{% url 'eliminar_nomina' nomina.id %}" method="post" style="display:inline;"
+                          onsubmit="return confirm('¿Estás seguro de que deseas eliminar este registro de nómina?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if nomina_list.has_other_pages %}
+    <nav>
+        <ul class="pagination">
+            {% if nomina_list.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ nomina_list.previous_page_number }}&q={{ consulta }}">Anterior</a></li>
+            {% endif %}
+            {% for num in nomina_list.paginator.page_range %}
+            <li class="page-item {% if nomina_list.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}&q={{ consulta }}">{{ num }}</a></li>
+            {% endfor %}
+            {% if nomina_list.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ nomina_list.next_page_number }}&q={{ consulta }}">Siguiente</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

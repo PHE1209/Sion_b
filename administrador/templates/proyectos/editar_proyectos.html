@@ -1,4 +1,4 @@
-{% extends '../index_master.html' %}
+{% extends 'index_master.html' %}
 
 {% block content %}
     <div class="right_col" role="main">
@@ -10,7 +10,7 @@
         </div>
         {% endif %}
 
-        <form action="{% url 'editar_proyectos' proyecto.n %}" method="POST">
+        <form action="{% url 'editar_proyectos' proyecto.id %}" method="POST">
             {% csrf_token %}
 
             <div class="form-group row">
@@ -20,59 +20,61 @@
                 </div>
             </div>
 
+            {% if proyecto.estatus_proyecto %}
             <div class="form-group row">
-                <label for="pm" class="col-4 col-form-label">PM</label>
+                <label for="estatus_proyecto" class="col-4 col-form-label">Estatus</label>
                 <div class="col-8">
-                    <input id="pm" name="Estatus" type="text" class="form-control" value="{{ proyecto.estatus_proyecto }}" required>
+                    <input id="estatus_proyecto" name="estatus_proyecto" type="text" class="form-control" value="{{ proyecto.estatus_proyecto }}" required>
                 </div>
             </div>
+            {% endif %}
 
             <div class="form-group row">
                 <label for="pm" class="col-4 col-form-label">PM</label>
                 <div class="col-8">
-                    <input id="pm" name="pm" type="text" class="form-control" value="{{ proyecto.pm }}" required>
+                    <input id="pm" name="pm" type="text" class="form-control" value="{{ proyecto.pm|default:'' }}" required>
                 </div>
             </div>
 
             <div class="form-group row">
                 <label for="empresa" class="col-4 col-form-label">Empresa</label>
                 <div class="col-8">
-                    <input id="empresa" name="empresa" type="text" class="form-control" value="{{ proyecto.empresa }}" required>
+                    <input id="empresa" name="empresa" type="text" class="form-control" value="{{ proyecto.empresa|default:'' }}" required>
                 </div>
             </div>
 
             <div class="form-group row">
                 <label for="nombre" class="col-4 col-form-label">Nombre del proyecto</label>
                 <div class="col-8">
-                    <input id="nombre" name="nombre" type="text" class="form-control" value="{{ proyecto.nombre }}" required>
+                    <input id="nombre" name="nombre" type="text" class="form-control" value="{{ proyecto.nombre|default:'' }}" required>
                 </div>
             </div>
 
             <div class="form-group row">
                 <label for="fecha_inicio" class="col-4 col-form-label">Fecha inicio</label>
                 <div class="col-8">
-                    <input id="fecha_inicio" name="fecha_inicio" type="date" class="form-control" value="{{ proyecto.fecha_inicio }}" required>
+                    <input id="fecha_inicio" name="fecha_inicio" type="date" class="form-control" value="{{ proyecto.fecha_inicio|date:'Y-m-d' }}" required>
                 </div>
             </div>
 
             <div class="form-group row">
-                <label for="fecha_termino" class="col-4 col-form-label">Fecha termino</label>
+                <label for="fecha_termino" class="col-4 col-form-label">Fecha término</label>
                 <div class="col-8">
-                    <input id="fecha_termino" name="fecha_termino" type="date" class="form-control" value="{{ proyecto.fecha_termino }}" required>
+                    <input id="fecha_termino" name="fecha_termino" type="date" class="form-control" value="{{ proyecto.fecha_termino|date:'Y-m-d' }}" required>
                 </div>
             </div>
 
             <div class="form-group row">
                 <label for="alcance" class="col-4 col-form-label">Alcance</label>
                 <div class="col-8">
-                    <textarea id="alcance" name="alcance" cols="40" rows="15" class="form-control" required>{{ proyecto.alcance }}</textarea>
+                    <textarea id="alcance" name="alcance" cols="40" rows="15" class="form-control" required>{{ proyecto.alcance|default:'' }}</textarea>
                 </div>
             </div>
 
             <div class="form-group row">
-                <div class=" offset-4 col-8">
+                <div class="offset-4 col-8">
                     <button name="submit" type="submit" class="btn btn-primary">
-                        <i class="fa fa-save"></i> Submit
+                        <i class="fa fa-save"></i> Guardar
                     </button>
                 </div>
             </div>

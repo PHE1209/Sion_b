@@ -1,9 +1,6 @@
-<!-- listar_humedad.html -->
-
 {% extends 'index_master.html' %}
 
 {% block content %}
-    <!-- page content -->
     <div class="right_col" role="main">
         <h1 class="mb-4">Lista de Humedades</h1>
 
@@ -27,34 +24,37 @@
         <table id="humedadTable" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>N</th> <!-- Columna N -->
+                    <th>N</th>
                     <th>ID Proyecto</th>
                     <th>Tipo Prospección</th>
                     <th>ID Prospección</th>
                     <th>Área</th>
                     <th>Humedad</th>
                     <th>Profundidad Promedio</th>
-                    <th>Acciones</th> <!-- Nueva columna para acciones -->
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody id="humedadTableBody">
                 {% for humedad in page_obj %}
                 <tr>
-                    <td>{{ humedad.n }}</td> <!-- Muestra el valor de la columna N -->
-                    <td>{{ humedad.id_proyecto }}</td> <!-- Muestra el ID del proyecto -->
-                    <td>{{ humedad.tipo_prospeccion }}
-                    <td>{{ humedad.id_prospeccion }}</td> <!-- Muestra el ID de prospección -->
+                    <td>{{ humedad.n }}</td>
+                    <td>{{ humedad.id_proyecto }}</td>
+                    <td>{{ humedad.tipo_prospeccion }}</td>
+                    <td>{{ humedad.id_prospeccion }}</td>
                     <td>{{ humedad.area }}</td>
                     <td>{{ humedad.humedad }}</td>
                     <td>{{ humedad.profundidad_promedio }}</td>
-                    <td>{{ humedad.area }}</td>
                     <td>
-                        <a href="{% url 'ver_humedad' humedad.n %}" class="btn btn-info btn-sm">Ver</a>
-                        <a href="{% url 'editar_humedad' humedad.n %}" class="btn btn-warning btn-sm">Editar</a>
-                        <form action="{% url 'eliminar_humedad' humedad.n %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta entrada de humedad?');">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                        </form>
+                        {% if humedad.n %}
+                            <a href="{% url 'ver_humedad' humedad.n %}" class="btn btn-info btn-sm">Ver</a>
+                            <a href="{% url 'editar_humedad' humedad.n %}" class="btn btn-warning btn-sm">Editar</a>
+                            <form action="{% url 'eliminar_humedad' humedad.n %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta entrada de humedad?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted">No disponible</span>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -76,5 +76,4 @@
             </div>
         </div>
     </div>
-    <!-- /page content -->
 {% endblock %}

@@ -90,9 +90,9 @@
                     </td>
                     <td>{{ prospeccion.user.username }}</td>
                     <td>
-                        <a href="{% url 'ver_prospecciones' prospeccion.n %}" class="btn btn-info btn-sm">Ver</a>
-                        <a href="{% url 'editar_prospeccion' prospeccion.n %}" class="btn btn-warning btn-sm">Editar</a>
-                        <form action="{% url 'eliminar_prospeccion' prospeccion.n %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta prospección?');">
+                        <a href="{% url 'ver_prospecciones' prospeccion.id %}" class="btn btn-info btn-sm">Ver</a>
+                        <a href="{% url 'editar_prospecciones' prospeccion.id %}" class="btn btn-warning btn-sm">Editar</a>
+                        <form action="{% url 'eliminar_prospecciones' prospeccion.id %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta prospección?');">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                         </form>

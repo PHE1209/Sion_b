@@ -1,0 +1,110 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Gráfico de Granulometría</h1>
+
+    <form id="filtrosForm" method="GET" class="form-inline mb-3">
+        <div class="form-group mr-3">
+            <label for="id_proyecto">Proyecto:</label>
+            <select id="id_proyecto" name="id_proyecto" class="form-control select2-checkbox" multiple="multiple">
+                {% for proyecto in proyectos %}
+                <option value="{{ proyecto.id_proyecto }}" {% if proyecto.id_proyecto|stringformat:"s" in selected_id_proyectos %}selected{% endif %}>{{ proyecto.id_proyecto }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group mr-3">
+            <label for="tipo_prospeccion">Tipo de Prospección:</label>
+            <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control select2-checkbox" multiple="multiple">
+                {% for tipo in tipos_prospeccion_inicial %}
+                <option value="{{ tipo }}" {% if tipo|stringformat:"s" in selected_tipos_prospeccion %}selected{% endif %}>{{ tipo }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group mr-3">
+            <label for="area">Área:</label>
+            <select id="area" name="area" class="form-control select2-checkbox" multiple="multiple">
+                {% for area in areas_inicial %}
+                <option value="{{ area }}" {% if area|stringformat:"s" in selected_areas %}selected{% endif %}>{{ area }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group mr-3">
+            <label for="id_prospeccion">ID Prospección:</label>
+            <select id="id_prospeccion" name="id_prospeccion" class="form-control select2-checkbox" multiple="multiple">
+                {% for id_pros in id_prospecciones_inicial %}
+                <option value="{{ id_pros }}" {% if id_pros|stringformat:"s" in selected_id_prospecciones %}selected{% endif %}>{{ id_pros }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Actualizar Gráfico</button>
+        <button type="button" class="btn btn-secondary" id="limpiarBtn" onclick="window.location.href='{% url "graficos_granulometria" %}'">Limpiar</button>
+    </form>
+
+    <h2>Gráfico Agrupado por Proyecto</h2>
+    <div id="grafico-proyecto">
+        {% if image_base64_proyecto %}
+            <img id="grafico_proyecto" src="data:image/png;base64,{{ image_base64_proyecto }}" class="img-fluid" alt="Gráfico de Granulometría por Proyecto">
+        {% else %}
+            <p class="text-muted">{% if error %}{{ error }}{% else %}No hay datos disponibles para mostrar.{% endif %}</p>
+        {% endif %}
+    </div>
+
+    <h2>Gráfico por Prospección</h2>
+    <div id="grafico-prospeccion">
+        {% if image_base64_prospeccion %}
+            <img id="grafico_prospeccion" src="data:image/png;base64,{{ image_base64_prospeccion }}" class="img-fluid" alt="Gráfico de Granulometría por Prospección">
+        {% else %}
+            <p class="text-muted">{% if error %}{{ error }}{% else %}No hay datos disponibles para mostrar.{% endif %}</p>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+    .select2-container { width: 200px !important; }
+    .select2-selection__choice { background-color: #007bff; color: white; }
+    .select2-selection__choice__remove { color: white; }
+</style>
+
+<script>
+$(document).ready(function() {
+    console.log("Documento listo");
+
+    // Inicializar Select2 con checkboxes
+    $('.select2-checkbox').select2({
+        placeholder: "Seleccione una opción",
+        allowClear: true,
+        closeOnSelect: false,
+        templateResult: function(data) {
+            if (!data.id) return data.text;
+            var $option = $('<span><input type="checkbox" class="select2-checkbox-item"> ' + data.text + '</span>');
+            $option.find('input').prop('checked', $(data.element).is(':selected'));
+            return $option;
+        },
+        templateSelection: function(data) {
+            return data.text;
+        },
+        escapeMarkup: function(markup) {
+            return markup;
+        }
+    });
+
+    // Evento del botón Limpiar
+    $('#limpiarBtn').on('click', function(e) {
+        e.preventDefault();
+        console.log("Clic en Limpiar, redirigiendo a: '{% url "graficos_granulometria" %}'");
+        window.location.href = '{% url "graficos_granulometria" %}';
+    });
+
+    // Resto del código (eventos de cambio, loadOptions, etc.) omitido para brevedad
+});
+</script>
+{% endblock %}
