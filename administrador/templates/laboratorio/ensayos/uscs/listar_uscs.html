@@ -1,0 +1,103 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+    <div class="right_col" role="main">
+        <h1 class="mb-4">Lista de Clasificaciones USCS</h1>
+
+        <form id="searchForm" class="form-inline mb-3">
+            <input type="text" id="searchInput" name="q" value="{{ query }}" class="form-control mr-2" placeholder="Buscar...">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+
+        <div class="mb-3">
+            <a href="{% url 'agregar_uscs' %}" class="btn btn-success">
+                <i class="fa fa-plus"></i> Agregar Clasificación USCS
+            </a>
+            <form id="exportExcelForm" action="{% url 'export_to_excel_uscs' %}" method="get" style="display:inline;">
+                <input type="hidden" name="q" value="{{ query }}">
+                <input type="hidden" name="headers" value="ID Proyecto,Tipo Prospección,ID Prospección,ID Muestra,Profundidad Desde,Profundidad Hasta,Profundidad Promedio,USCS,Área,Usuario">
+                <button type="submit" class="btn btn-info">
+                    <i class="fa fa-file-excel-o"></i> Exportar a Excel
+                </button>
+            </form>
+            <form id="exportPdfForm" action="{% url 'export_to_pdf_uscs' %}" method="get" style="display:inline;">
+                <input type="hidden" name="q" value="{{ query }}">
+                <input type="hidden" name="headers" value="ID Proyecto,Tipo Prospección,ID Prospección,ID Muestra,Profundidad Desde,Profundidad Hasta,Profundidad Promedio,USCS,Área,Usuario">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa fa-file-pdf-o"></i> Exportar a PDF
+                </button>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table id="uscsTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID Proyecto</th>
+                        <th>Tipo Prospección</th>
+                        <th>ID Prospección</th>
+                        <th>ID Muestra</th>
+                        <th>Profundidad Desde</th>
+                        <th>Profundidad Hasta</th>
+                        <th>Profundidad Promedio</th>
+                        <th>USCS</th>
+                        <th>Área</th>
+                        <th>Usuario</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for uscs in page_obj %}
+                    <tr>
+                        <td>{{ uscs.id_proyecto.id|default:'-' }}</td>
+                        <td>{{ uscs.tipo_prospeccion|default:'-' }}</td>
+                        <td>{{ uscs.id_prospeccion.id_prospeccion|default:'-' }}</td>
+                        <td>{{ uscs.id_muestra|default:'-' }}</td>
+                        <td>{{ uscs.profundidad_desde|default:'-' }}</td>
+                        <td>{{ uscs.profundidad_hasta|default:'-' }}</td>
+                        <td>{{ uscs.profundidad_promedio|default:'-' }}</td>
+                        <td>{{ uscs.uscs|default:'-' }}</td>
+                        <td>{{ uscs.area|default:'-' }}</td>
+                        <td>{{ uscs.user.username|default:'Sin usuario' }}</td>
+                        <td>
+                            <a href="{% url 'ver_uscs' uscs.id %}" class="btn btn-info btn-sm">Ver</a>
+                            <a href="{% url 'editar_uscs' uscs.id %}" class="btn btn-warning btn-sm">Editar</a>
+                            <form action="{% url 'eliminar_uscs' uscs.id %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta clasificación USCS?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="11" class="text-center">No hay clasificaciones USCS disponibles.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-wrapper">
+            <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1&q={{ query }}" class="btn btn-outline-secondary">Primera</a>
+                    <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}" class="btn btn-outline-secondary">Anterior</a>
+                {% endif %}
+                <span class="mx-2">|</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&q={{ query }}" class="btn btn-outline-secondary">Siguiente</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}" class="btn btn-outline-secondary">Última</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        .table-responsive {
+            overflow-x: auto;
+        }
+    </style>
+{% endblock %}

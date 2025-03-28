@@ -1,81 +1,100 @@
 {% extends 'index_master.html' %}
+{% load static %}
 
 {% block content %}
-    <!-- page content -->
-    <div class="right_col" role="main">
-        <h1 class="mb-4">Lista de Proyectos</h1>
+<div class="right_col" role="main">
+    <h1 class="mb-4">Lista de Proyectos</h1>
 
-        <form id="searchForm" class="form-inline mb-3">
-            <input type="text" id="searchInput" name="q" value="{{ query }}" class="form-control mr-2" placeholder="Buscar...">
-            <button type="submit" class="btn btn-primary">Buscar</button>
+    <form id="searchForm" class="form-inline mb-3">
+        <input type="text" id="searchInput" name="q" value="{{ query }}" class="form-control mr-2" placeholder="Buscar...">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+
+    <div class="mb-3">
+        <a href="{% url 'agregar_proyectos' %}" class="btn btn-success"><i class="fa fa-plus"></i> Agregar Proyecto</a>
+        <form action="{% url 'export_to_excel_proyectos' %}" method="get" style="display:inline;">
+            <input type="hidden" name="q" value="{{ query }}">
+            <button type="submit" class="btn btn-info"><i class="fa fa-file-excel-o"></i> Exportar a Excel</button>
         </form>
+        <form action="{% url 'export_to_pdf_proyectos' %}" method="get" style="display:inline;">
+            <input type="hidden" name="q" value="{{ query }}">
+            <button type="submit" class="btn btn-danger"><i class="fa fa-file-pdf-o"></i> Exportar a PDF</button>
+        </form>
+    </div>
 
-        <div class="mb-3">
-            <a href="{% url 'agregar_proyectos' %}" class="btn btn-success">
-                <i class="fa fa-plus"></i> Agregar Proyecto
-            </a>
-            <a href="{% url 'export_to_excel_proyectos' %}" class="btn btn-info">
-                <i class="fa fa-file-excel-o"></i> Exportar a Excel
-            </a>
-            <a href="{% url 'export_to_pdf_proyectos' %}" class="btn btn-danger">
-                <i class="fa fa-file-pdf-o"></i> Exportar a PDF
-            </a>
-        </div>
-
+    <div style="overflow-x: auto; white-space: nowrap;">
         <table id="proyectosTable" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>N</th> <!-- Si 'n' no existe, considera eliminar esta columna -->
-                    <th>Estatus</th>
                     <th>ID</th>
+                    <th>Estatus Proyecto</th>
                     <th>PM</th>
                     <th>Empresa</th>
                     <th>Nombre</th>
                     <th>Fecha Inicio</th>
                     <th>Fecha Término</th>
                     <th>Alcance</th>
+                    <th>Usuario</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="projectTableBody">
+            <tbody>
                 {% for proyecto in page_obj %}
                 <tr>
-                    <td>{{ proyecto.n|default:"N/A" }}</td> <!-- Si 'n' no existe, muestra "N/A" -->
+                    <td>{{ proyecto.id|default:"N/A" }}</td>
                     <td>{{ proyecto.estatus_proyecto|default:"N/A" }}</td>
-                    <td>{{ proyecto.id }}</td>
                     <td>{{ proyecto.pm|default:"N/A" }}</td>
                     <td>{{ proyecto.empresa|default:"N/A" }}</td>
                     <td>{{ proyecto.nombre|default:"N/A" }}</td>
                     <td>{{ proyecto.fecha_inicio|date:"d/m/Y"|default:"N/A" }}</td>
                     <td>{{ proyecto.fecha_termino|date:"d/m/Y"|default:"N/A" }}</td>
                     <td>{{ proyecto.alcance|default:"N/A" }}</td>
+                    <td>{{ proyecto.user.username|default:"Sin usuario" }}</td>
                     <td>
                         <a href="{% url 'ver_proyectos' proyecto.id %}" class="btn btn-info btn-sm">Ver</a>
                         <a href="{% url 'editar_proyectos' proyecto.id %}" class="btn btn-warning btn-sm">Editar</a>
-                        <form action="{% url 'eliminar_proyectos' proyecto.id %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este proyecto?');">
+                        <form action="{% url 'eliminar_proyectos' proyecto.id %}" method="post" style="display:inline;"
+                              onsubmit="return confirm('¿Estás seguro de que deseas eliminar este proyecto?');">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                         </form>
                     </td>
                 </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center">No hay proyectos disponibles.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
 
-        <div class="pagination-wrapper">
-            <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-            <div class="pagination">
-                {% if page_obj.has_previous %}
-                    <a href="?page=1&q={{ query }}" class="btn btn-outline-secondary">Primera</a>
-                    <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}" class="btn btn-outline-secondary">Anterior</a>
-                {% endif %}
-                <span class="mx-2">|</span>
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}&q={{ query }}" class="btn btn-outline-secondary">Siguiente</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}" class="btn btn-outline-secondary">Última</a>
-                {% endif %}
-            </div>
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-wrapper mt-3">
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page=1&q={{ query }}" class="btn btn-outline-secondary">Primera</a>
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ query }}" class="btn btn-outline-secondary">Anterior</a>
+            {% endif %}
+            <span class="mx-2">|</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ query }}" class="btn btn-outline-secondary">Siguiente</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}&q={{ query }}" class="btn btn-outline-secondary">Última</a>
+            {% endif %}
         </div>
     </div>
-    <!-- /page content -->
+    {% endif %}
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+
+<style>
+.editable-cell { cursor: pointer; transition: background-color 0.3s; }
+.editable-cell:focus { outline: 2px solid #007BFF; background-color: lightblue; }
+.table th, .table td { vertical-align: middle; text-align: center; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+</style>
 {% endblock %}

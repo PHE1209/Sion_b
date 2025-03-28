@@ -28,7 +28,21 @@
     <link href="{% static 'FrWork/admin_lte/build/css/custom.min.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-
+    <!-- Estilos personalizados -->
+    <style>
+        .left_col {
+            width: 300px; /* Aumentamos el ancho de la barra lateral */
+        }
+        .main_menu_side .nav.side-menu > li > a {
+            padding: 10px 15px; /* Más espacio interno para los ítems principales */
+        }
+        .main_menu_side .nav.child_menu > li > a {
+            padding: 8px 20px 8px 40px; /* Más margen izquierdo para submenús */
+        }
+        .main_menu_side .nav.child_menu .nav.child_menu > li > a {
+            padding-left: 20px; /* Más indentación para submenús de tercer nivel */
+        }
+    </style>
 </head>
 
 <body class="nav-md">
@@ -83,14 +97,14 @@
                                             </ul>
                                         </li>
                                         <li>
-                                            <a><i class="fa fa-flask"></i> Muestreo <span class="fa fa-chevron-down"></span></a>
+                                            <a><i class="fa fa-vials"></i> Muestreo <span class="fa fa-chevron-down"></span></a>
                                             <ul class="nav child_menu">
                                                 <li><a href="listar_muestreo">Listar</a></li>
                                                 <li><a href="agregar_muestreo">Agregar</a></li>
                                             </ul>
                                         </li>
                                         <li>
-                                            <a><i class="fa fa-wrench"></i> Ensayos InSitu <span class="fa fa-chevron-down"></span></a>
+                                            <a><i class="fa fa-tools"></i> Ensayos InSitu <span class="fa fa-chevron-down"></span></a>
                                             <ul class="nav child_menu">
                                                 <li>
                                                     <a><i class="fa fa-layer-group"></i> Estratigrafia <span class="fa fa-chevron-down"></span></a>
@@ -103,7 +117,7 @@
                                                     </ul>
                                                 </li>
                                                 <li>
-                                                    <a><i class="fa fa-cubes"></i> Densidad <span class="fa fa-chevron-down"></span></a>
+                                                    <a><i class="fa fa-weight"></i> Densidad <span class="fa fa-chevron-down"></span></a>
                                                     <ul class="nav child_menu">
                                                         <li><a href="listar_densidad">Listar</a></li>
                                                         <li><a href="agregar_densidad">Agregar</a></li>
@@ -125,7 +139,7 @@
                                             </ul>
                                         </li>
                                         <li>
-                                            <a><i class="fa fa-file-text"></i> Informe Diario <span class="fa fa-chevron-down"></span></a>
+                                            <a><i class="fa fa-file-alt"></i> Informe Diario <span class="fa fa-chevron-down"></span></a>
                                             <ul class="nav child_menu">
                                                 <li><a href="listar_informe_diario">Listar</a></li>
                                                 <li><a href="agregar_informe_diario">Agregar</a></li>
@@ -135,7 +149,7 @@
                                 </li>
 
                                 <li>
-                                    <a><i class="fa fa-bar-chart-o"></i> Oficina <span class="fa fa-chevron-down"></span></a>
+                                    <a><i class="fa fa-building"></i> Oficina <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">
                                         <li>
                                             <a><i class="fa fa-calendar"></i> Programa de laboratorio <span class="fa fa-chevron-down"></span></a>
@@ -146,26 +160,30 @@
                                             </ul>
                                         </li>
                                         <li>
-                                            <a><i class="fa fa-vial"></i> Ensayos de laboratorio <span class="fa fa-chevron-down"></span></a>
+                                            <a><i class="fa fa-flask"></i> Ensayos de laboratorio <span class="fa fa-chevron-down"></span></a>
                                             <ul class="nav child_menu">
                                                 <li>
-                                                    <a><i class="fa fa-filter"></i> Clasificacion <span class="fa fa-chevron-down"></span></a>
+                                                    <a><i class="fa fa-filter"></i> Clasificacion USCS <span class="fa fa-chevron-down"></span></a>
                                                     <ul class="nav child_menu">
-                                                        <li><a href="listar_clasificacion">Listar</a></li>
-                                                        <li><a href="agregar_clasificacion">Agregar</a></li>
-                                                        <li><a href="editar_clasificacion">Editar</a></li>
-                                                        <li><a href="eliminar_clasificacion">Eliminar</a></li>
-                                                        <li><a href="graficos_clasificacion">Graficos</a></li>
+                                                        <li><a href="listar_uscs">Listar</a></li>
+                                                        <li><a href="agregar_uscs">Agregar</a></li>
+                                                        <li><a href="graficos_uscs">Graficos</a></li>
                                                     </ul>
                                                 </li>
                                                 <li>
-                                                    <a><i class="fa fa-tint"></i> Humedad <span class="fa fa-chevron-down"></span></a>
+                                                    <a><i class="fa fa-exchange-alt"></i> Indice de plasticidad <span class="fa fa-chevron-down"></span></a>
                                                     <ul class="nav child_menu">
-                                                        <li><a href="listar_humedad">Listar</a></li>
-                                                        <li><a href="agregar_humedad">Agregar</a></li>
-                                                        <li><a href="editar_humedad">Editar</a></li>
-                                                        <li><a href="eliminar_humedad">Eliminar</a></li>
-                                                        <li><a href="graficos_humedad">Graficos</a></li>
+                                                        <li><a href="listar_indice_pasticidad">Listar</a></li>
+                                                        <li><a href="agregar_indice_pasticidad">Agregar</a></li>
+                                                        <li><a href="graficos_indice_pasticidad">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-balance-scale"></i> Gravedad especifica <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_gravedad_especifica">Listar</a></li>
+                                                        <li><a href="agregar_gravedad_especifica">Agregar</a></li>
+                                                        <li><a href="graficos_gravedad_especifica">Graficos</a></li>
                                                     </ul>
                                                 </li>
                                                 <li>
@@ -173,9 +191,47 @@
                                                     <ul class="nav child_menu">
                                                         <li><a href="listar_granulometria">Listar</a></li>
                                                         <li><a href="agregar_granulometria">Agregar</a></li>
-                                                        <li><a href="editar_granulometria">Editar</a></li>
-                                                        <li><a href="eliminar_granulometria">Eliminar</a></li>
                                                         <li><a href="graficos_granulometria">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-road"></i> CBR <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_cbr">Listar</a></li>
+                                                        <li><a href="agregar_cbr">Agregar</a></li>
+                                                        <li><a href="graficos_cbr">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-water"></i> Absorcion de agua <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_absorcion_agua">Listar</a></li>
+                                                        <li><a href="agregar_absorcion_agua">Agregar</a></li>
+                                                        <li><a href="graficos_absorcion_agua">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-flask"></i> Carbonatos <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_carbonatos">Listar</a></li>
+                                                        <li><a href="agregar_carbonatos">Agregar</a></li>
+                                                        <li><a href="graficos_carboanatos">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-compress"></i> Compresion simple <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_compresion_simple">Listar</a></li>
+                                                        <li><a href="agregar_compresion_simple">Agregar</a></li>
+                                                        <li><a href="graficos_compresion_simple">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-tint"></i> Humedad <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_humedad">Listar</a></li>
+                                                        <li><a href="agregar_humedad">Agregar</a></li>
+                                                        <li><a href="graficos_humedad">Graficos</a></li>
                                                     </ul>
                                                 </li>
                                                 <li>
@@ -189,7 +245,7 @@
                                                     </ul>
                                                 </li>
                                                 <li>
-                                                    <a><i class="fa fa-flask"></i> Sales solubles <span class="fa fa-chevron-down"></span></a>
+                                                    <a><i class="fa fa-cubes"></i> Sales solubles <span class="fa fa-chevron-down"></span></a>
                                                     <ul class="nav child_menu">
                                                         <li><a href="listar_sales_solubles">Listar</a></li>
                                                         <li><a href="agregar_sales_solubles">Agregar</a></li>
@@ -198,18 +254,128 @@
                                                         <li><a href="graficos_sales_solubles">Graficos</a></li>
                                                     </ul>
                                                 </li>
-                                                <li><a href="resumen_ensayox">Ensayo x</a></li>
+                                                <li>
+                                                    <a><i class="fa fa-weight-hanging"></i> Densidad aparente <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_densidad_aparente">Listar</a></li>
+                                                        <li><a href="agregar_densidad_aparente">Agregar</a></li>
+                                                        <li><a href="graficos_densidad_aparente">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-arrows-alt-v"></i> Densidad MIN-MAX <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_densidadminmax">Listar</a></li>
+                                                        <li><a href="agregar_densidadminmax">Agregar</a></li>
+                                                        <li><a href="graficos_densidadminmax">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-x-ray"></i> DRX <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_drx">Listar</a></li>
+                                                        <li><a href="agregar_drx">Agregar</a></li>
+                                                        <li><a href="graficos_drx">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-tachometer-alt"></i> Permeabilidad <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_permeabilidad">Listar</a></li>
+                                                        <li><a href="agregar_permeabilidad">Agregar</a></li>
+                                                        <li><a href="graficos_permeabilidad">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-dumbbell"></i> Peso unitario <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_perso_unitario">Listar</a></li>
+                                                        <li><a href="agregar_peso_unitario">Agregar</a></li>
+                                                        <li><a href="graficos_peso_unitario">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-vial"></i> PH <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_ph">Listar</a></li>
+                                                        <li><a href="agregar_ph">Agregar</a></li>
+                                                        <li><a href="graficos_ph">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-hammer"></i> Proctor modificado <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_proctor_modificado">Listar</a></li>
+                                                        <li><a href="agregar_proctor_modificado">Agregar</a></li>
+                                                        <li><a href="graficos_proctor_modificado">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-ruler"></i> Propiedades fisicas <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_propiedades_fisicas">Listar</a></li>
+                                                        <li><a href="agregar_propiedades_fisicas">Agregar</a></li>
+                                                        <li><a href="graficos_propiedades_fisicas">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-shield-alt"></i> Resistencia a la desintegracion <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_resistencia_desintegracion">Listar</a></li>
+                                                        <li><a href="agregar_resistencia_desintegracion">Agregar</a></li>
+                                                        <li><a href="graficos_resistencia_desintegracion">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-tools"></i> Resistencia al Desgaste <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_resistencia_desgaste">Listar</a></li>
+                                                        <li><a href="agregar_resistencia_desgaste">Agregar</a></li>
+                                                        <li><a href="graficos_resistencia_desgaste">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-bolt"></i> Resistividad electrica <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_resistencia_electrica">Listar</a></li>
+                                                        <li><a href="agregar_resistencia_electrica">Agregar</a></li>
+                                                        <li><a href="graficos_resistencia_electrica">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-hourglass"></i> Slake Durability <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_slake_durability">Listar</a></li>
+                                                        <li><a href="agregar_slake_durability">Agregar</a></li>
+                                                        <li><a href="graficos_slake_durability">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-chart-line"></i> Triaxial CID <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_triaxial_cid">Listar</a></li>
+                                                        <li><a href="agregar_triaxial_cid">Agregar</a></li>
+                                                        <li><a href="graficos_triaxial_cid">Graficos</a></li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <a><i class="fa fa-chart-area"></i> Triaxial Roca <span class="fa fa-chevron-down"></span></a>
+                                                    <ul class="nav child_menu">
+                                                        <li><a href="listar_triaxial_roca">Listar</a></li>
+                                                        <li><a href="agregar_triaxial_roca">Agregar</a></li>
+                                                        <li><a href="graficos_triaxial_roca">Graficos</a></li>
+                                                    </ul>
+                                                </li>
                                             </ul>
                                         </li>
-                                        <li><a href="eliminar_ensayox">Eliminar</a></li>
                                     </ul>
                                 </li>
 
                                 <li>
-                                    <a><i class="fa fa-bar-chart-o"></i> Administracion <span class="fa fa-chevron-down"></span></a>
+                                    <a><i class="fa fa-users"></i> Administracion <span class="fa fa-chevron-down"></span></a>
                                     <ul class="nav child_menu">
                                         <li>
-                                            <a><i class="fa fa-sitemap"></i> Nomina <span class="fa fa-chevron-down"></span></a>
+                                            <a><i class="fa fa-address-book"></i> Nomina <span class="fa fa-chevron-down"></span></a>
                                             <ul class="nav child_menu">
                                                 <li><a href="listar_nomina">Listar</a></li>
                                                 <li><a href="agregar_nomina">Agregar</a></li>
@@ -218,14 +384,14 @@
                                             </ul>
                                         </li>
                                         <li>
-                                            <a><i class="fa fa-edit"></i> Proyectos <span class="fa fa-chevron-down"></span></a>
+                                            <a><i class="fa fa-project-diagram"></i> Proyectos <span class="fa fa-chevron-down"></span></a>
                                             <ul class="nav child_menu">
                                                 <li><a href="listar_proyectos">Listar</a></li>
                                                 <li><a href="agregar_proyectos">Agregar</a></li>
                                             </ul>
                                         </li>
                                         <li>
-                                            <a><i class="fa fa-clone"></i> Report <span class="fa fa-chevron-down"></span></a>
+                                            <a><i class="fa fa-file-export"></i> Report <span class="fa fa-chevron-down"></span></a>
                                             <ul class="nav child_menu">
                                                 <li><a href="listar_reporte">Listar</a></li>
                                                 <li><a href="agregar_reporte">Agregar</a></li>
@@ -324,7 +490,6 @@
                                             </span>
                                         </a>
                                     </li>
-                                    <!-- Repeat notification items as needed -->
                                     <li class="nav-item">
                                         <div class="text-center">
                                             <a class="dropdown-item">

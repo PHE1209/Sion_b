@@ -11,16 +11,21 @@ from datetime import timedelta, date, time
 from decimal import Decimal
 import json
 import logging
+from datetime import timedelta, date
+from decimal import Decimal
+from django.db import models
+from django.contrib.auth.models import User
+from simple_history.models import HistoricalRecords
+import logging
+from decimal import Decimal
+from django.db import models
+import logging
+from decimal import Decimal
+from django.db import models
 
-
-
-"""
-python manage.py makemigrations
-python manage.py migrate
-python manage.py createsuperuser
-"""
 
 # Tablas de ejemplo (sin cambios)
+logger = logging.getLogger(__name__)
 class Poll(models.Model):
     question = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
@@ -33,6 +38,7 @@ class Choice(models.Model):
 
 
 # Proyectos ########################
+logger = logging.getLogger(__name__)
 class Proyectos(models.Model):
     id = models.CharField(max_length=25, primary_key=True)  # Sin restricción de formato
     estatus_proyecto = models.CharField(max_length=25, choices=[
@@ -58,6 +64,7 @@ class Proyectos(models.Model):
 
 
 # ProyectoUsuario ########################
+logger = logging.getLogger(__name__)
 class ProyectoUsuario(models.Model):
     proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -68,6 +75,7 @@ class ProyectoUsuario(models.Model):
     ], default='lector')
     asignado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='asignaciones')
     fecha_asignacion = models.DateTimeField(auto_now_add=True)
+    history = HistoricalRecords()
 
     class Meta:
         db_table = 'proyecto_usuario'
@@ -78,13 +86,14 @@ class ProyectoUsuario(models.Model):
 
 
 # Prospecciones ########################
+logger = logging.getLogger(__name__)
 class Prospecciones(models.Model):
+    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
     tipo_prospeccion = models.CharField(max_length=25, choices=[
         ('sondajes', 'Sondajes'),
         ('calicatas', 'Calicatas'),
         ('geofisica', 'Geofísica'),
     ], null=False)
-    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
     id_prospeccion = models.CharField(max_length=25, null=False, unique=True)  # Sin restricción de formato
     area = models.CharField(max_length=50, null=False, blank=False, default='')
     fecha_inicio = models.DateField(null=True, blank=True)
@@ -128,9 +137,10 @@ class Prospecciones(models.Model):
 
 
 # Muestreo ########################
+logger = logging.getLogger(__name__)
 class Muestreo(models.Model):
     id_embalaje = models.CharField(max_length=255, null=False, blank=False)
-    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
+    id_proyecto = models.ForeignKey('Proyectos', on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
     tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True)
     id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion', related_name='muestreos_por_id')
     area = models.CharField(max_length=50, null=False, blank=False)
@@ -185,6 +195,7 @@ class Muestreo(models.Model):
 
 
 # Programa ########################
+logger = logging.getLogger(__name__)
 class Programa(models.Model):
     id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
     tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True)
@@ -245,15 +256,133 @@ class Programa(models.Model):
         return f"Programa: {self.id_proyecto.id} - {self.objetivo}"
 
 
+# Ejemplo de estructura de modelo
+# logger = logging.getLogger(__name__)
+# class uscs(models.Model):
+#     id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
+#     tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True)
+#     id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion')
+#     area = models.CharField(max_length=50, null=True, blank=True)
+#     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+#     history = HistoricalRecords()
 
-# Humedad ########################
-class Humedad(models.Model):
+# Clasificacion USC ########################
+logger = logging.getLogger(__name__)
+class uscs(models.Model):
+    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id') #utiliza la misma escructura que en humedad (replica)
+    tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True) #utiliza la misma escructura que en humedad (replica)
+    id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion') #utiliza la misma escructura que en humedad (replica)
+    id_muestra = models.CharField(max_length=50, null=False, blank=False) #Este va a quedar como una lista desplegale al igual que "id_proyecto, tipo_prospeccion, id_prospeccion"
+    profundidad_desde = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_hasta = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_promedio = models.DecimalField(max_digits=12, decimal_places=3, null=False)
+    uscs = models.CharField(max_length=255, choices=[
+        ('CL', 'CL'),
+        ('GM', 'GM'),
+        ('GP', 'GP'),
+        ('GP-GC', 'GP-GC'),
+        ('GP-GM', 'GP-GM'),
+        ('GW-GM', 'GW-GM'),
+        ('GW', 'GW'),
+        ('GW-GC', 'GW-GC'),
+        ('GC', 'GC'),
+        ('GC-GM', 'GC-GM'),
+        ('SC', 'SC'),
+        ('SC-SM', 'SC-SM'),
+        ('SP', 'SP'),
+        ('SP-SC', 'SP-SC'),
+        ('SP-SM', 'SP-SM'),
+        ('SW', 'SW'),
+        ('SW-SC', 'SW-SC'),
+        ('SW-SM', 'SW-SM'),
+        ('ML', 'ML'),
+        ('MH', 'MH'),
+        ('RC', 'RC'),
+        ('SM', 'SM'),
+        ('CL-ML', 'CL-ML'),
+        ('CH', 'CH'),
+        ('OL', 'OL'),
+        ('OH', 'OH'),
+        ('PT', 'PT'),
+    ], null=True, blank=True)
+    area = models.CharField(max_length=50, null=True, blank=True) 
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    history = HistoricalRecords()
+
+
+    class Meta:
+        db_table = 'uscs'
+
+# Indice de plasticidad ########################
+
+
+
+# Gravedad especifica ########################
+logger = logging.getLogger(__name__)
+class gravedad_especifica(models.Model):
+    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id') #utiliza la misma escructura que en humedad (replica)
+    tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True) #utiliza la misma escructura que en humedad (replica)
+    id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion') #utiliza la misma escructura que en humedad (replica)
+    id_muestra = models.CharField(max_length=50, null=False, blank=False) #Este va a quedar como una lista desplegale al igual que "id_proyecto, tipo_prospeccion, id_prospeccion"
+    profundidad_desde = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_hasta = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_promedio = models.DecimalField(max_digits=12, decimal_places=3, null=False)
+    gravedad_especifica = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    area = models.CharField(max_length=50, null=True, blank=True) 
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    history = HistoricalRecords()
+
+    class Meta:
+        db_table = 'gravedad_especifica'
+
+
+# Granulometria ########################
+logger = logging.getLogger(__name__)
+class Granulometria(models.Model):
     id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
+    tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True)
     id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion')
-    humedad = models.DecimalField(max_digits=12, decimal_places=3, null=False)
+    id_muestra = models.CharField(max_length=50, null=False, blank=False) #Este va a quedar como una lista desplegale al igual que "id_proyecto, tipo_prospeccion, id_prospeccion"
+    profundidad_desde = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_hasta = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
     profundidad_promedio = models.DecimalField(max_digits=12, decimal_places=3, null=False)
     area = models.CharField(max_length=50, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    n_0075 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True)  
+    n_0110 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True)  
+    n_0250 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True)  
+    n_0420 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True) 
+    n_0840 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True)  
+    n_2000 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True)  
+    n_4760 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True)  
+    n_9520 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True)  
+    n_19000 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True) 
+    n_25400 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True) 
+    n_38100 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True) 
+    n_50800 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True) 
+    n_63500 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True) 
+    n_75000 = models.DecimalField(max_digits=12, decimal_places=3, blank=True, null=True) 
+    history = HistoricalRecords()
+
+    class Meta:
+        db_table = 'granulometria'
+
+    def __str__(self):
+        return f"Granulometría: {self.id_prospeccion.id_prospeccion}"
+
+
+# Humedad ########################
+logger = logging.getLogger(__name__)
+class Humedad(models.Model):
+    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
     tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True)
+    id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion')
+    id_muestra = models.CharField(max_length=50, null=False, blank=False) #Este va a quedar como una lista desplegale al igual que "id_proyecto, tipo_prospeccion, id_prospeccion"
+    area = models.CharField(max_length=50, null=True, blank=True)
+    humedad = models.DecimalField(max_digits=12, decimal_places=3, null=False)
+    profundidad_desde = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_hasta = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_promedio = models.DecimalField(max_digits=12, decimal_places=3, null=False)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     history = HistoricalRecords()
 
@@ -280,48 +409,10 @@ class Area(models.Model):
 
 
 
-# Granulometria ########################
-class Granulometria(models.Model):
-    id_proyecto = models.ForeignKey(Proyectos, on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
-    id_prospeccion = models.ForeignKey(Prospecciones, on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion')
-    n_0075 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_0110 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_0250 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_0420 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_0840 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_2000 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_4760 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_9520 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_19000 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_25400 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_38100 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_50800 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_63500 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    n_75000 = models.DecimalField(max_digits=12, decimal_places=3, null=False)
-    area = models.CharField(max_length=50, null=True, blank=True)
-    tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    history = HistoricalRecords()
-
-    class Meta:
-        db_table = 'granulometria'
-
-    def __str__(self):
-        return f"Granulometría: {self.id_prospeccion.id_prospeccion}"
-
-
 
 
 #############JORNADA#######################
-import logging
-from decimal import Decimal
-from django.db import models
-import logging
-from decimal import Decimal
-from django.db import models
-
 logger = logging.getLogger(__name__)
-
 class JornadaTeorica(models.Model):
     TIPO_JORNADA = (
         ('4x3', '4x3 Excepcional'),
@@ -332,6 +423,7 @@ class JornadaTeorica(models.Model):
         ('14x14', '14x14 Excepcional'),
     )
     tipo = models.CharField(max_length=10, choices=TIPO_JORNADA, unique=True, help_text="Tipo de jornada laboral")
+    history = HistoricalRecords()  
     dias_trabajados = models.DecimalField(max_digits=4, decimal_places=1, help_text="Días trabajados en el ciclo")
     dias_descanso = models.DecimalField(max_digits=4, decimal_places=1, help_text="Días de descanso en el ciclo")
     colacion = models.DecimalField(max_digits=4, decimal_places=2, help_text="Horas de colación diarias")
@@ -458,14 +550,12 @@ class JornadaTeorica(models.Model):
         ]
         for data in jornadas:
             JornadaTeorica.objects.get_or_create(tipo=data['tipo'], defaults=data)
-            logger.info(f"Jornada inicial creada o verificada: {data['tipo']}")      
+            logger.info(f"Jornada inicial creada o verificada: {data['tipo']}") 
+   
 
-from datetime import timedelta, date
-from decimal import Decimal
-from django.db import models
-from django.contrib.auth.models import User
-from simple_history.models import HistoricalRecords
 
+#Nomina############################################
+logger = logging.getLogger(__name__)
 class Nomina(models.Model):
     id_proyecto = models.ForeignKey('Proyectos', on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
     empresa = models.CharField(max_length=25, null=False)
@@ -588,10 +678,12 @@ class Nomina(models.Model):
         self.save()
         logger.info(f"Roster generado: Total horas {self.total_horas}, Semanales {self.horas_semanales}, Mensuales {self.horas_mensuales}")
 
+logger = logging.getLogger(__name__)
 class Roster(models.Model):
     nomina = models.ForeignKey(Nomina, on_delete=models.CASCADE, related_name='rosters')
     fecha = models.DateField()
     horas_asignadas = models.DecimalField(max_digits=5, decimal_places=2)
+    history = HistoricalRecords()  
 
     class Meta:
         indexes = [

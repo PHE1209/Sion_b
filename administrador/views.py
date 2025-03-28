@@ -1,81 +1,67 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
-from django.core.paginator import Paginator
-from django.db.models import Q, F, CharField, TextField, DateField, DateTimeField, ForeignKey, Sum
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
-from django.core.files.storage import FileSystemStorage
-from django.apps import apps
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
-import pandas as pd
-import numpy as np
+import base64
+import csv
+import io
+import json
+import logging
+import os
+from io import BytesIO
+
+# Bibliotecas para gráficos y datos
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from io import BytesIO
-import base64
-import csv
-from openpyxl import Workbook
-from matplotlib.ticker import LogLocator, FuncFormatter, MaxNLocator
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-from reportlab.lib import colors
-from django.views.decorators.csrf import csrf_exempt
-import json
-import logging
+import numpy as np
+import pandas as pd
+from matplotlib.ticker import FuncFormatter, LogLocator, MaxNLocator
+
+# Django - Autenticación y Decoradores
+from django.apps import apps
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
+
+# Django - Funcionalidades adicionales
+from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator
+from django.db.models import (
+    CharField, DateField, DateTimeField, DecimalField, FloatField,
+    ForeignKey, Q, Sum, TextField, F
+)
 from django.forms.models import model_to_dict
-from .models import Nomina, Roster, Proyectos
-from .forms import NominaForm
-from django.shortcuts import render
-from django.http import JsonResponse
-from .models import Granulometria
-import pandas as pd
-import matplotlib.pyplot as plt
-from io import BytesIO
-import base64
-import numpy as np
-import json
-from matplotlib.ticker import LogLocator, FuncFormatter
-from django.shortcuts import render
-from django.http import JsonResponse
-import pandas as pd
-import json
-import json
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import LogLocator, FuncFormatter
-from io import BytesIO
-import base64
-from django.http import JsonResponse
-from django.shortcuts import render
-from .models import Granulometria  # Asegúrate de importar tu modelo correctamente
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
 
+# ReportLab
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.units import inch
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
 
+# OpenPyXL
+from openpyxl import Workbook
 
-
-# Importación de modelos
-from .models import (Nomina, Proyectos, Prospecciones, Humedad, Area, Muestreo, Programa, Granulometria, Roster, JornadaTeorica, Nomina)
-
-# Importación de formularios
-from .forms import (LoginForm, ProyectoEditForm, ProspeccionesForm, HumedadForm, MuestreoForm, GranulometriaForm, ProgramaForm, NominaForm)
-
-
+# Formularios y Modelos específicos del proyecto
+from .forms import (
+    GranulometriaForm, HumedadForm, LoginForm, MuestreoForm, NominaForm,
+    ProgramaForm, ProyectoEditForm, ProspeccionesForm, GravedadEspecificaForm, UscsForm
+)
+from .models import (
+    Area, Granulometria, Humedad, JornadaTeorica, Muestreo, Nomina,
+    Programa, Prospecciones, Proyectos, Roster, gravedad_especifica, uscs
+)
 
 
 # Create your views here.
 TEMPLATE_DIR = (
     'os.path.join(BASE_DIR, "templates),'
 )
-
-
-
-
-
 
 #### INICIO DE SESION  #############################################################################
 
@@ -143,7 +129,7 @@ def agregar_proyectos(request):
         form = ProyectoEditForm(request.POST)
         if form.is_valid():
             proyecto = form.save(commit=False)
-            proyecto.user = request.user  # Captura el usuario que realiza la operación
+            proyecto.user = request.user
             proyecto.save()
             return redirect('listar_proyectos')
     else:
@@ -151,8 +137,9 @@ def agregar_proyectos(request):
     return render(request, 'proyectos/agregar_proyectos.html', {'form': form})
 
 # Listar proyecto
+@login_required
 def listar_proyectos(request):
-    proyectos = Proyectos.objects.all().order_by('id')  # Ordenar por id
+    proyectos = Proyectos.objects.all().order_by('id')
     query = request.GET.get('q', '')
     if query:
         Proyectos_model = apps.get_model('administrador', 'Proyectos')
@@ -176,50 +163,164 @@ def listar_proyectos(request):
     return render(request, 'proyectos/listar_proyectos.html', {'page_obj': page_obj, 'query': query})
 
 # Ver proyecto
-def ver_proyectos(request, id):  # Cambiar n por id
-    proyecto = get_object_or_404(Proyectos, id=id)  # Cambiar pk por id
-    return render(request, 'ver_proyectos.html', {'proyecto': proyecto})
+@login_required
+def ver_proyectos(request, id):
+    proyecto = get_object_or_404(Proyectos, id=id)
+    return render(request, 'proyectos/ver_proyectos.html', {'proyecto': proyecto})
 
 # Eliminar proyecto
-def eliminar_proyectos(request, id):  # Cambiar n por id
-    proyecto = get_object_or_404(Proyectos, id=id)  # Cambiar pk por id
+@login_required
+def eliminar_proyectos(request, id):
+    proyecto = get_object_or_404(Proyectos, id=id)
     if request.method == 'POST':
         proyecto.delete()
         return redirect('listar_proyectos')
-    return render(request, 'eliminar_proyectos.html', {'proyecto': proyecto})
-
-def grafico(request):
-    texto = "¡Hola! Esta es una vista de texto simple."
-    return render(request, 'grafico.html', {'grafico': grafico})
+    return render(request, 'proyectos/eliminar_proyectos.html', {'proyecto': proyecto})
 
 # Editar proyecto
-def editar_proyectos(request, id):  # Cambiar n por id
-    proyecto = get_object_or_404(Proyectos, id=id)  # Cambiar n por id
+@login_required
+def editar_proyectos(request, id):
+    proyecto = get_object_or_404(Proyectos, id=id)
     if request.method == 'POST':
         proyecto.pm = request.POST.get('pm')
         proyecto.empresa = request.POST.get('empresa')
         proyecto.nombre = request.POST.get('nombre')
         proyecto.alcance = request.POST.get('alcance')
-        proyecto.fecha_inicio = request.POST.get('fecha_inicio')
-        proyecto.fecha_termino = request.POST.get('fecha_termino')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_termino = request.POST.get('fecha_termino')
+        if fecha_inicio:
+            proyecto.fecha_inicio = pd.to_datetime(fecha_inicio, format='%Y-%m-%d').date()
+        if fecha_termino:
+            proyecto.fecha_termino = pd.to_datetime(fecha_termino, format='%Y-%m-%d').date()
         proyecto.save()
         return redirect('listar_proyectos')
     return render(request, 'proyectos/editar_proyectos.html', {'proyecto': proyecto})
 
-# Exportar a excel
+# Exportar a Excel (adaptado de granulometría)
+@login_required
 def export_to_excel_proyectos(request):
-    proyectos = Proyectos.objects.all().values()
-    df = pd.DataFrame(proyectos)
+    query = request.GET.get('q', '')
+    headers_str = request.GET.get('headers', '')
+    headers = headers_str.split(',') if headers_str else [
+        'ID', 'Estatus Proyecto', 'PM', 'Empresa', 'Nombre', 'Fecha Inicio', 'Fecha Término', 'Alcance', 'Usuario'
+    ]
+
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=proyectos.xlsx'
-    df.to_excel(response, index=False)
+    response['Content-Disposition'] = 'attachment; filename="proyectos_filtrados.xlsx"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Proyectos Filtrados"
+    ws.append(headers)
+
+    proyectos = Proyectos.objects.all().order_by('id')
+    if query:
+        Proyectos_model = apps.get_model('administrador', 'Proyectos')
+        fields = [field.name for field in Proyectos_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField))]
+        query_filter = Q()
+        for field in fields:
+            if isinstance(Proyectos_model._meta.get_field(field), (DateField, DateTimeField)):
+                query_filter |= Q(**{f"{field}__year__icontains": query})
+                query_filter |= Q(**{f"{field}__month__icontains": query})
+                query_filter |= Q(**{f"{field}__day__icontains": query})
+            else:
+                query_filter |= Q(**{f"{field}__icontains": query})
+        proyectos = proyectos.filter(query_filter)
+
+    for proyecto in proyectos:
+        row = []
+        for header in headers:
+            if header == 'ID':
+                value = str(proyecto.id)
+            elif header == 'Estatus Proyecto':
+                value = proyecto.estatus_proyecto or 'N/A'
+            elif header == 'PM':
+                value = proyecto.pm or 'N/A'
+            elif header == 'Empresa':
+                value = proyecto.empresa or 'N/A'
+            elif header == 'Nombre':
+                value = proyecto.nombre or 'N/A'
+            elif header == 'Fecha Inicio':
+                value = proyecto.fecha_inicio.strftime('%d/%m/%Y') if proyecto.fecha_inicio else 'N/A'
+            elif header == 'Fecha Término':
+                value = proyecto.fecha_termino.strftime('%d/%m/%Y') if proyecto.fecha_termino else 'N/A'
+            elif header == 'Alcance':
+                value = proyecto.alcance or 'N/A'
+            elif header == 'Usuario':
+                value = proyecto.user.username if proyecto.user else 'Sin usuario'
+            else:
+                value = '-'
+            row.append(value)
+        ws.append(row)
+
+    wb.save(response)
     return response
 
+# Exportar a PDF
+@login_required
 def export_to_pdf_proyectos(request):
-    pass
+    query = request.GET.get('q', '')
+    headers_str = request.GET.get('headers', '')
+    headers = headers_str.split(',') if headers_str else [
+        'ID', 'Estatus Proyecto', 'PM', 'Empresa', 'Nombre', 'Fecha Inicio', 'Fecha Término', 'Alcance', 'Usuario'
+    ]
 
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="proyectos_filtrados.pdf"'
 
+    p = canvas.Canvas(response)
+    p.drawString(100, 750, "Reporte de Proyectos Filtrados")
+    p.drawString(100, 730, " | ".join(headers))
 
+    proyectos = Proyectos.objects.all().order_by('id')
+    if query:
+        Proyectos_model = apps.get_model('administrador', 'Proyectos')
+        fields = [field.name for field in Proyectos_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField))]
+        query_filter = Q()
+        for field in fields:
+            if isinstance(Proyectos_model._meta.get_field(field), (DateField, DateTimeField)):
+                query_filter |= Q(**{f"{field}__year__icontains": query})
+                query_filter |= Q(**{f"{field}__month__icontains": query})
+                query_filter |= Q(**{f"{field}__day__icontains": query})
+            else:
+                query_filter |= Q(**{f"{field}__icontains": query})
+        proyectos = proyectos.filter(query_filter)
+
+    y = 710
+    for proyecto in proyectos:
+        row = []
+        for header in headers:
+            if header == 'ID':
+                value = str(proyecto.id)
+            elif header == 'Estatus Proyecto':
+                value = proyecto.estatus_proyecto or 'N/A'
+            elif header == 'PM':
+                value = proyecto.pm or 'N/A'
+            elif header == 'Empresa':
+                value = proyecto.empresa or 'N/A'
+            elif header == 'Nombre':
+                value = proyecto.nombre or 'N/A'
+            elif header == 'Fecha Inicio':
+                value = proyecto.fecha_inicio.strftime('%d/%m/%Y') if proyecto.fecha_inicio else 'N/A'
+            elif header == 'Fecha Término':
+                value = proyecto.fecha_termino.strftime('%d/%m/%Y') if proyecto.fecha_termino else 'N/A'
+            elif header == 'Alcance':
+                value = proyecto.alcance or 'N/A'
+            elif header == 'Usuario':
+                value = proyecto.user.username if proyecto.user else 'Sin usuario'
+            else:
+                value = '-'
+            row.append(value)
+        text = " | ".join(row)
+        p.drawString(100, y, text[:500])  # Limitar longitud para evitar desbordamiento
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = 750
+
+    p.showPage()
+    p.save()
+    return response
 
 #### PROSPECCIONES ##############################################
 
@@ -318,70 +419,14 @@ def eliminar_prospecciones(request, id_prospeccion):  # Cambiar n por id_prospec
     return redirect('listar_prospecciones')
 
 
-##################################
+#### Funciones comunes para modulos de laboratorio ##############################################
 
-# Obtener tipos de prospección
-def obtener_tipos_prospeccion(request):
-    id_proyecto = request.GET.get('id_proyecto')
-    prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto).values('tipo_prospeccion').distinct()
-    tipos_prospeccion = {pros['tipo_prospeccion']: pros['tipo_prospeccion'] for pros in prospecciones}
-    return JsonResponse(tipos_prospeccion)
+# Funciones transversales (aplican a ambos modelos o usan Prospecciones)
+# Estas funciones son comunes y no dependen específicamente de Humedad o Granulometria
 
-# Obtener IDs de prospección
-def obtener_id_prospecciones(request):
-    id_proyecto = request.GET.get('id_proyecto')
-    tipo_prospeccion = request.GET.get('tipo_prospeccion')
-    prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto, tipo_prospeccion=tipo_prospeccion).values('id_prospeccion')  # Cambiar n por id_prospeccion
-    id_prospecciones = {pros['id_prospeccion']: pros['id_prospeccion'] for pros in prospecciones}  # Cambiar n por id_prospeccion
-    return JsonResponse(id_prospecciones)
+logger = logging.getLogger(__name__)
 
-# Obtener área de prospección
-def get_area(request):
-    prospeccion_id = request.GET.get('prospeccion_id')
-    try:
-        prospeccion = Prospecciones.objects.get(id_prospeccion=prospeccion_id)  # Cambiar n por id_prospeccion
-        area = prospeccion.area
-    except Prospecciones.DoesNotExist:
-        area = ''
-    return JsonResponse({'area': area})
-
-
-def obtener_tipos_prospeccion(request):
-    id_proyectos = request.GET.getlist('id_proyecto')
-    if id_proyectos:
-        tipos = Granulometria.objects.filter(id_proyecto__in=id_proyectos).values('tipo_prospeccion').distinct()
-    else:
-        tipos = Granulometria.objects.values('tipo_prospeccion').distinct()
-    tipos_list = [tipo['tipo_prospeccion'] for tipo in tipos if tipo['tipo_prospeccion'] is not None]
-    tipos_dict = {tipo: tipo for tipo in tipos_list}
-    return JsonResponse(tipos_dict, safe=False)
-
-def obtener_areas_prospecciones(request):
-    id_proyectos = request.GET.getlist('id_proyecto')
-    if id_proyectos:
-        areas = Granulometria.objects.filter(id_proyecto__in=id_proyectos).values('area').distinct()
-    else:
-        areas = Granulometria.objects.values('area').distinct()
-    areas_list = [area['area'] for area in areas if area['area'] is not None]
-    areas_dict = {area: area for area in areas_list}
-    return JsonResponse(areas_dict, safe=False)
-
-def obtener_id_prospecciones(request):
-    id_proyectos = request.GET.getlist('id_proyecto')
-    tipos_prospeccion = request.GET.getlist('tipo_prospeccion')
-    areas = request.GET.getlist('area')
-    query = Granulometria.objects.all()
-    if id_proyectos:
-        query = query.filter(id_proyecto__in=id_proyectos)
-    if tipos_prospeccion:
-        query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
-    if areas:
-        query = query.filter(area__in=areas)
-    id_prospecciones = query.values('id_prospeccion').distinct()
-    id_prospecciones_list = [id_pros['id_prospeccion'] for id_pros in id_prospecciones if id_pros['id_prospeccion'] is not None]
-    id_prospecciones_dict = {id_pros: id_pros for id_pros in id_prospecciones_list}
-    return JsonResponse(id_prospecciones_dict, safe=False)
-
+# Funciones comunes
 def obtener_proyectos_prospecciones(request, as_json=False):
     proyectos = Granulometria.objects.values('id_proyecto').distinct()
     proyectos_list = [proj['id_proyecto'] for proj in proyectos if proj['id_proyecto'] is not None]
@@ -390,244 +435,578 @@ def obtener_proyectos_prospecciones(request, as_json=False):
         return JsonResponse(proyectos_dict, safe=False)
     return proyectos_list
 
-
-
-
-
-############ ENSAYOS LABORATORIO ##############################################
-
-#### HUMEDAD ##############################################
-
-
-
-# Obtener proyectos desde Humedad
-def obtener_proyectos_humedad(request):
-    humedades = Humedad.objects.values('id_proyecto').distinct()
-    proyectos_list = [proj['id_proyecto'] for proj in humedades if proj['id_proyecto']]
-    proyectos_dict = {proj: proj for proj in proyectos_list}
-    return JsonResponse(proyectos_dict, safe=False)
-
-# Obtener tipos de prospección desde Humedad
-def obtener_tipos_prospeccion_humedad(request):
+# Funciones de prospección
+def obtener_tipos_prospeccion(request):
     id_proyecto = request.GET.get('id_proyecto')
-    if id_proyecto:
-        humedades = Humedad.objects.filter(id_proyecto=id_proyecto).values('tipo_prospeccion').distinct()
-        tipos_prospeccion = {hum['tipo_prospeccion']: hum['tipo_prospeccion'] for hum in humedades}
-        return JsonResponse(tipos_prospeccion)
-    return JsonResponse({})
+    prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto).values('tipo_prospeccion').distinct()
+    tipos_prospeccion = {pros['tipo_prospeccion']: pros['tipo_prospeccion'] for pros in prospecciones}
+    return JsonResponse(tipos_prospeccion)
 
-# Obtener id_prospecciones desde Humedad
-def obtener_id_prospecciones_humedad(request):
+def obtener_id_prospecciones(request):
     id_proyecto = request.GET.get('id_proyecto')
     tipo_prospeccion = request.GET.get('tipo_prospeccion')
-    humedades = Humedad.objects.filter(id_proyecto=id_proyecto, tipo_prospeccion=tipo_prospeccion).values('id_prospeccion')  # Cambiar n por id_prospeccion
-    id_prospecciones = {pros['id_prospeccion']: pros['id_prospeccion'] for pros in humedades}  # Cambiar n por id_prospeccion
+    prospecciones = Prospecciones.objects.filter(id_proyecto=id_proyecto, tipo_prospeccion=tipo_prospeccion).values('id_prospeccion')
+    id_prospecciones = {pros['id_prospeccion']: pros['id_prospeccion'] for pros in prospecciones}
     return JsonResponse(id_prospecciones)
 
-
-# Obtener áreas desde Humedad
-def obtener_areas_humedad(request):
-    id_proyecto = request.GET.get('id_proyecto')
-    if id_proyecto:
-        humedades = Humedad.objects.filter(id_proyecto=id_proyecto).values('area').distinct()
-        areas = [hum['area'] for hum in humedades if hum['area']]
-        areas_dict = {area: area for area in areas}
-        return JsonResponse(areas_dict)
-    return JsonResponse({})
-
-# Obtener área desde Prospecciones
 def get_area(request):
     prospeccion_id = request.GET.get('prospeccion_id')
     try:
-        prospeccion = Prospecciones.objects.get(id_prospeccion=prospeccion_id)  # Cambiar n por id_prospeccion
+        prospeccion = Prospecciones.objects.get(id_prospeccion=prospeccion_id)
         area = prospeccion.area
     except Prospecciones.DoesNotExist:
         area = ''
     return JsonResponse({'area': area})
 
-# Agregar humedad
+
+
+####### GRAVEDAD ESPECIFICA #######################
+import logging
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from .models import Proyectos, Muestreo, gravedad_especifica
+
+logger = logging.getLogger(__name__)
+
 @login_required
-def agregar_humedad(request):
-    proyectos = obtener_proyectos_prospecciones(request)
+def agregar_gravedad_especifica(request):
+    proyectos_con_muestreo = Proyectos.objects.filter(muestreo__isnull=False).distinct()
+    tipo_prospeccion_choices = []
+    prospecciones = []
+    muestras = []
+    area = ""
+
     if request.method == 'POST':
-        post_data = request.POST.copy()
-        proyecto_id = post_data.get('id_proyecto')
-        if proyecto_id:
-            try:
-                proyecto = Proyectos.objects.get(id=proyecto_id)
-                post_data['id_proyecto'] = proyecto
-                print(f"Proyecto asignado: {proyecto}")
-            except Proyectos.DoesNotExist:
-                post_data['id_proyecto'] = None
-                print("Proyecto no encontrado")
-        prospeccion_id = post_data.get('id_prospeccion')
-        if prospeccion_id:
-            try:
-                prospeccion = Prospecciones.objects.get(id_prospeccion=prospeccion_id)  # Cambiar n por id_prospeccion
-                post_data['id_prospeccion'] = prospeccion
-                print(f"Prospección asignada: {prospeccion}")
-            except Prospecciones.DoesNotExist:
-                post_data['id_prospeccion'] = None
-                print("Prospección no encontrada")
-        form = HumedadForm(post_data)
-        if form.is_valid():
-            humedad = form.save(commit=False)
-            humedad.user = request.user
-            humedad.save()
-            print("Formulario válido. Datos a guardar:", form.cleaned_data)
-            return redirect('listar_humedad')
+        logger.info(f"Datos POST recibidos: {request.POST}")
+        proyecto_id = request.POST.get('id_proyecto')
+        tipo_prospeccion = request.POST.get('tipo_prospeccion')
+        id_prospecciones = request.POST.getlist('id_prospeccion[]')
+        id_muestras = request.POST.getlist('id_muestra[]')
+        gravedades = request.POST.getlist('gravedad_especifica[]')
+        errors = []
+
+        if not proyecto_id:
+            errors.append("Debe seleccionar un proyecto.")
+            return render(request, 'laboratorio/ensayos/gravedad_especifica/agregar_gravedad_especifica.html', {
+                'proyectos': proyectos_con_muestreo,
+                'errors': errors
+            })
+
+        muestreos = Muestreo.objects.filter(id_proyecto_id=proyecto_id)
+        if not muestreos.exists():
+            errors.append("No hay muestreos asociados a este proyecto.")
+            return render(request, 'laboratorio/ensayos/gravedad_especifica/agregar_gravedad_especifica.html', {
+                'proyectos': proyectos_con_muestreo,
+                'errors': errors
+            })
+
+        if tipo_prospeccion:
+            muestreos = muestreos.filter(tipo_prospeccion=tipo_prospeccion)
+            if not muestreos.exists():
+                errors.append("No hay muestreos con este tipo de prospección.")
+
+        if id_prospecciones and id_prospecciones[0]:
+            muestreos = muestreos.filter(id_prospeccion__id_prospeccion__in=id_prospecciones)
+            if not muestreos.exists():
+                errors.append("No hay muestreos con las prospecciones seleccionadas.")
+
+        if id_muestras and id_muestras[0]:
+            muestreos = muestreos.filter(id_muestra__in=id_muestras)
+            if not muestreos.exists():
+                errors.append("No hay muestreos con las muestras seleccionadas.")
+
+        if not (len(id_prospecciones) == len(id_muestras) == len(gravedades)):
+            errors.append("El número de prospecciones, muestras y gravedades específicas no coincide.")
+            logger.error(f"Longitudes inconsistentes: prospecciones={len(id_prospecciones)}, muestras={len(id_muestras)}, gravedades={len(gravedades)}")
         else:
-            print("Formulario no válido. Errores:", form.errors)
-    else:
-        form = HumedadForm()
-    return render(request, 'laboratorio/ensayos/humedad/agregar_humedad.html', {'form': form, 'proyectos': proyectos})
+            for id_pros, id_muestra, gravedad in zip(id_prospecciones, id_muestras, gravedades):
+                if not id_pros or not id_muestra or not gravedad:
+                    errors.append(f"Falta ID de prospección ({id_pros}), ID de muestra ({id_muestra}) o gravedad específica ({gravedad}).")
+                    continue
+                
+                try:
+                    muestreo = muestreos.get(id_prospeccion__id_prospeccion=id_pros, id_muestra=id_muestra)
+                    gravedad_obj = gravedad_especifica(
+                        id_proyecto=muestreo.id_proyecto,
+                        tipo_prospeccion=muestreo.tipo_prospeccion,
+                        id_prospeccion=muestreo.id_prospeccion,
+                        id_muestra=muestreo.id_muestra,
+                        profundidad_desde=muestreo.profundidad_desde,
+                        profundidad_hasta=muestreo.profundidad_hasta,
+                        profundidad_promedio=(
+                            (float(muestreo.profundidad_desde) + float(muestreo.profundidad_hasta)) / 2 
+                            if muestreo.profundidad_desde and muestreo.profundidad_hasta else 0
+                        ),
+                        gravedad_especifica=float(gravedad),
+                        area=muestreo.area,
+                        user=request.user
+                    )
+                    gravedad_obj.save()
+                    logger.info(f"Gravedad específica guardada: ID={gravedad_obj.id}, Muestra={id_muestra}, Gravedad={gravedad}")
+                except Muestreo.DoesNotExist:
+                    errors.append(f"Muestra {id_muestra} con prospección {id_pros} no encontrada.")
+                except ValueError as e:
+                    errors.append(f"Valor inválido para gravedad específica {gravedad}: {e}")
+                except Exception as e:
+                    errors.append(f"Error al guardar muestra {id_muestra}: {e}")
 
-# Listar humedad
-def listar_humedad(request):
-    humedades = Humedad.objects.all().order_by('id')  # Cambiar n por id
+        if errors:
+            tipo_prospeccion_choices = Muestreo.objects.filter(id_proyecto_id=proyecto_id).values_list('tipo_prospeccion', flat=True).distinct()
+            prospecciones = Muestreo.objects.filter(id_proyecto_id=proyecto_id).values_list('id_prospeccion__id_prospeccion', flat=True).distinct()
+            muestras = Muestreo.objects.filter(id_proyecto_id=proyecto_id).values_list('id_muestra', flat=True).distinct()
+            area = muestreos.first().area if muestreos.exists() else ""
+            return render(request, 'laboratorio/ensayos/gravedad_especifica/agregar_gravedad_especifica.html', {
+                'proyectos': proyectos_con_muestreo,
+                'tipo_prospeccion_choices': tipo_prospeccion_choices,
+                'prospecciones': prospecciones,
+                'muestras': muestras,
+                'area': area,
+                'errors': errors
+            })
+
+        return redirect('listar_gravedad_especifica')
+
+    # Lógica para GET y AJAX
+    proyecto_id = request.GET.get('id_proyecto')
+    tipo_prospeccion = request.GET.get('tipo_prospeccion')
+    id_prospeccion = request.GET.get('id_prospeccion')
+    id_muestra = request.GET.get('id_muestra')
+
+    muestreos = Muestreo.objects.all()
+    if proyecto_id:
+        muestreos = muestreos.filter(id_proyecto_id=proyecto_id)
+        tipo_prospeccion_choices = muestreos.values_list('tipo_prospeccion', flat=True).distinct()
+        prospecciones = muestreos.values_list('id_prospeccion__id_prospeccion', flat=True).distinct()
+        muestras = muestreos.values_list('id_muestra', flat=True).distinct()
+        area = muestreos.first().area if muestreos.exists() else ""
+
+    if tipo_prospeccion:
+        muestreos = muestreos.filter(tipo_prospeccion=tipo_prospeccion)
+        prospecciones = muestreos.values_list('id_prospeccion__id_prospeccion', flat=True).distinct()
+        muestras = muestreos.values_list('id_muestra', flat=True).distinct()
+
+    if id_prospeccion:
+        muestreos = muestreos.filter(id_prospeccion__id_prospeccion=id_prospeccion)
+        muestras = muestreos.values_list('id_muestra', flat=True).distinct()
+
+    # Reemplazo de request.is_ajax() por verificación manual
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    if is_ajax:
+        data = {
+            'tipo_prospeccion_choices': list(tipo_prospeccion_choices),
+            'prospecciones': list(prospecciones),
+            'muestras': list(muestras),
+            'area': area
+        }
+        if id_muestra:
+            muestreo = muestreos.filter(id_muestra=id_muestra).first()
+            if muestreo:
+                data['profundidad_desde'] = str(muestreo.profundidad_desde) if muestreo.profundidad_desde else ''
+                data['profundidad_hasta'] = str(muestreo.profundidad_hasta) if muestreo.profundidad_hasta else ''
+        return JsonResponse(data)
+
+    return render(request, 'laboratorio/ensayos/gravedad_especifica/agregar_gravedad_especifica.html', {
+        'proyectos': proyectos_con_muestreo,
+        'tipo_prospeccion_choices': tipo_prospeccion_choices,
+        'prospecciones': prospecciones,
+        'muestras': muestras,
+        'area': area
+    })
+
+
+@login_required
+def listar_gravedad_especifica(request):
+    gravedad_list = gravedad_especifica.objects.all().order_by('id')  # Ordenar por 'id'
     query = request.GET.get('q', '')
-    if query:
-        humedades = humedades.filter(
-            Q(id_proyecto__id__icontains=query) |
-            Q(id_prospeccion__id_prospeccion__icontains=query) |  # Cambiar id_prospeccion por id_prospeccion
-            Q(tipo_prospeccion__icontains=query) |
-            Q(humedad__icontains=query) |
-            Q(profundidad_promedio__icontains=query) |
-            Q(area__icontains=query)
-        )
 
-    paginator = Paginator(humedades, 10)
+    if query:
+        gravedad_model = apps.get_model('administrador', 'gravedad_especifica') 
+        # Incluir campos de texto y numéricos
+        campos = [field.name for field in gravedad_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, DecimalField, FloatField, ForeignKey))]
+        query_filter = Q()
+
+        # Intentar convertir el query a float para búsquedas numéricas
+        try:
+            query_numeric = float(query)
+            numeric_search = True
+        except ValueError:
+            numeric_search = False
+
+        for field in campos:
+            field_instance = gravedad_model._meta.get_field(field)
+            if isinstance(field_instance, (DateField, DateTimeField)):
+                query_filter |= Q(**{f"{field}__year__icontains": query})
+                query_filter |= Q(**{f"{field}__month__icontains": query})
+                query_filter |= Q(**{f"{field}__day__icontains": query})
+            elif isinstance(field_instance, ForeignKey):
+                related_model = field_instance.related_model
+                related_fields = [f"{field}__{related_field.name}" for related_field in related_model._meta.get_fields() if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    query_filter |= Q(**{f"{related_field}__icontains": query})
+            elif isinstance(field_instance, (DecimalField, FloatField)) and numeric_search:
+                # Para campos numéricos, usar coincidencia exacta
+                query_filter |= Q(**{f"{field}": query_numeric})
+            else:
+                # Para campos de texto
+                query_filter |= Q(**{f"{field}__icontains": query})
+
+        gravedad_list = gravedad_list.filter(query_filter)
+
+    paginator = Paginator(gravedad_list, 1000)  # 1000 registros por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Si es una solicitud AJAX (opcional)
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'laboratorio/ensayos/humedad/humedad_table.html', {'page_obj': page_obj})
-    return render(request, 'laboratorio/ensayos/humedad/listar_humedad.html', {'page_obj': page_obj, 'query': query})
+        return render(request, 'laboratorio/ensayos/gravedad_especifica/gravedad_table.html', {'page_obj': page_obj})
 
-# Exportar a excel
-def export_to_excel_humedad(request):
+    return render(request, 'laboratorio/ensayos/gravedad_especifica/listar_gravedad_especifica.html', {
+        'page_obj': page_obj,
+        'query': query
+    })
+
+
+@login_required
+def editar_gravedad_especifica(request, id):
+    gravedad_obj = get_object_or_404(gravedad_especifica, id=id)
+    muestreo = Muestreo.objects.filter(id_muestra=gravedad_obj.id_muestra).first()
+    proyectos = Proyectos.objects.filter(muestreo__isnull=False).distinct()
+
+    if request.method == 'POST':
+        form = GravedadEspecificaForm(request.POST, instance=gravedad_obj)
+        if form.is_valid():
+            try:
+                gravedad_obj = form.save()
+                logger.info(f"Gravedad específica editada: ID {gravedad_obj.id}")
+                return redirect('listar_gravedad_especifica')
+            except Exception as e:
+                logger.error(f"Error al editar: {e}")
+                form.add_error(None, f"Error al editar: {e}")
+    else:
+        form = GravedadEspecificaForm(instance=gravedad_obj)
+    
+    return render(request, 'laboratorio/ensayos/gravedad_especifica/editar_gravedad_especifica.html', {
+        'form': form,
+        'gravedad_especifica_obj': gravedad_obj,
+        'proyectos': proyectos
+    })
+
+@login_required
+def ver_gravedad_especifica(request, id):
+    gravedad_obj = get_object_or_404(gravedad_especifica, id=id)
+    return render(request, 'laboratorio/ensayos/gravedad_especifica/ver_gravedad_especifica.html', {
+        'gravedad_especifica': gravedad_obj
+    })
+
+@login_required
+def eliminar_gravedad_especifica(request, id):
+    gravedad_obj = get_object_or_404(gravedad_especifica, id=id)
+    if request.method == 'POST':
+        gravedad_obj.delete()
+        return redirect('listar_gravedad_especifica')
+    return render(request, 'laboratorio/ensayos/gravedad_especifica/eliminar_gravedad_especifica.html', {
+        'gravedad_especifica': gravedad_obj
+    })
+
+#Exportar excel
+logger = logging.getLogger(__name__)
+
+@login_required
+def export_to_excel_gravedad_especifica(request):
+    query = request.GET.get('q', '').strip()
+    headers = ['ID', 'ID Proyecto', 'ID Prospección', 'Tipo Prospección', 'ID Muestra', 
+               'Profundidad Desde', 'Profundidad Hasta', 'Profundidad Promedio', 
+               'Gravedad Específica', 'Área', 'Usuario']
+
+    # Crear el archivo Excel
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="humedad.xlsx"'
+    response['Content-Disposition'] = 'attachment; filename="gravedad_especifica_filtrado.xlsx"'
+
     wb = Workbook()
     ws = wb.active
-    ws.title = "Humedad Data"
-    headers = ['ID', 'Tipo prospeccion', 'ID Proyecto', 'ID Prospección', 'Humedad', 'Profundidad Promedio', 'area']  # Cambiar N por ID
+    ws.title = "Gravedad Específica"
     ws.append(headers)
-    humedades = Humedad.objects.all()
-    for humedad in humedades:
-        id_proyecto = str(humedad.id_proyecto)
-        id_prospeccion = str(humedad.id_prospeccion)
-        ws.append([humedad.id, humedad.tipo_prospeccion, id_proyecto, id_prospeccion, humedad.humedad, humedad.profundidad_promedio, humedad.area])  # Cambiar n por id
-    wb.save(response)
-    return response
 
-def export_to_pdf_humedad(request):
-    return HttpResponse("Exportar a PDF no está implementado")
+    # Obtener queryset base
+    try:
+        gravedad_list = gravedad_especifica.objects.select_related(
+            'id_proyecto', 'id_prospeccion', 'user'
+        ).prefetch_related('id_muestra__muestreo_set').all()
 
-# Ver humedad
-def ver_humedad(request, id):  # Cambiar pk por id
-    humedad = get_object_or_404(Humedad, id=id)  # Cambiar pk por id
-    return render(request, 'laboratorio/ensayos/humedad/ver_humedad.html', {'humedad': humedad})
+        logger.debug(f"Registros iniciales: {gravedad_list.count()}, query: '{query}'")
 
-# Editar humedad
-def editar_humedad(request, id):  # Cambiar pk por id
-    humedad = get_object_or_404(Humedad, id=id)  # Cambiar pk por id
-    if request.method == 'POST':
-        form = HumedadForm(request.POST, instance=humedad)
-        if form.is_valid():
-            form.save()
-            return redirect('listar_humedad')
-    else:
-        form = HumedadForm(instance=humedad)
-    return render(request, 'laboratorio/ensayos/humedad/editar_humedad.html', {'form': form})
+        # Aplicar filtros si hay query
+        if query:
+            filtros = Q()
+            
+            # Campos numéricos
+            try:
+                query_numeric = float(query)
+                filtros |= (
+                    Q(profundidad_desde=query_numeric) |
+                    Q(profundidad_hasta=query_numeric) |
+                    Q(profundidad_promedio=query_numeric) |
+                    Q(gravedad_especifica=query_numeric)
+                )
+            except ValueError:
+                pass
 
-# Eliminar humedad
-def eliminar_humedad(request, id):  # Cambiar pk por id
-    humedad = get_object_or_404(Humedad, id=id)  # Cambiar pk por id
-    if request.method == 'POST':
-        humedad.delete()
-        return redirect('listar_humedad')
-    return render(request, 'laboratorio/ensayos/humedad/eliminar_humedad.html', {'humedad': humedad})
+            # Campos de texto y relaciones
+            filtros |= (
+                Q(id__icontains=query) |
+                Q(id_proyecto__id__icontains=query) |
+                Q(id_prospeccion__id_prospeccion__icontains=query) |
+                Q(tipo_prospeccion__icontains=query) |
+                Q(id_muestra__icontains=query) |
+                Q(user__username__icontains=query)
+            )
 
-# Gráficos humedad
-def graficos_humedad(request):
-    # Obtener parámetros seleccionados (coinciden con HTML)
+            gravedad_list = gravedad_list.filter(filtros)
+        
+        logger.debug(f"Registros después del filtro: {gravedad_list.count()}")
+
+        # Construir las filas
+        for gravedad in gravedad_list:
+            try:
+                muestreo = Muestreo.objects.filter(id_muestra=gravedad.id_muestra).first()
+                
+                row = [
+                    str(gravedad.id) if gravedad.id is not None else '',
+                    str(gravedad.id_proyecto.id) if gravedad.id_proyecto else '',
+                    str(gravedad.id_prospeccion.id_prospeccion) if gravedad.id_prospeccion else '',
+                    str(gravedad.tipo_prospeccion or ''),
+                    str(gravedad.id_muestra or ''),
+                    str(gravedad.profundidad_desde) if gravedad.profundidad_desde is not None else '',
+                    str(gravedad.profundidad_hasta) if gravedad.profundidad_hasta is not None else '',
+                    str(gravedad.profundidad_promedio) if gravedad.profundidad_promedio is not None else '',
+                    str(gravedad.gravedad_especifica) if gravedad.gravedad_especifica is not None else '',
+                    str(muestreo.area) if muestreo and hasattr(muestreo, 'area') else '',
+                    str(gravedad.user.username) if gravedad.user else 'Sin usuario'
+                ]
+                ws.append(row)
+            except Exception as e:
+                logger.error(f"Error al procesar registro {gravedad.id}: {str(e)}")
+                continue
+
+        wb.save(response)
+        return response
+
+    except Exception as e:
+        logger.error(f"Error en export_to_excel_gravedad_especifica: {str(e)}")
+        ws.append(["Error al generar el reporte", str(e)])
+        wb.save(response)
+        return response
+    
+    
+#Exportar PDF
+logger = logging.getLogger(__name__)
+
+@login_required
+def export_to_pdf_gravedad_especifica(request):
+    query = request.GET.get('q', '').strip()
+    
+    # Configurar respuesta HTTP para PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="gravedad_especifica_filtrado.pdf"'
+
+    # Configurar documento PDF (carta horizontal)
+    doc = SimpleDocTemplate(response, pagesize=landscape(letter), 
+                          rightMargin=30, leftMargin=30, 
+                          topMargin=30, bottomMargin=30)
+    
+    # Elementos del PDF
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Título ajustado y reducido
+    title = Paragraph("Lista de Gravedad Específica", 
+                     styles['Heading1'].clone('Title', 
+                                            alignment=1,  # Centrado
+                                            fontSize=12,  # Tamaño reducido
+                                            spaceAfter=10))  # Espacio después del título
+    elements.append(title)
+    elements.append(Paragraph("<br/>", styles['Normal']))  # Espacio reducido
+
+    # Encabezados ajustados y reducidos
+    headers = ['ID', 'Proyecto', 'Prospección', 'Tipo', 'Muestra', 
+               'Prof. Ini', 'Prof. Fin', 'Prof. Prom', 
+               'Grav. Esp', 'Área', 'Usuario']
+    
+    # Datos
+    data = [headers]
+    
+    try:
+        # Obtener queryset base
+        gravedad_list = gravedad_especifica.objects.select_related(
+            'id_proyecto', 'id_prospeccion', 'user'
+        ).prefetch_related('id_muestra__muestreo_set').all()
+
+        logger.debug(f"Registros iniciales: {gravedad_list.count()}, query: '{query}'")
+
+        # Aplicar filtros si hay query
+        if query:
+            filtros = Q()
+            try:
+                query_numeric = float(query)
+                filtros |= (
+                    Q(profundidad_desde=query_numeric) |
+                    Q(profundidad_hasta=query_numeric) |
+                    Q(profundidad_promedio=query_numeric) |
+                    Q(gravedad_especifica=query_numeric)
+                )
+            except ValueError:
+                pass
+
+            filtros |= (
+                Q(id__icontains=query) |
+                Q(id_proyecto__id__icontains=query) |
+                Q(id_prospeccion__id_prospeccion__icontains=query) |
+                Q(tipo_prospeccion__icontains=query) |
+                Q(id_muestra__icontains=query) |
+                Q(user__username__icontains=query)
+            )
+
+            gravedad_list = gravedad_list.filter(filtros)
+        
+        logger.debug(f"Registros después del filtro: {gravedad_list.count()}")
+
+        # Construir las filas
+        for gravedad in gravedad_list:
+            try:
+                muestreo = Muestreo.objects.filter(id_muestra=gravedad.id_muestra).first()
+                
+                row = [
+                    str(gravedad.id) if gravedad.id is not None else '',
+                    str(gravedad.id_proyecto.id) if gravedad.id_proyecto else '',
+                    str(gravedad.id_prospeccion.id_prospeccion) if gravedad.id_prospeccion else '',
+                    str(gravedad.tipo_prospeccion or ''),
+                    str(gravedad.id_muestra or ''),
+                    str(gravedad.profundidad_desde) if gravedad.profundidad_desde is not None else '',
+                    str(gravedad.profundidad_hasta) if gravedad.profundidad_hasta is not None else '',
+                    str(gravedad.profundidad_promedio) if gravedad.profundidad_promedio is not None else '',
+                    str(gravedad.gravedad_especifica) if gravedad.gravedad_especifica is not None else '',
+                    str(muestreo.area) if muestreo and hasattr(muestreo, 'area') else '',
+                    str(gravedad.user.username) if gravedad.user else 'Sin usuario'
+                ]
+                data.append(row)
+            except Exception as e:
+                logger.error(f"Error al procesar registro {gravedad.id}: {str(e)}")
+                continue
+
+        # Crear tabla con tamaños ajustados
+        table = Table(data, colWidths=[0.5*inch] + [0.8*inch]*10)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),    # Tamaño reducido para encabezados
+            ('FONTSIZE', (0, 1), (-1, -1), 8),   # Tamaño de datos
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),  # Padding reducido
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        
+        elements.append(table)
+        doc.build(elements)
+        return response
+
+    except Exception as e:
+        logger.error(f"Error en export_to_pdf_gravedad_especifica: {str(e)}")
+        doc.build([Paragraph(f"Error al generar el reporte: {str(e)}", styles['Normal'])])
+        return response
+
+#Grficos Gravedad especifica
+# Función de gráfico por área para gravedad específica
+def generar_grafico_gravedad_area(df):
+    areas_unicas = df['area'].unique()
+    colores = {area: np.random.rand(3,) for area in areas_unicas}
+    fig, ax = plt.subplots()
+    for area in areas_unicas:
+        datos_area = df[df['area'] == area]
+        ax.scatter(
+            datos_area['gravedad_especifica'],
+            datos_area['profundidad_promedio'],
+            color=colores[area],
+            s=100,
+            label=area,
+            marker='s'
+        )
+    ax.xaxis.set_ticks_position("top")
+    ax.xaxis.set_label_position("top")
+    ax.invert_yaxis()
+    ax.set_xlabel("Gravedad Específica")
+    ax.set_ylabel("Profundidad Promedio (m)")
+    ax.grid(True)
+    plt.subplots_adjust(right=0.75)
+    num_columns = (len(areas_unicas) + 24) // 25
+    legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png', dpi=100, bbox_inches='tight', bbox_extra_artists=[legend])
+    buffer.seek(0)
+    plt.close()
+    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return image_base64
+
+# Función de gráfico por ID de muestra para gravedad específica
+def generar_grafico_gravedad_muestra(df):
+    df['id_muestra'] = df['id_muestra'].astype(str)
+    muestras_unicas = df['id_muestra'].unique()
+    colores = {muestra: np.random.rand(3,) for muestra in muestras_unicas}
+    fig, ax = plt.subplots()
+    for muestra in muestras_unicas:
+        datos_muestra = df[df['id_muestra'] == muestra]
+        ax.scatter(
+            datos_muestra['gravedad_especifica'],
+            datos_muestra['profundidad_promedio'],
+            color=colores[muestra],
+            s=100,
+            label=muestra,
+            marker='s'
+        )
+    ax.xaxis.set_ticks_position("top")
+    ax.xaxis.set_label_position("top")
+    ax.invert_yaxis()
+    ax.set_xlabel("Gravedad Específica")
+    ax.set_ylabel("Profundidad Promedio (m)")
+    ax.grid(True)
+    plt.subplots_adjust(right=0.75)
+    num_columns = (len(muestras_unicas) + 24) // 25
+    legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png', dpi=100, bbox_inches='tight', bbox_extra_artists=[legend])
+    buffer.seek(0)
+    plt.close()
+    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return image_base64
+
+# Vista para gráficos de gravedad específica
+def graficos_gravedad_especifica(request):
     id_proyectos = request.GET.getlist('id_proyectos')
     tipos_prospeccion = request.GET.getlist('tipos_prospeccion')
     areas = request.GET.getlist('areas')
     id_prospecciones = request.GET.getlist('id_prospecciones')
 
-    # Depuración: verificar parámetros recibidos
-    print("Parámetros recibidos:", request.GET)
-
-    # Filtrar para opciones iniciales
-    query = Humedad.objects.all()
+    query = gravedad_especifica.objects.all()
     if id_proyectos:
         query = query.filter(id_proyecto__in=id_proyectos)
-        print("Tras id_proyectos:", query.count())
     if tipos_prospeccion:
         query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
-        print("Tras tipos_prospeccion:", query.count())
     if areas:
         query = query.filter(area__in=areas)
-        print("Tras areas:", query.count())
     if id_prospecciones:
         query = query.filter(id_prospeccion__in=id_prospecciones)
-        print("Tras id_prospecciones:", query.count())
 
-    # Calcular opciones iniciales
     proyectos = query.values('id_proyecto').distinct()
-    tipos_prospeccion_inicial = (query.values_list('tipo_prospeccion', flat=True)
-                                 .distinct().exclude(tipo_prospeccion__isnull=True).exclude(tipo_prospeccion=''))
-    areas_inicial = (query.values_list('area', flat=True)
-                     .distinct().exclude(area__isnull=True).exclude(area=''))
-    id_prospecciones_inicial = (query.values_list('id_prospeccion', flat=True)
-                                .distinct().exclude(id_prospeccion__isnull=True).exclude(id_prospeccion=''))
+    tipos_prospeccion_inicial = query.values_list('tipo_prospeccion', flat=True).distinct().exclude(tipo_prospeccion__isnull=True)
+    areas_inicial = query.values_list('area', flat=True).distinct().exclude(area__isnull=True).exclude(area='')
+    id_prospecciones_inicial = query.values_list('id_prospeccion', flat=True).distinct().exclude(id_prospeccion__isnull=True)
 
-    # Depuración: verificar opciones iniciales
-    print("Proyectos iniciales:", list(proyectos))
-    print("Tipos prospección iniciales:", list(tipos_prospeccion_inicial))
-    print("Áreas iniciales:", list(areas_inicial))
-    print("IDs prospección iniciales:", list(id_prospecciones_inicial))
+    df = pd.DataFrame(list(query.values('gravedad_especifica', 'area', 'profundidad_promedio', 'id_muestra')))
 
-    # Filtrar datos para gráficos
-    humedades = Humedad.objects.all()
-    if id_proyectos:
-        humedades = humedades.filter(id_proyecto__in=id_proyectos)
-    if tipos_prospeccion:
-        humedades = humedades.filter(tipo_prospeccion__in=tipos_prospeccion)
-    if areas:
-        humedades = humedades.filter(area__in=areas)
-    if id_prospecciones:
-        humedades = humedades.filter(id_prospeccion__in=id_prospecciones)
-
-    # Crear DataFrame
-    df = pd.DataFrame.from_records(humedades.values('id_proyecto', 'id_prospeccion', 'humedad', 'profundidad_promedio', 'area'))
-    print("Datos en DataFrame:", df.shape)
-
-    # Manejar caso de DataFrame vacío
-    if df.empty:
-        context = {
-            'error': "No hay datos para graficar.",
-            'proyectos': proyectos,
-            'tipos_prospeccion_inicial': tipos_prospeccion_inicial,
-            'areas_inicial': areas_inicial,
-            'id_prospecciones_inicial': id_prospecciones_inicial,
-            'selected_id_proyectos': json.dumps(id_proyectos),
-            'selected_tipos_prospeccion': json.dumps(tipos_prospeccion),
-            'selected_areas': json.dumps(areas),
-            'selected_id_prospecciones': json.dumps(id_prospecciones),
-        }
-        return render(request, 'laboratorio/ensayos/humedad/graficos_humedad.html', context)
-
-    # Generar gráficos
-    image_base64_area = generar_grafico_humedad_area(df)
-    image_base64_prospeccion = generar_grafico_humedad_prospeccion(df)
-
-    # Preparar contexto
     context = {
-        'image_base64_area': image_base64_area,
-        'image_base64_prospeccion': image_base64_prospeccion,
         'proyectos': proyectos,
         'tipos_prospeccion_inicial': tipos_prospeccion_inicial,
         'areas_inicial': areas_inicial,
@@ -638,15 +1017,712 @@ def graficos_humedad(request):
         'selected_id_prospecciones': json.dumps(id_prospecciones),
     }
 
-    return render(request, 'laboratorio/ensayos/humedad/graficos_humedad.html', context)
+    if df.empty:
+        context['error'] = "No hay datos disponibles para los filtros seleccionados."
+    else:
+        context['image_base64_area'] = generar_grafico_gravedad_area(df)
+        context['image_base64_muestra'] = generar_grafico_gravedad_muestra(df)
+
+    return render(request, 'laboratorio/ensayos/gravedad_especifica/graficos_gravedad_especifica.html', context)
+
+# Funciones auxiliares
+def obtener_tipos_prospeccion_gravedad(request):
+    id_proyectos = request.GET.get('id_proyectos')
+    query = gravedad_especifica.objects.all()
+    if id_proyectos:
+        query = query.filter(id_proyecto__in=id_proyectos.split(','))
+    tipos_list = list(query.values_list('tipo_prospeccion', flat=True).distinct().exclude(tipo_prospeccion__isnull=True))
+    return JsonResponse({'options': tipos_list}, safe=False)
+
+def obtener_id_prospecciones_gravedad(request):
+    id_proyectos = request.GET.get('id_proyectos')
+    tipos_prospeccion = request.GET.get('tipos_prospeccion')
+    areas = request.GET.get('areas')
+    query = gravedad_especifica.objects.all()
+    if id_proyectos:
+        query = query.filter(id_proyecto__in=id_proyectos.split(','))
+    if tipos_prospeccion:
+        query = query.filter(tipo_prospeccion__in=tipos_prospeccion.split(','))
+    if areas:
+        query = query.filter(area__in=areas.split(','))
+    id_prospecciones_list = list(query.values_list('id_prospeccion', flat=True).distinct().exclude(id_prospeccion__isnull=True))
+    return JsonResponse({'options': id_prospecciones_list}, safe=False)
+
+def obtener_area_gravedad(request):
+    id_prospecciones = request.GET.get('id_prospecciones')
+    if id_prospecciones:
+        query = gravedad_especifica.objects.filter(id_prospeccion__in=id_prospecciones.split(','))
+        areas_list = list(query.values_list('area', flat=True).distinct().exclude(area__isnull=True).exclude(area=''))
+        return JsonResponse({'options': areas_list})
+    return JsonResponse({'options': []})
+
+
+###USCS##################################################
+
+logger = logging.getLogger(__name__)
+
+@login_required
+def agregar_uscs(request):
+    proyectos_con_muestreo = Proyectos.objects.filter(muestreo__isnull=False).distinct()
+    uscs_choices = uscs._meta.get_field('uscs').choices  # Obtener las opciones del modelo
+
+    if request.method == 'POST':
+        post_data = request.POST.copy()
+        proyecto_id = post_data.get('id_proyecto')
+        tipo_prospeccion = post_data.get('tipo_prospeccion')
+        area = post_data.get('area')
+
+        if proyecto_id:
+            try:
+                proyecto = Proyectos.objects.get(id=proyecto_id)
+                post_data['id_proyecto'] = proyecto.id
+            except Proyectos.DoesNotExist:
+                post_data['id_proyecto'] = None
+
+        id_prospecciones = post_data.getlist('id_prospeccion')
+        muestras = post_data.getlist('id_muestra')
+        uscs_values = post_data.getlist('uscs')
+        profundidades_desde = post_data.getlist('profundidad_desde')
+        profundidades_hasta = post_data.getlist('profundidad_hasta')
+        errors = []
+
+        for id_pros, muestra, uscs_val, desde, hasta in zip(id_prospecciones, muestras, uscs_values, profundidades_desde, profundidades_hasta):
+            if not id_pros or not muestra or not uscs_val:
+                errors.append(f"Falta ID de prospección, ID de muestra o clasificación USCS para una entrada.")
+                continue
+            
+            try:
+                prospeccion = Prospecciones.objects.get(id_prospeccion=id_pros)
+                post_data['id_prospeccion'] = prospeccion.id_prospeccion
+            except Prospecciones.DoesNotExist:
+                errors.append(f"Prospección {id_pros} no encontrada.")
+                continue
+
+            try:
+                uscs_obj = uscs(
+                    id_proyecto=proyecto if proyecto_id else None,
+                    tipo_prospeccion=tipo_prospeccion,
+                    id_prospeccion=prospeccion,
+                    id_muestra=muestra,
+                    profundidad_desde=desde if desde else None,
+                    profundidad_hasta=hasta if hasta else None,
+                    profundidad_promedio=(float(desde) + float(hasta)) / 2 if desde and hasta else 0,
+                    uscs=uscs_val,
+                    area=area,
+                    user=request.user
+                )
+                uscs_obj.save()
+                logger.info(f"USCS creado: ID {uscs_obj.id}")
+            except Exception as e:
+                logger.error(f"Error al guardar USCS para muestra {muestra}: {e}")
+                errors.append(f"Error al guardar muestra {muestra}: {e}")
+
+        if errors:
+            return render(request, 'laboratorio/ensayos/uscs/agregar_uscs.html', {
+                'proyectos': proyectos_con_muestreo,
+                'uscs_choices': uscs_choices,
+                'errors': errors
+            })
+        return redirect('listar_uscs')
+
+    return render(request, 'laboratorio/ensayos/uscs/agregar_uscs.html', {
+        'proyectos': proyectos_con_muestreo,
+        'uscs_choices': uscs_choices
+    })
+    
+# 2. Listar USCS
+@login_required
+def listar_uscs(request):
+    uscs_list = uscs.objects.all().order_by('id')  # Ordenar por 'id'
+    query = request.GET.get('q', '')
+
+    if query:
+        uscs_model = apps.get_model('administrador', 'uscs')
+        # Incluir campos de texto y numéricos
+        campos = [field.name for field in uscs_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, DecimalField, FloatField, ForeignKey))]
+        query_filter = Q()
+        
+        # Intentar convertir el query a float para búsquedas numéricas
+        try:
+            query_numeric = float(query)
+            numeric_search = True
+        except ValueError:
+            numeric_search = False
+
+        for field in campos:
+            field_instance = uscs_model._meta.get_field(field)
+            if isinstance(field_instance, (DateField, DateTimeField)):
+                query_filter |= Q(**{f"{field}__year__icontains": query})
+                query_filter |= Q(**{f"{field}__month__icontains": query})
+                query_filter |= Q(**{f"{field}__day__icontains": query})
+            elif isinstance(field_instance, ForeignKey):
+                related_model = field_instance.related_model
+                related_fields = [f"{field}__{related_field.name}" for related_field in related_model._meta.get_fields() if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    query_filter |= Q(**{f"{related_field}__icontains": query})
+            elif isinstance(field_instance, (DecimalField, FloatField)) and numeric_search:
+                # Para campos numéricos, usar coincidencia exacta
+                query_filter |= Q(**{f"{field}": query_numeric})
+            else:
+                # Para campos de texto
+                query_filter |= Q(**{f"{field}__icontains": query})
+        
+        uscs_list = uscs_list.filter(query_filter)
+
+    paginator = Paginator(uscs_list, 1000)  # 1000 registros por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Si es una solicitud AJAX (opcional)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'laboratorio/ensayos/uscs/uscs_table.html', {'page_obj': page_obj})
+    
+    return render(request, 'laboratorio/ensayos/uscs/listar_uscs.html', {
+        'page_obj': page_obj,
+        'query': query
+    })
+
+# 3. Editar USCS
+@login_required
+def editar_uscs(request, id):
+    uscs_obj = get_object_or_404(uscs, id=id)
+    proyectos = Proyectos.objects.all()
+    if request.method == 'POST':
+        form = UscsForm(request.POST, instance=uscs_obj)
+        if form.is_valid():
+            try:
+                uscs_obj = form.save()
+                logger.info(f"USCS editado: ID {uscs_obj.id}")
+                return redirect('listar_uscs')
+            except Exception as e:
+                logger.error(f"Error al editar USCS {uscs_obj.id}: {e}")
+                form.add_error(None, f"Error al editar: {e}")
+    else:
+        form = UscsForm(instance=uscs_obj)
+    return render(request, 'laboratorio/ensayos/uscs/editar_uscs.html', {'form': form, 'uscs': uscs_obj, 'proyectos': proyectos})
+
+
+
+@login_required
+def ver_uscs(request, id):
+    uscs = get_object_or_404(uscs, id=id)
+    return render(request, 'laboratorio/ensayos/uscs/ver_uscs.html', {'uscs': uscs})
+
+
+
+# 4. Eliminar USCS
+@login_required
+def eliminar_uscs(request, id):
+    uscs_obj = get_object_or_404(uscs, id=id)
+    if request.method == 'POST':
+        uscs_obj.delete()
+        return redirect('listar_uscs')
+    return render(request, 'laboratorio/ensayos/uscs/eliminar_uscs.html', {'uscs': uscs_obj})
+
+# 5. Exportar a Excel USCS
+def export_to_excel_uscs(request):
+    query = request.GET.get('q', '')
+    headers = ['ID', 'ID Proyecto', 'ID Prospección', 'Tipo Prospección', 'ID Muestra', 'USCS', 'Área', 'Usuario']
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="uscs_filtrado.xlsx"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "USCS Filtrado"
+    ws.append(headers)
+
+    uscs_list = uscs.objects.all()
+    if query:
+        uscs_list = uscs_list.filter(
+            Q(id_prospeccion__id_prospeccion__icontains=query) |
+            Q(id_muestra__icontains=query) |
+            Q(uscs__icontains=query)
+        )
+
+    for uscs_obj in uscs_list:
+        row = [
+            uscs_obj.id,
+            str(uscs_obj.id_proyecto),
+            str(uscs_obj.id_prospeccion),
+            uscs_obj.tipo_prospeccion,
+            uscs_obj.id_muestra,
+            uscs_obj.uscs,
+            uscs_obj.area,
+            uscs_obj.user.username if uscs_obj.user else 'Sin usuario'
+        ]
+        ws.append(row)
+
+    wb.save(response)
+    return response
+
+# 6. Exportar a PDF USCS
+def export_to_pdf_uscs(request):
+    query = request.GET.get('q', '')
+    headers = ['ID', 'ID Proyecto', 'ID Prospección', 'Tipo Prospección', 'ID Muestra', 'USCS', 'Área', 'Usuario']
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="uscs_filtrado.pdf"'
+
+    p = canvas.Canvas(response)
+    p.drawString(100, 750, "Reporte de Clasificaciones USCS Filtradas")
+    p.drawString(100, 730, " | ".join(headers))
+
+    uscs_list = uscs.objects.all()
+    if query:
+        uscs_list = uscs_list.filter(
+            Q(id_prospeccion__id_prospeccion__icontains=query) |
+            Q(id_muestra__icontains=query) |
+            Q(uscs__icontains=query)
+        )
+
+    y = 710
+    for uscs_obj in uscs_list:
+        row = [
+            str(uscs_obj.id),
+            str(uscs_obj.id_proyecto),
+            str(uscs_obj.id_prospeccion),
+            uscs_obj.tipo_prospeccion,
+            uscs_obj.id_muestra,
+            uscs_obj.uscs,
+            uscs_obj.area,
+            uscs_obj.user.username if uscs_obj.user else 'Sin usuario'
+        ]
+        p.drawString(100, y, " | ".join(row))
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = 750
+
+    p.showPage()
+    p.save()
+    return response
+
+# 7. Gráficos USCS
+
+# Vista para gráficos USCS
+def graficos_uscs(request):
+    id_proyectos = request.GET.getlist('id_proyecto')
+    tipos_prospeccion = request.GET.getlist('tipo_prospeccion')
+    areas = request.GET.getlist('area')
+    id_prospecciones = request.GET.getlist('id_prospeccion')
+    
+    query = uscs.objects.all()
+    if id_proyectos:
+        query = query.filter(id_proyecto__in=id_proyectos)
+    if tipos_prospeccion:
+        query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
+    if areas:
+        query = query.filter(area__in=areas)
+    if id_prospecciones:
+        query = query.filter(id_prospeccion__in=id_prospecciones)
+    
+    proyectos = query.values('id_proyecto').distinct()
+    tipos_prospeccion_inicial = (query.values_list('tipo_prospeccion', flat=True)
+                                 .distinct().exclude(tipo_prospeccion__isnull=True).exclude(tipo_prospeccion=''))
+    areas_inicial = (query.values_list('area', flat=True)
+                     .distinct().exclude(area__isnull=True).exclude(area=''))
+    id_prospecciones_inicial = (query.values_list('id_prospeccion', flat=True)
+                                .distinct().exclude(id_prospeccion__isnull=True).exclude(id_prospeccion=''))
+    
+    df = pd.DataFrame.from_records(query.values('id_proyecto', 'id_prospeccion', 'id_muestra', 'uscs', 'area'))
+    
+    context = {
+        'proyectos': proyectos,
+        'tipos_prospeccion_inicial': tipos_prospeccion_inicial,
+        'areas_inicial': areas_inicial,
+        'id_prospecciones_inicial': id_prospecciones_inicial,
+        'selected_id_proyectos': json.dumps(id_proyectos),
+        'selected_tipos_prospeccion': json.dumps(tipos_prospeccion),
+        'selected_areas': json.dumps(areas),
+        'selected_id_prospecciones': json.dumps(id_prospecciones),
+    }
+    
+    if df.empty:
+        context['error'] = "No hay datos para graficar."
+        return render(request, 'laboratorio/ensayos/uscs/graficos_uscs.html', context)
+    
+    # Gráfico 1: Distribución porcentual de clasificaciones USCS (anillo)
+    def generar_grafico_distribucion_uscs(df):
+        uscs_counts = df['uscs'].value_counts(normalize=True) * 100
+        labels = uscs_counts.index
+        sizes = uscs_counts.values
+        colors = [np.random.rand(3,) for _ in range(len(labels))]  # Colores aleatorios como en humedad
+        
+        fig, ax = plt.subplots()
+        wedges, texts, autotexts = ax.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', 
+                                          startangle=90, wedgeprops=dict(width=0.3, edgecolor='white'))
+        ax.grid(True)  # Grilla como en humedad
+        plt.subplots_adjust(right=0.75)  # Márgenes como en humedad
+        num_columns = (len(labels) + 24) // 25  # Cálculo de columnas como en humedad
+        legend = ax.legend(loc='center left', bbox_to_anchor=(1.05, 0.5), ncol=num_columns)
+        ax.set_title("Distribución Porcentual de Clasificaciones USCS")
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight', bbox_extra_artists=[legend])
+        buffer.seek(0)
+        plt.close()
+        return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    
+    # Gráfico 2: Clasificaciones por área (barras apiladas)
+    def generar_grafico_uscs_por_area(df):
+        pivot = df.pivot_table(index='area', columns='uscs', aggfunc='size', fill_value=0)
+        colors = [np.random.rand(3,) for _ in range(len(pivot.columns))]  # Colores aleatorios como en humedad
+        
+        fig, ax = plt.subplots()
+        pivot.plot(kind='bar', stacked=True, ax=ax, color=colors, edgecolor='white', linewidth=0.5)
+        ax.set_xlabel("Área")
+        ax.set_ylabel("Cantidad")
+        ax.grid(True)  # Grilla como en humedad
+        plt.subplots_adjust(right=0.75)  # Márgenes como en humedad
+        num_columns = (len(pivot.columns) + 24) // 25  # Cálculo de columnas como en humedad
+        legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
+        ax.set_title("Clasificaciones USCS por Área")
+        plt.xticks(rotation=45, ha='right')
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png', dpi=85, bbox_inches='tight', bbox_extra_artists=[legend])
+        buffer.seek(0)
+        plt.close()
+        return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    
+    image_base64_distribucion = generar_grafico_distribucion_uscs(df)
+    image_base64_area = generar_grafico_uscs_por_area(df)
+    
+    context.update({
+        'image_base64_distribucion': image_base64_distribucion,
+        'image_base64_area': image_base64_area,
+    })
+    return render(request, 'laboratorio/ensayos/uscs/graficos_uscs.html', context)
+
 
 
 from django.http import JsonResponse
+from .models import Muestreo, Prospecciones
 
+# Obtener tipos de prospección desde Muestreo
+def obtener_tipos_prospeccion_muestreo(request):
+    id_proyecto = request.GET.get('id_proyecto')
+    tipos = Muestreo.objects.all()
+    if id_proyecto:
+        tipos = tipos.filter(id_proyecto=id_proyecto)
+    tipos_list = list(tipos.values_list('tipo_prospeccion', flat=True)
+                     .distinct()
+                     .exclude(tipo_prospeccion__isnull=True)
+                     .exclude(tipo_prospeccion=''))
+    return JsonResponse({'options': tipos_list}, safe=False)
+
+# Obtener IDs de prospección desde Muestreo
+def obtener_id_prospecciones_muestreo(request):
+    id_proyecto = request.GET.get('id_proyecto')
+    tipo_prospeccion = request.GET.get('tipo_prospeccion')
+    query = Muestreo.objects.all()
+    if id_proyecto:
+        query = query.filter(id_proyecto=id_proyecto)
+    if tipo_prospeccion:
+        query = query.filter(tipo_prospeccion=tipo_prospeccion)
+    id_prospecciones_list = list(query.values_list('id_prospeccion__id_prospeccion', flat=True)
+                                 .distinct()
+                                 .exclude(id_prospeccion__isnull=True))
+    return JsonResponse({'options': id_prospecciones_list}, safe=False)
+
+# Obtener área desde Muestreo
+def obtener_area_muestreo(request):
+    prospeccion_id = request.GET.get('prospeccion_id')
+    if prospeccion_id:
+        try:
+            muestreo = Muestreo.objects.filter(id_prospeccion__id_prospeccion=prospeccion_id).first()
+            if muestreo:
+                return JsonResponse({'area': muestreo.area})
+        except Muestreo.DoesNotExist:
+            pass
+    return JsonResponse({'area': ''})
+
+# Obtener IDs de muestra desde Muestreo
+def obtener_id_muestras_muestreo(request):
+    id_prospeccion = request.GET.get('id_prospeccion')
+    muestras = Muestreo.objects.all()
+    if id_prospeccion:
+        muestras = muestras.filter(id_prospeccion__id_prospeccion=id_prospeccion)
+    muestras_list = list(muestras.values_list('id_muestra', flat=True)
+                        .distinct()
+                        .exclude(id_muestra__isnull=True)
+                        .exclude(id_muestra=''))
+    return JsonResponse({'options': muestras_list}, safe=False)
+
+
+def obtener_profundidades_muestreo(request):
+    id_muestra = request.GET.get('id_muestra')
+    if id_muestra:
+        try:
+            muestreo = Muestreo.objects.get(id_muestra=id_muestra)
+            return JsonResponse({
+                'profundidad_desde': str(muestreo.profundidad_desde) if muestreo.profundidad_desde else '',
+                'profundidad_hasta': str(muestreo.profundidad_hasta) if muestreo.profundidad_hasta else ''
+            })
+        except Muestreo.DoesNotExist:
+            return JsonResponse({'profundidad_desde': '', 'profundidad_hasta': ''})
+    return JsonResponse({'profundidad_desde': '', 'profundidad_hasta': ''})
+
+
+
+
+#### HUMEDAD ##############################################
+
+# Funciones de humedad
+import logging
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .models import Proyectos, Muestreo  # Asegúrate de importar tus modelos
+from .forms import HumedadForm  # Asegúrate de tener este formulario definido
+import logging
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .models import Proyectos, Muestreo, Humedad, Prospecciones
+
+logger = logging.getLogger(__name__)
+
+@login_required
+def agregar_humedad(request):
+    # Filtrar proyectos que tienen registros en Muestreo
+    proyectos_con_muestreo = Proyectos.objects.filter(muestreo__isnull=False).distinct()
+
+    if request.method == 'POST':
+        post_data = request.POST.copy()
+        proyecto_id = post_data.get('id_proyecto')
+        tipo_prospeccion = post_data.get('tipo_prospeccion')
+        area = post_data.get('area')
+
+        # Validar y asignar proyecto
+        if proyecto_id:
+            try:
+                proyecto = Proyectos.objects.get(id=proyecto_id)
+                post_data['id_proyecto'] = proyecto.id
+            except Proyectos.DoesNotExist:
+                post_data['id_proyecto'] = None
+
+        # Manejar múltiples muestras y valores de humedad
+        id_prospecciones = post_data.getlist('id_prospeccion')  # Lista de prospecciones por fila
+        muestras = post_data.getlist('id_muestra')
+        humedades = post_data.getlist('humedad')
+        profundidades_desde = post_data.getlist('profundidad_desde')
+        profundidades_hasta = post_data.getlist('profundidad_hasta')
+        errors = []
+
+        for id_pros, muestra, humedad_val, desde, hasta in zip(id_prospecciones, muestras, humedades, profundidades_desde, profundidades_hasta):
+            if not id_pros or not muestra or not humedad_val:
+                errors.append(f"Falta ID de prospección, ID de muestra o valor de humedad para una entrada.")
+                continue
+            
+            # Validar y asignar prospección
+            try:
+                prospeccion = Prospecciones.objects.get(id_prospeccion=id_pros)
+                post_data['id_prospeccion'] = prospeccion.id_prospeccion
+            except Prospecciones.DoesNotExist:
+                errors.append(f"Prospección {id_pros} no encontrada.")
+                continue
+
+            post_data['id_muestra'] = muestra
+            post_data['humedad'] = humedad_val
+            post_data['tipo_prospeccion'] = tipo_prospeccion
+            post_data['area'] = area
+
+            # Crear instancia de Humedad manualmente
+            try:
+                humedad_obj = Humedad(
+                    id_proyecto=proyecto if proyecto_id else None,
+                    tipo_prospeccion=tipo_prospeccion,
+                    id_prospeccion=prospeccion,
+                    area=area,
+                    humedad=humedad_val,
+                    profundidad_promedio=(float(desde) + float(hasta)) / 2 if desde and hasta else 0,
+                    user=request.user
+                )
+                humedad_obj.save()
+                logger.info(f"Humedad creada: ID {humedad_obj.id}")
+            except Exception as e:
+                logger.error(f"Error al guardar humedad para muestra {muestra}: {e}")
+                errors.append(f"Error al guardar muestra {muestra}: {e}")
+
+        if errors:
+            return render(request, 'laboratorio/ensayos/humedad/agregar_humedad.html', {
+                'proyectos': proyectos_con_muestreo,
+                'errors': errors
+            })
+        return redirect('listar_humedad')
+
+    return render(request, 'laboratorio/ensayos/humedad/agregar_humedad.html', {
+        'proyectos': proyectos_con_muestreo
+    })
+
+def listar_humedad(request):
+    humedades = Humedad.objects.all().order_by('id')
+    query = request.GET.get('q', '')
+    if query:
+        humedades = humedades.filter(
+            Q(id_proyecto__id__icontains=query) |
+            Q(id_prospeccion__id_prospeccion__icontains=query) |
+            Q(tipo_prospeccion__icontains=query) |
+            Q(humedad__icontains=query) |
+            Q(profundidad_promedio__icontains=query) |
+            Q(area__icontains=query)
+        )
+    paginator = Paginator(humedades, 1000)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'laboratorio/ensayos/humedad/humedad_table.html', {'page_obj': page_obj})
+    return render(request, 'laboratorio/ensayos/humedad/listar_humedad.html', {'page_obj': page_obj, 'query': query})
+
+from django.http import HttpResponse
+from openpyxl import Workbook
+
+def export_to_excel_humedad(request):
+    # Obtener parámetros del request
+    query = request.GET.get('q', '')
+    headers_str = request.GET.get('headers', '')
+    headers = headers_str.split(',') if headers_str else ['ID', 'Tipo Prospección', 'ID Proyecto', 'ID Prospección', 'Humedad', 'Profundidad Promedio', 'Área']
+
+    # Crear respuesta para Excel
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="humedad_filtrada.xlsx"'
+
+    # Crear el libro de Excel
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Humedad Filtrada"
+
+    # Agregar encabezados dinámicos
+    ws.append(headers)
+
+    # Obtener datos filtrados
+    humedades = Humedad.objects.all()
+    if query:
+        humedades = humedades.filter(id_prospeccion__id_prospeccion__icontains=query)
+
+    # Mapear campos según encabezados
+    for humedad in humedades:
+        row = []
+        for header in headers:
+            if header == 'ID':
+                value = humedad.id
+            elif header == 'Tipo Prospección':
+                value = humedad.tipo_prospeccion
+            elif header == 'ID Proyecto':
+                value = str(humedad.id_proyecto)
+            elif header == 'ID Prospección':
+                value = str(humedad.id_prospeccion)
+            elif header == 'Humedad (%)':
+                value = humedad.humedad
+            elif header == 'Profundidad Promedio (m)':
+                value = humedad.profundidad_promedio
+            elif header == 'Área':
+                value = humedad.area
+            elif header == 'Usuario':
+                value = humedad.user.username if humedad.user else 'Sin usuario'
+            else:
+                value = '-'  # Valor por defecto si el encabezado no coincide
+            row.append(value)
+        ws.append(row)
+
+    # Guardar y devolver respuesta
+    wb.save(response)
+    return response
+
+def ver_humedad(request, id):
+    humedad = get_object_or_404(Humedad, id=id)
+    return render(request, 'laboratorio/ensayos/humedad/ver_humedad.html', {'humedad': humedad})
+
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+
+def export_to_pdf_humedad(request):
+    # Obtener parámetros del request
+    query = request.GET.get('q', '')
+    headers_str = request.GET.get('headers', '')
+    headers = headers_str.split(',') if headers_str else ['ID', 'Tipo Prospección', 'ID Proyecto', 'ID Prospección', 'Humedad', 'Profundidad Promedio', 'Área']
+
+    # Crear respuesta para PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="humedad_filtrada.pdf"'
+
+    # Crear el objeto PDF
+    p = canvas.Canvas(response)
+
+    # Agregar título y encabezados dinámicos
+    p.drawString(100, 750, "Reporte de Humedad Filtrada")
+    p.drawString(100, 730, " | ".join(headers))
+
+    # Obtener datos filtrados
+    humedades = Humedad.objects.all()
+    if query:
+        humedades = humedades.filter(id_prospeccion__id_prospeccion__icontains=query)
+
+    # Rellenar datos
+    y = 710
+    for humedad in humedades:
+        row = []
+        for header in headers:
+            if header == 'ID':
+                value = str(humedad.id)
+            elif header == 'Tipo Prospección':
+                value = humedad.tipo_prospeccion
+            elif header == 'ID Proyecto':
+                value = str(humedad.id_proyecto)
+            elif header == 'ID Prospección':
+                value = str(humedad.id_prospeccion)
+            elif header == 'Humedad (%)':
+                value = str(humedad.humedad)
+            elif header == 'Profundidad Promedio (m)':
+                value = str(humedad.profundidad_promedio)
+            elif header == 'Área':
+                value = humedad.area
+            elif header == 'Usuario':
+                value = humedad.user.username if humedad.user else 'Sin usuario'
+            else:
+                value = '-'
+            row.append(value)
+        p.drawString(100, y, " | ".join(row))
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = 750
+
+    # Finalizar el PDF
+    p.showPage()
+    p.save()
+    return response
+
+@login_required
+def editar_humedad(request, id):
+    humedad = get_object_or_404(Humedad, id=id)
+    proyectos = Proyectos.objects.all()
+    if request.method == 'POST':
+        form = HumedadForm(request.POST, instance=humedad)
+        if form.is_valid():
+            try:
+                humedad = form.save()
+                logger.info(f"Humedad editada: ID {humedad.id}, Área: {humedad.area}")
+                return redirect('listar_humedad')
+            except Exception as e:
+                logger.error(f"Error al editar humedad {humedad.id}: {e}")
+                form.add_error(None, f"Error al editar: {e}")
+    else:
+        form = HumedadForm(instance=humedad)
+    return render(request, 'laboratorio/ensayos/humedad/editar_humedad.html', {'form': form, 'humedad': humedad, 'proyectos': proyectos})
+
+
+def eliminar_humedad(request, id):
+    humedad = get_object_or_404(Humedad, id=id)
+    if request.method == 'POST':
+        humedad.delete()
+        return redirect('listar_humedad')
+    return render(request, 'laboratorio/ensayos/humedad/eliminar_humedad.html', {'humedad': humedad})
+
+
+# Funciones de gráficos por proyecto
 def generar_grafico_humedad_area(df):
     areas_unicas = df['area'].unique()
     colores = {area: np.random.rand(3,) for area in areas_unicas}
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots()
     for area in areas_unicas:
         datos_area = df[df['area'] == area]
         ax.scatter(
@@ -667,19 +1743,20 @@ def generar_grafico_humedad_area(df):
     num_columns = (len(areas_unicas) + 24) // 25
     legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
     buffer = BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', bbox_extra_artists=[legend])
+    fig.savefig(buffer, format='png', dpi=100, bbox_inches='tight', bbox_extra_artists=[legend])
     buffer.seek(0)
     plt.close()
     image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return image_base64
 
+# Funciones de gráficos por prospeccion
 def generar_grafico_humedad_prospeccion(df):
     df['id_prospeccion'] = df['id_prospeccion'].astype(str)
     df['id_prospeccion_unico'] = df.groupby('id_prospeccion').cumcount() + 1
     df['etiqueta'] = df['id_prospeccion'] + '-' + df['id_prospeccion_unico'].astype(str)
     prospecciones_unicas = df['etiqueta'].unique()
     colores = {prospeccion: np.random.rand(3,) for prospeccion in prospecciones_unicas}
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig, ax = plt.subplots()
     for prospeccion in prospecciones_unicas:
         datos_prospeccion = df[df['etiqueta'] == prospeccion]
         ax.scatter(
@@ -700,36 +1777,107 @@ def generar_grafico_humedad_prospeccion(df):
     num_columns = (len(prospecciones_unicas) + 24) // 25
     legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
     buffer = BytesIO()
-    fig.savefig(buffer, format='png', bbox_inches='tight', bbox_extra_artists=[legend])
+    fig.savefig(buffer, format='png', dpi=100, bbox_inches='tight', bbox_extra_artists=[legend])
     buffer.seek(0)
     plt.close()
     image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return image_base64
 
-def obtener_tipos_prospeccion_humedad(request):
-    id_proyectos = request.GET.getlist('id_proyectos')
-    query = Humedad.objects.all()
-    if id_proyectos:
-        query = query.filter(id_proyecto__in=id_proyectos)
-    tipos_list = list(query.values_list('tipo_prospeccion', flat=True)
-                     .distinct().exclude(tipo_prospeccion__isnull=True).exclude(tipo_prospeccion=''))
-    print("Tipos devueltos:", tipos_list)
-    return JsonResponse({'options': tipos_list}, safe=False)
 
-def obtener_areas_humedad(request):
-    id_proyectos = request.GET.getlist('id_proyectos')
-    query = Humedad.objects.all()
-    if id_proyectos:
-        query = query.filter(id_proyecto__in=id_proyectos)
-    areas_list = list(query.values_list('area', flat=True)
-                     .distinct().exclude(area__isnull=True).exclude(area=''))
-    print("Áreas devueltas:", areas_list)
-    return JsonResponse({'options': areas_list}, safe=False)
-
-def obtener_id_prospecciones_humedad(request):
+# Funciones de gráficos
+def graficos_humedad(request):
     id_proyectos = request.GET.getlist('id_proyectos')
     tipos_prospeccion = request.GET.getlist('tipos_prospeccion')
     areas = request.GET.getlist('areas')
+    id_prospecciones = request.GET.getlist('id_prospecciones')
+    query = Humedad.objects.all()
+    if id_proyectos:
+        query = query.filter(id_proyecto__in=id_proyectos)
+    if tipos_prospeccion:
+        query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
+    if areas:
+        query = query.filter(area__in=areas)
+    if id_prospecciones:
+        query = query.filter(id_prospeccion__in=id_prospecciones)
+    proyectos = query.values('id_proyecto').distinct()
+    tipos_prospeccion_inicial = (query.values_list('tipo_prospeccion', flat=True)
+                                 .distinct().exclude(tipo_prospeccion__isnull=True).exclude(tipo_prospeccion=''))
+    areas_inicial = (query.values_list('area', flat=True)
+                     .distinct().exclude(area__isnull=True).exclude(area=''))
+    id_prospecciones_inicial = (query.values_list('id_prospeccion', flat=True)
+                                .distinct().exclude(id_prospeccion__isnull=True).exclude(id_prospeccion=''))
+    humedades = Humedad.objects.all()
+    if id_proyectos:
+        humedades = humedades.filter(id_proyecto__in=id_proyectos)
+    if tipos_prospeccion:
+        humedades = humedades.filter(tipo_prospeccion__in=tipos_prospeccion)
+    if areas:
+        humedades = humedades.filter(area__in=areas)
+    if id_prospecciones:
+        humedades = humedades.filter(id_prospeccion__in=id_prospecciones)
+    df = pd.DataFrame.from_records(humedades.values('id_proyecto', 'id_prospeccion', 'humedad', 'profundidad_promedio', 'area'))
+    if df.empty:
+        context = {
+            'error': "No hay datos para graficar.",
+            'proyectos': proyectos,
+            'tipos_prospeccion_inicial': tipos_prospeccion_inicial,
+            'areas_inicial': areas_inicial,
+            'id_prospecciones_inicial': id_prospecciones_inicial,
+            'selected_id_proyectos': json.dumps(id_proyectos),
+            'selected_tipos_prospeccion': json.dumps(tipos_prospeccion),
+            'selected_areas': json.dumps(areas),
+            'selected_id_prospecciones': json.dumps(id_prospecciones),
+        }
+        return render(request, 'laboratorio/ensayos/humedad/graficos_humedad.html', context)
+    image_base64_area = generar_grafico_humedad_area(df)
+    image_base64_prospeccion = generar_grafico_humedad_prospeccion(df)
+    context = {
+        'image_base64_area': image_base64_area,
+        'image_base64_prospeccion': image_base64_prospeccion,
+        'proyectos': proyectos,
+        'tipos_prospeccion_inicial': tipos_prospeccion_inicial,
+        'areas_inicial': areas_inicial,
+        'id_prospecciones_inicial': id_prospecciones_inicial,
+        'selected_id_proyectos': json.dumps(id_proyectos),
+        'selected_tipos_prospeccion': json.dumps(tipos_prospeccion),
+        'selected_areas': json.dumps(areas),
+        'selected_id_prospecciones': json.dumps(id_prospecciones),
+    }
+    return render(request, 'laboratorio/ensayos/humedad/graficos_humedad.html', context)
+
+
+##Obtener funciones API para humedad
+# Obtener tipos de prospección para Humedad
+def obtener_tipos_prospeccion_humedad(request):
+    id_proyectos = request.GET.getlist('id_proyecto')
+    tipos = Humedad.objects.all()
+    if id_proyectos:
+        tipos = tipos.filter(id_proyecto__in=id_proyectos)
+    tipos_list = list(tipos.values_list('tipo_prospeccion', flat=True)
+                     .distinct()
+                     .exclude(tipo_prospeccion__isnull=True)
+                     .exclude(tipo_prospeccion=''))
+    print(f"Tipos de prospección para id_proyectos={id_proyectos}: {tipos_list}")
+    return JsonResponse({'options': tipos_list}, safe=False)
+
+# Obtener áreas para Humedad
+def obtener_areas_humedad(request):
+    id_proyectos = request.GET.getlist('id_proyecto')
+    areas = Humedad.objects.all()
+    if id_proyectos:
+        areas = areas.filter(id_proyecto__in=id_proyectos)
+    areas_list = list(areas.values_list('area', flat=True)
+                     .distinct()
+                     .exclude(area__isnull=True)
+                     .exclude(area=''))
+    print(f"Áreas para id_proyectos={id_proyectos}: {areas_list}")
+    return JsonResponse({'options': areas_list}, safe=False)
+
+# Obtener IDs de prospección para Humedad
+def obtener_id_prospecciones_humedad(request):
+    id_proyectos = request.GET.getlist('id_proyecto')
+    tipos_prospeccion = request.GET.getlist('tipo_prospeccion')
+    areas = request.GET.getlist('area')
     query = Humedad.objects.all()
     if id_proyectos:
         query = query.filter(id_proyecto__in=id_proyectos)
@@ -738,16 +1886,39 @@ def obtener_id_prospecciones_humedad(request):
     if areas:
         query = query.filter(area__in=areas)
     id_prospecciones_list = list(query.values_list('id_prospeccion', flat=True)
-                                 .distinct().exclude(id_prospeccion__isnull=True).exclude(id_prospeccion=''))
-    print("IDs prospección devueltos:", id_prospecciones_list)
+                                .distinct()
+                                .exclude(id_prospeccion__isnull=True)
+                                .exclude(id_prospeccion=''))
+    print(f"IDs de prospección para id_proyectos={id_proyectos}, tipos={tipos_prospeccion}, áreas={areas}: {id_prospecciones_list}")
     return JsonResponse({'options': id_prospecciones_list}, safe=False)
+
+# Obtener proyectos para Humedad
+def obtener_id_proyecto_humedad(request):
+    tipos_prospeccion = request.GET.getlist('tipo_prospeccion')
+    areas = request.GET.getlist('area')
+    id_prospecciones = request.GET.getlist('id_prospeccion')
+    query = Humedad.objects.all()
+    if tipos_prospeccion:
+        query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
+    if areas:
+        query = query.filter(area__in=areas)
+    if id_prospecciones:
+        query = query.filter(id_prospeccion__in=id_prospecciones)
+    proyectos_list = list(query.values_list('id_proyecto', flat=True)
+                         .distinct()
+                         .exclude(id_proyecto__isnull=True)
+                         .exclude(id_proyecto=''))
+    print(f"Proyectos para tipos={tipos_prospeccion}, áreas={areas}, id_prospecciones={id_prospecciones}: {proyectos_list}")
+    return JsonResponse({'options': proyectos_list}, safe=False)
+
+
 
 #### GRANULOMETRIA ##############################################
 
-# Agregar granulometria
+# Funciones de granulometría
 @login_required
 def agregar_granulometria(request):
-    proyectos = obtener_proyectos_prospecciones(request)
+    proyectos = Proyectos.objects.all()
     if request.method == 'POST':
         post_data = request.POST.copy()
         proyecto_id = post_data.get('id_proyecto')
@@ -755,78 +1926,201 @@ def agregar_granulometria(request):
             try:
                 proyecto = Proyectos.objects.get(id=proyecto_id)
                 post_data['id_proyecto'] = proyecto
-                print(f"Proyecto asignado: {proyecto}")
             except Proyectos.DoesNotExist:
                 post_data['id_proyecto'] = None
-                print("Proyecto no encontrado")
-        prospeccion_id = post_data.get('id_prospeccion')
-        if prospeccion_id:
-            try:
-                prospeccion = Prospecciones.objects.get(id_prospeccion=prospeccion_id)  # Cambiar n por id_prospeccion
-                post_data['id_prospeccion'] = prospeccion
-                print(f"Prospección asignada: {prospeccion}")
-            except Prospecciones.DoesNotExist:
-                post_data['id_prospeccion'] = None
-                print("Prospección no encontrada")
+        
         form = GranulometriaForm(post_data)
         if form.is_valid():
-            granulometria = form.save(commit=False)
-            granulometria.user = request.user
-            granulometria.save()
-            print("Formulario válido. Datos a guardar:", form.cleaned_data)
-            return redirect('listar_granulometria')
+            try:
+                granulometria = form.save(commit=False)
+                granulometria.user = request.user
+                granulometria.save()
+                print(f"Granulometría creada: ID {granulometria.id}")  # Depuración
+                return redirect('listar_granulometria')
+            except Exception as e:
+                print(f"Error al guardar granulometría: {e}")  # Depuración
+                form.add_error(None, f"Error al guardar: {e}")
         else:
-            print("Formulario no válido. Errores:", form.errors)
+            print("Formulario no válido:", form.errors)  # Depuración
     else:
         form = GranulometriaForm()
     return render(request, 'laboratorio/ensayos/granulometria/agregar_granulometria.html', {'form': form, 'proyectos': proyectos})
 
-
-# Listar granulometria
+#listar granulometrtia
 def listar_granulometria(request):
-    granulometrias = Granulometria.objects.all().order_by('id')  # Cambiar n por id
+    granulometrias = Granulometria.objects.all().order_by('id')
     query = request.GET.get('q', '')
     if query:
         granulometrias = granulometrias.filter(
             Q(id_proyecto__id__icontains=query) |
-            Q(id_prospeccion__id_prospeccion__icontains=query) |  # Cambiar id_prospeccion por id_prospeccion
+            Q(id_prospeccion__id_prospeccion__icontains=query) |
             Q(tipo_prospeccion__icontains=query)
         )
-
-    paginator = Paginator(granulometrias, 10)
+    paginator = Paginator(granulometrias, 1000)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'laboratorio/ensayos/granulometria/granulometria_table.html', {'page_obj': page_obj})
     return render(request, 'laboratorio/ensayos/granulometria/listar_granulometria.html', {'page_obj': page_obj, 'query': query})
 
-# Exportar a excel
 def export_to_excel_granulometria(request):
+    query = request.GET.get('q', '')
+    headers_str = request.GET.get('headers', '')
+    headers = headers_str.split(',') if headers_str else []
+
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename="granulometria.xlsx"'
+    response['Content-Disposition'] = 'attachment; filename="granulometria_filtrada.xlsx"'
+
     wb = Workbook()
     ws = wb.active
-    ws.title = "Granulometria Data"
-    headers = ['ID', 'Tipo prospeccion', 'ID Proyecto', 'ID Prospección', 'Área']  # Cambiar N por ID
+    ws.title = "Granulometria Filtrada"
     ws.append(headers)
+
     granulometrias = Granulometria.objects.all()
+    if query:
+        granulometrias = granulometrias.filter(id_prospeccion__id_prospeccion__icontains=query)
+
     for granulometria in granulometrias:
-        id_proyecto = str(granulometria.id_proyecto)
-        id_prospeccion = str(granulometria.id_prospeccion)
-        ws.append([granulometria.id, granulometria.tipo_prospeccion, id_proyecto, id_prospeccion, granulometria.area])  # Cambiar n por id
+        row = []
+        for header in headers:
+            if header == 'ID Proyecto':
+                value = str(granulometria.id_proyecto.id)
+            elif header == 'ID Prospección':
+                value = str(granulometria.id_prospeccion.id_prospeccion)
+            elif header == 'Tipo Prospección':
+                value = granulometria.tipo_prospeccion
+            elif header == '0.075 mm':
+                value = granulometria.n_0075
+            elif header == '0.110 mm':
+                value = granulometria.n_0110
+            elif header == '0.250 mm':
+                value = granulometria.n_0250
+            elif header == '0.420 mm':
+                value = granulometria.n_0420
+            elif header == '0.840 mm':
+                value = granulometria.n_0840
+            elif header == '2.000 mm':
+                value = granulometria.n_2000
+            elif header == '4.760 mm':
+                value = granulometria.n_4760
+            elif header == '9.520 mm':
+                value = granulometria.n_9520
+            elif header == '19.000 mm':
+                value = granulometria.n_19000
+            elif header == '25.400 mm':
+                value = granulometria.n_25400
+            elif header == '38.100 mm':
+                value = granulometria.n_38100
+            elif header == '50.800 mm':
+                value = granulometria.n_50800
+            elif header == '63.500 mm':
+                value = granulometria.n_63500
+            elif header == '75.000 mm':
+                value = granulometria.n_75000
+            elif header == 'Área':
+                value = granulometria.area
+            elif header == 'Usuario':
+                value = granulometria.user.username if granulometria.user else 'Sin usuario'
+            else:
+                value = '-'
+            row.append(value)
+        ws.append(row)
+
     wb.save(response)
     return response
 
-def export_to_pdf_granulometria(request):
-    return HttpResponse("Exportar a PDF no está implementado")
 
-# Ver granulometria
-def ver_granulometria(request, id):  # Cambiar pk por id
-    granulometria = get_object_or_404(Granulometria, id=id)  # Cambiar pk por id
+
+def export_to_pdf_granulometria(request):
+    # Obtener parámetros del request
+    query = request.GET.get('q', '')
+    headers_str = request.GET.get('headers', '')
+    headers = headers_str.split(',') if headers_str else [
+        'ID Proyecto', 'ID Prospección', 'Tipo Prospección', '0.075 mm', '0.110 mm', '0.250 mm',
+        '0.420 mm', '0.840 mm', '2.000 mm', '4.760 mm', '9.520 mm', '19.000 mm', '25.400 mm',
+        '38.100 mm', '50.800 mm', '63.500 mm', '75.000 mm', 'Área', 'Usuario'
+    ]
+
+    # Crear respuesta para PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="granulometria_filtrada.pdf"'
+
+    # Crear el objeto PDF
+    p = canvas.Canvas(response)
+
+    # Agregar título y encabezados dinámicos
+    p.drawString(100, 750, "Reporte de Granulometría Filtrada")
+    p.drawString(100, 730, " | ".join(headers))
+
+    # Obtener datos filtrados
+    granulometrias = Granulometria.objects.all()
+    if query:
+        granulometrias = granulometrias.filter(id_prospeccion__id_prospeccion__icontains=query)
+
+    # Rellenar datos
+    y = 710
+    for granulometria in granulometrias:
+        row = []
+        for header in headers:
+            if header == 'ID Proyecto':
+                value = str(granulometria.id_proyecto.id)
+            elif header == 'ID Prospección':
+                value = str(granulometria.id_prospeccion.id_prospeccion)
+            elif header == 'Tipo Prospección':
+                value = granulometria.tipo_prospeccion
+            elif header == '0.075 mm':
+                value = str(granulometria.n_0075)
+            elif header == '0.110 mm':
+                value = str(granulometria.n_0110)
+            elif header == '0.250 mm':
+                value = str(granulometria.n_0250)
+            elif header == '0.420 mm':
+                value = str(granulometria.n_0420)
+            elif header == '0.840 mm':
+                value = str(granulometria.n_0840)
+            elif header == '2.000 mm':
+                value = str(granulometria.n_2000)
+            elif header == '4.760 mm':
+                value = str(granulometria.n_4760)
+            elif header == '9.520 mm':
+                value = str(granulometria.n_9520)
+            elif header == '19.000 mm':
+                value = str(granulometria.n_19000)
+            elif header == '25.400 mm':
+                value = str(granulometria.n_25400)
+            elif header == '38.100 mm':
+                value = str(granulometria.n_38100)
+            elif header == '50.800 mm':
+                value = str(granulometria.n_50800)
+            elif header == '63.500 mm':
+                value = str(granulometria.n_63500)
+            elif header == '75.000 mm':
+                value = str(granulometria.n_75000)
+            elif header == 'Área':
+                value = granulometria.area
+            elif header == 'Usuario':
+                value = granulometria.user.username if granulometria.user else 'Sin usuario'
+            else:
+                value = '-'
+            row.append(value)
+        text = " | ".join(row)
+        p.drawString(100, y, text[:500])  # Limitar longitud para evitar desbordamiento
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = 750
+
+    # Finalizar el PDF
+    p.showPage()
+    p.save()
+    return response
+
+#ver granulometria
+def ver_granulometria(request, id):
+    granulometria = get_object_or_404(Granulometria, id=id)
     return render(request, 'laboratorio/ensayos/granulometria/ver_granulometria.html', {'granulometria': granulometria})
 
-# Editar granulometria
+#editar granulometria
 @login_required
 def editar_granulometria(request, id):
     granulometria = get_object_or_404(Granulometria, id=id)
@@ -841,62 +2135,168 @@ def editar_granulometria(request, id):
             except Exception as e:
                 logger.error(f"Error al editar granulometría {granulometria.id}: {e}")
                 form.add_error(None, f"Error al editar: {e}")
-        else:
-            logger.error(f"Formulario no válido al editar granulometría {granulometria.id}: {form.errors}")
     else:
         form = GranulometriaForm(instance=granulometria)
     return render(request, 'laboratorio/ensayos/granulometria/editar_granulometria.html', {'form': form, 'granulometria': granulometria, 'proyectos': proyectos})
 
-# Eliminar granulometria
-def eliminar_granulometria(request, id):  # Cambiar pk por id
-    granulometria = get_object_or_404(Granulometria, id=id)  # Cambiar pk por id
+#eliminar granulometria
+def eliminar_granulometria(request, id):
+    granulometria = get_object_or_404(Granulometria, id=id)
     if request.method == 'POST':
         granulometria.delete()
         return redirect('listar_granulometria')
     return render(request, 'laboratorio/ensayos/granulometria/eliminar_granulometria.html', {'granulometria': granulometria})
 
+# Funciones de graficos granulometría por proyecto
+def generar_grafico_granulometria_area(df):
+    if 'id_prospeccion' not in df.columns:
+        raise KeyError("La columna 'id_prospeccion' no está presente en los datos iniciales.")
+    df['id_proyecto'] = df['id_proyecto'].astype(str)
+    df['etiqueta'] = df['id_proyecto']
+    proyectos_unicos = df['etiqueta'].unique()
+    colores = {proyecto: np.random.rand(3,) for proyecto in proyectos_unicos}
+    fig, ax = plt.subplots()
+    x_values = np.array([0.075, 0.110, 0.250, 0.420, 0.840, 2.000, 4.760, 9.520, 19.000, 25.400, 38.100, 50.800, 63.500, 75.000])
+    for proyecto in proyectos_unicos:
+        datos_proyecto = df[df['etiqueta'] == proyecto]
+        for i in range(len(datos_proyecto)):
+            y_values = datos_proyecto.iloc[i, 2:16].values
+            sorted_indices = np.argsort(x_values)[::-1]
+            x_values_sorted = x_values[sorted_indices]
+            y_values_sorted = y_values[sorted_indices]
+            ax.plot(x_values_sorted, y_values_sorted, color=colores[proyecto], label=proyecto if i == 0 else "")
+    ax.set_xscale('log')
+    ax.set_xlim(0.01, 100)
+    ax.xaxis.set_major_locator(LogLocator(base=10, numticks=10))
+    ax.xaxis.set_minor_locator(LogLocator(base=10, subs='auto', numticks=50))
+    def log_format(x, _):
+        if x < 1:
+            return f"{x:.2f}"
+        else:
+            return f"{int(x)}"
+    ax.xaxis.set_major_formatter(FuncFormatter(log_format))
+    ax.invert_xaxis()
+    ax.set_xlabel('Tamaño de partícula (mm)')
+    ax.set_ylabel('Porcentaje que pasa (%)')
+    ax.set_title('Distribución Granulométrica', pad=40)
+    handles, labels = ax.get_legend_handles_labels()
+    max_legends = 27
+    if len(handles) > max_legends:
+        handles = handles[:max_legends]
+        labels = labels[:max_legends]
+    ax.legend(handles, labels, loc='upper right', fontsize=8, ncol=1, columnspacing=0.5,
+              handlelength=2, handletextpad=0.5, borderpad=0.5, framealpha=0.5, borderaxespad=0.5)
+    ax.axvline(x=76.8, color='black', linestyle='--', linewidth=1, label='3')
+    ax.axvline(x=19, color='black', linestyle='--', linewidth=1, label='3/4')
+    ax.axvline(x=4.76, color='black', linestyle='--', linewidth=1, label='N°4')
+    ax.axvline(x=0.42, color='black', linestyle='--', linewidth=1, label='N°40')
+    ax.axvline(x=0.0749, color='black', linestyle='--', linewidth=1, label='N°200')
+    ax.axhline(y=50, color='black', linestyle='--', linewidth=1, label='50')
+    ax.text(76.8, 106.5, '3', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(19, 106.5, '3/4', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(4.76, 106.5, '4', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(0.42, 106.5, '40', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(0.0749, 106.5, '200', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(140, 50, '50', color='black', va='bottom', ha='left', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    def add_text_with_box(ax, x, y, text, color, pad=0.5, boxstyle='square'):
+        ax.text(x, y, text, color=color, va='bottom', ha='center', fontsize=8,
+                bbox=dict(facecolor='white', edgecolor="black", boxstyle=boxstyle, pad=pad))
+    add_text_with_box(ax, 19, 112, "    G    R    A    V    A     ", color='black', pad=0.3)
+    add_text_with_box(ax, 0.60, 112, '      A         R         E         N         A      ', color='black', pad=0.3)
+    add_text_with_box(ax, 0.025, 112, '   F   I   N   O   S   ', color='black', pad=0.3)
+    plt.grid(True)
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png', dpi=100, bbox_inches="tight", pad_inches=0.5)
+    buffer.seek(0)
+    plt.close()
+    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return image_base64
 
+#grafico de granulometria por prospeccion
+def generar_grafico_granulometria_prospeccion(df):
+    df['id_prospeccion'] = df['id_prospeccion'].astype(str)
+    df['id_prospeccion_unico'] = df.groupby('id_prospeccion').cumcount() + 1
+    df['etiqueta'] = df['id_prospeccion'] + '-' + df['id_prospeccion_unico'].astype(str)
+    prospecciones_unicas = df['etiqueta'].unique()
+    colores = {prospeccion: np.random.rand(3,) for prospeccion in prospecciones_unicas}
+    fig, ax = plt.subplots()
+    x_values = np.array([0.075, 0.110, 0.250, 0.420, 0.840, 2.000, 4.760, 9.520, 19.000, 25.400, 38.100, 50.800, 63.500, 75.000])
+    for prospeccion in prospecciones_unicas:
+        datos_prospeccion = df[df['etiqueta'] == prospeccion]
+        y_values = datos_prospeccion.iloc[0, 2:16].values
+        sorted_indices = np.argsort(x_values)[::-1]
+        x_values_sorted = x_values[sorted_indices]
+        y_values_sorted = y_values[sorted_indices]
+        ax.plot(x_values_sorted, y_values_sorted, color=colores[prospeccion], label=prospeccion)
+    ax.set_xscale('log')
+    ax.set_xlim(0.01, 100)
+    ax.xaxis.set_major_locator(LogLocator(base=10, numticks=10))
+    ax.xaxis.set_minor_locator(LogLocator(base=10, subs='auto', numticks=50))
+    def log_format(x, _):
+        if x < 1:
+            return f"{x:.2f}"
+        else:
+            return f"{int(x)}"
+    ax.xaxis.set_major_formatter(FuncFormatter(log_format))
+    ax.invert_xaxis()
+    ax.set_xlabel('Tamaño de partícula (mm)')
+    ax.set_ylabel('Porcentaje que pasa (%)')
+    ax.set_title('Distribución Granulométrica por Prospección', pad=40)
+    handles, labels = ax.get_legend_handles_labels()
+    max_legends = 27
+    if len(handles) > max_legends:
+        handles = handles[:max_legends]
+        labels = labels[:max_legends]
+    ax.legend(handles, labels, loc='upper right', fontsize=8, ncol=1, columnspacing=0.5,
+              handlelength=2, handletextpad=0.5, borderpad=0.5, framealpha=0.5, borderaxespad=0.5)
+    ax.axvline(x=76.8, color='black', linestyle='--', linewidth=1, label='3')
+    ax.axvline(x=19, color='black', linestyle='--', linewidth=1, label='3/4')
+    ax.axvline(x=4.76, color='black', linestyle='--', linewidth=1, label='N°4')
+    ax.axvline(x=0.42, color='black', linestyle='--', linewidth=1, label='N°40')
+    ax.axvline(x=0.0749, color='black', linestyle='--', linewidth=1, label='N°200')
+    ax.axhline(y=50, color='black', linestyle='--', linewidth=1, label='50')
+    ax.text(76.8, 106.5, '3', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(19, 106.5, '3/4', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(4.76, 106.5, '4', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(0.42, 106.5, '40', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(0.0749, 106.5, '200', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    ax.text(140, 50, '50', color='black', va='bottom', ha='left', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
+    def add_text_with_box(ax, x, y, text, color, pad=0.5, boxstyle='square'):
+        ax.text(x, y, text, color=color, va='bottom', ha='center', fontsize=8,
+                bbox=dict(facecolor='white', edgecolor="black", boxstyle=boxstyle, pad=pad))
+    add_text_with_box(ax, 19, 112, "    G    R    A    V    A     ", color='black', pad=0.3)
+    add_text_with_box(ax, 0.60, 112, '      A         R         E         N         A      ', color='black', pad=0.3)
+    add_text_with_box(ax, 0.025, 112, '   F   I   N   O   S   ', color='black', pad=0.3)
+    plt.grid(True)
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png', dpi=100, bbox_inches="tight", pad_inches=0.5)
+    buffer.seek(0)
+    plt.close()
+    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return image_base64
 
-
-# Gráficos granulometria
-
-# Vista principal para renderizar la página de gráficos de granulometría
+#Funcion graficos granulometria
 def graficos_granulometria(request):
-    # Obtener parámetros de la solicitud GET enviados por el usuario
-    id_proyectos = request.GET.getlist('id_proyecto')  # Lista de IDs de proyectos seleccionados
-    tipos_prospeccion = request.GET.getlist('tipo_prospeccion')  # Lista de tipos de prospección seleccionados
-    areas = request.GET.getlist('area')  # Lista de áreas seleccionadas
-    id_prospecciones = request.GET.getlist('id_prospeccion')  # Lista de IDs de prospección seleccionados
-
-    # Consultar todos los registros de Granulometria como base para los filtros iniciales
+    id_proyectos = request.GET.getlist('id_proyecto')
+    tipos_prospeccion = request.GET.getlist('tipo_prospeccion')
+    areas = request.GET.getlist('area')
+    id_prospecciones = request.GET.getlist('id_prospeccion')
     query = Granulometria.objects.all()
-
-    # Aplicar filtros a la consulta inicial según los parámetros GET recibidos
     if id_proyectos:
-        query = query.filter(id_proyecto__in=id_proyectos)  # Filtrar por proyectos seleccionados
+        query = query.filter(id_proyecto__in=id_proyectos)
     if tipos_prospeccion:
-        query = query.filter(tipo_prospeccion__in=tipos_prospeccion)  # Filtrar por tipos de prospección
+        query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
     if areas:
-        query = query.filter(area__in=areas)  # Filtrar por áreas
+        query = query.filter(area__in=areas)
     if id_prospecciones:
-        query = query.filter(id_prospeccion__in=id_prospecciones)  # Filtrar por IDs de prospección
-
-    # Obtener valores distintos para los filtros iniciales basados en los datos filtrados
-    proyectos = query.values('id_proyecto').distinct()  # Lista única de proyectos disponibles
+        query = query.filter(id_prospeccion__in=id_prospecciones)
+    proyectos = query.values('id_proyecto').distinct()
     tipos_prospeccion_inicial = (query.values_list('tipo_prospeccion', flat=True)
-                                .distinct()  # Tipos de prospección únicos
-                                .exclude(tipo_prospeccion__isnull=True)  # Excluir nulos
-                                .exclude(tipo_prospeccion=''))  # Excluir vacíos
+                                .distinct().exclude(tipo_prospeccion__isnull=True).exclude(tipo_prospeccion=''))
     areas_inicial = (query.values_list('area', flat=True)
-                     .distinct()  # Áreas únicas
-                     .exclude(area__isnull=True)  # Excluir nulos
-                     .exclude(area=''))  # Excluir vacíos
+                     .distinct().exclude(area__isnull=True).exclude(area=''))
     id_prospecciones_inicial = (query.values_list('id_prospeccion', flat=True)
-                                .distinct()  # IDs de prospección únicos
-                                .exclude(id_prospeccion__isnull=True)  # Excluir nulos
-                                .exclude(id_prospeccion=''))  # Excluir vacíos
-
-    # Filtrar datos para los gráficos (usando la misma lógica que los filtros iniciales)
+                                .distinct().exclude(id_prospeccion__isnull=True).exclude(id_prospeccion=''))
     granulometrias = Granulometria.objects.all()
     if id_proyectos:
         granulometrias = granulometrias.filter(id_proyecto__in=id_proyectos)
@@ -906,327 +2306,91 @@ def graficos_granulometria(request):
         granulometrias = granulometrias.filter(area__in=areas)
     if id_prospecciones:
         granulometrias = granulometrias.filter(id_prospeccion__in=id_prospecciones)
-
-    # Crear un DataFrame de Pandas con los datos filtrados para generar gráficos
     df = pd.DataFrame.from_records(granulometrias.values(
         'id_proyecto', 'id_prospeccion', 'n_0075', 'n_0110', 'n_0250', 'n_0420', 'n_0840',
         'n_2000', 'n_4760', 'n_9520', 'n_19000', 'n_25400', 'n_38100', 'n_50800', 'n_63500', 'n_75000', 'area'
     ))
-
-    # Definir el contexto base para pasar a la plantilla HTML
     context = {
-        'proyectos': proyectos,  # Lista de proyectos disponibles
-        'tipos_prospeccion_inicial': tipos_prospeccion_inicial,  # Lista de tipos de prospección disponibles
-        'areas_inicial': areas_inicial,  # Lista de áreas disponibles
-        'id_prospecciones_inicial': id_prospecciones_inicial,  # Lista de IDs de prospección disponibles
-        'selected_id_proyectos': json.dumps(id_proyectos),  # Proyectos seleccionados en formato JSON
-        'selected_tipos_prospeccion': json.dumps(tipos_prospeccion),  # Tipos seleccionados en formato JSON
-        'selected_areas': json.dumps(areas),  # Áreas seleccionadas en formato JSON
-        'selected_id_prospecciones': json.dumps(id_prospecciones),  # IDs seleccionados en formato JSON
+        'proyectos': proyectos,
+        'tipos_prospeccion_inicial': tipos_prospeccion_inicial,
+        'areas_inicial': areas_inicial,
+        'id_prospecciones_inicial': id_prospecciones_inicial,
+        'selected_id_proyectos': json.dumps(id_proyectos),
+        'selected_tipos_prospeccion': json.dumps(tipos_prospeccion),
+        'selected_areas': json.dumps(areas),
+        'selected_id_prospecciones': json.dumps(id_prospecciones),
     }
-
-    # Verificar si hay datos para graficar
     if df.empty:
-        context['error'] = "No hay datos para graficar."  # Mensaje de error si no hay datos
+        context['error'] = "No hay datos para graficar."
         return render(request, 'laboratorio/ensayos/granulometria/graficos_granulometria.html', context)
-
-    # Generar gráficos basados en el DataFrame filtrado
-    image_base64_proyecto = generar_grafico_granulometria_area(df)  # Gráfico por proyecto
-    image_base64_prospeccion = generar_grafico_granulometria_prospeccion(df)  # Gráfico por prospección
-
-    # Actualizar el contexto con las imágenes generadas en base64
+    image_base64_proyecto = generar_grafico_granulometria_area(df)
+    image_base64_prospeccion = generar_grafico_granulometria_prospeccion(df)
     context.update({
         'image_base64_proyecto': image_base64_proyecto,
         'image_base64_prospeccion': image_base64_prospeccion,
     })
-
-    # Renderizar la plantilla HTML con el contexto completo
     return render(request, 'laboratorio/ensayos/granulometria/graficos_granulometria.html', context)
 
-
-# Función para generar gráfico de granulometría por área/proyecto
-def generar_grafico_granulometria_area(df):
-    # Verificar que la columna 'id_prospeccion' esté presente en el DataFrame
-    if 'id_prospeccion' not in df.columns:
-        raise KeyError("La columna 'id_prospeccion' no está presente en los datos iniciales.")
-    
-    # Convertir id_proyecto a string y usarlo como etiqueta
-    df['id_proyecto'] = df['id_proyecto'].astype(str)
-    df['etiqueta'] = df['id_proyecto']
-    proyectos_unicos = df['etiqueta'].unique()  # Obtener proyectos únicos
-    
-    # Asignar colores aleatorios a cada proyecto
-    colores = {proyecto: np.random.rand(3,) for proyecto in proyectos_unicos}
-    
-    # Crear figura y eje para el gráfico
-    fig, ax = plt.subplots()
-    
-    # Definir valores del eje X (tamaños de partícula en mm)
-    x_values = np.array([0.075, 0.110, 0.250, 0.420, 0.840, 2.000, 4.760, 9.520, 19.000, 25.400, 38.100, 50.800, 63.500, 75.000])
-    
-    # Graficar una línea por cada registro de cada proyecto
-    for proyecto in proyectos_unicos:
-        datos_proyecto = df[df['etiqueta'] == proyecto]  # Filtrar datos por proyecto
-        for i in range(len(datos_proyecto)):
-            y_values = datos_proyecto.iloc[i, 2:16].values  # Obtener porcentajes de paso
-            sorted_indices = np.argsort(x_values)[::-1]  # Ordenar en orden descendente
-            x_values_sorted = x_values[sorted_indices]
-            y_values_sorted = y_values[sorted_indices]
-            # Dibujar la línea, asignar etiqueta solo a la primera línea por proyecto
-            ax.plot(x_values_sorted, y_values_sorted, color=colores[proyecto], label=proyecto if i == 0 else "")
-
-    # Configurar escala logarítmica en el eje X
-    ax.set_xscale('log')
-    ax.set_xlim(0.01, 100)  # Límites del eje X
-    ax.xaxis.set_major_locator(LogLocator(base=10, numticks=10))  # Marcas principales
-    ax.xaxis.set_minor_locator(LogLocator(base=10, subs='auto', numticks=50))  # Marcas menores
-
-    # Formatear etiquetas del eje X
-    def log_format(x, _):
-        if x < 1:
-            return f"{x:.2f}"  # Mostrar decimales para valores < 1
-        else:
-            return f"{int(x)}"  # Enteros para valores >= 1
-    ax.xaxis.set_major_formatter(FuncFormatter(log_format))
-    ax.invert_xaxis()  # Invertir eje X (de mayor a menor)
-
-    # Etiquetas y título
-    ax.set_xlabel('Tamaño de partícula (mm)')
-    ax.set_ylabel('Porcentaje que pasa (%)')
-    ax.set_title('Distribución Granulométrica', pad=40)
-
-    # Configurar leyenda
-    handles, labels = ax.get_legend_handles_labels()
-    max_legends = 27  # Limitar número de elementos en la leyenda
-    if len(handles) > max_legends:
-        handles = handles[:max_legends]
-        labels = labels[:max_legends]
-    ax.legend(handles, labels, loc='upper right', fontsize=8, ncol=1, columnspacing=0.5,
-              handlelength=2, handletextpad=0.5, borderpad=0.5, framealpha=0.5, borderaxespad=0.5)
-
-    # Líneas verticales para tamaños de tamiz
-    ax.axvline(x=76.8, color='black', linestyle='--', linewidth=1, label='3')
-    ax.axvline(x=19, color='black', linestyle='--', linewidth=1, label='3/4')
-    ax.axvline(x=4.76, color='black', linestyle='--', linewidth=1, label='N°4')
-    ax.axvline(x=0.42, color='black', linestyle='--', linewidth=1, label='N°40')
-    ax.axvline(x=0.0749, color='black', linestyle='--', linewidth=1, label='N°200')
-    ax.axhline(y=50, color='black', linestyle='--', linewidth=1, label='50')
-
-    # Etiquetas sobre las líneas verticales
-    ax.text(76.8, 106.5, '3', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(19, 106.5, '3/4', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(4.76, 106.5, '4', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))  # Corregido aquí
-    ax.text(0.42, 106.5, '40', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(0.0749, 106.5, '200', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(140, 50, '50', color='black', va='bottom', ha='left', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-
-    # Función auxiliar para agregar texto con caja
-    def add_text_with_box(ax, x, y, text, color, pad=0.5, boxstyle='square'):
-        ax.text(x, y, text, color=color, va='bottom', ha='center', fontsize=8,
-                bbox=dict(facecolor='white', edgecolor="black", boxstyle=boxstyle, pad=pad))
-
-    # Agregar etiquetas de clasificación de materiales
-    add_text_with_box(ax, 19, 112, "    G    R    A    V    A     ", color='black', pad=0.3)
-    add_text_with_box(ax, 0.60, 112, '      A         R         E         N         A      ', color='black', pad=0.3)
-    add_text_with_box(ax, 0.025, 112, '   F   I   N   O   S   ', color='black', pad=0.3)
-
-    # Agregar cuadrícula
-    plt.grid(True)
-
-    # Guardar gráfico en un buffer como imagen PNG
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png', dpi=100, bbox_inches="tight", pad_inches=0.5)
-    buffer.seek(0)
-    plt.close()  # Cerrar la figura para liberar memoria
-
-    # Convertir la imagen a base64 para incrustarla en HTML
-    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    return image_base64
-
-# Función para generar gráfico de granulometría por prospección
-def generar_grafico_granulometria_prospeccion(df):
-    # Convertir id_prospeccion a string y crear etiquetas únicas
-    df['id_prospeccion'] = df['id_prospeccion'].astype(str)
-    df['id_prospeccion_unico'] = df.groupby('id_prospeccion').cumcount() + 1  # Numerar instancias duplicadas
-    df['etiqueta'] = df['id_prospeccion'] + '-' + df['id_prospeccion_unico'].astype(str)
-    prospecciones_unicas = df['etiqueta'].unique()  # Obtener prospecciones únicas
-
-    # Asignar colores aleatorios a cada prospección
-    colores = {prospeccion: np.random.rand(3,) for prospeccion in prospecciones_unicas}
-    
-    # Crear figura y eje para el gráfico
-    fig, ax = plt.subplots()
-    
-    # Definir valores del eje X (tamaños de partícula en mm)
-    x_values = np.array([0.075, 0.110, 0.250, 0.420, 0.840, 2.000, 4.760, 9.520, 19.000, 25.400, 38.100, 50.800, 63.500, 75.000])
-    
-    # Graficar una línea por cada prospección
-    for prospeccion in prospecciones_unicas:
-        datos_prospeccion = df[df['etiqueta'] == prospeccion]  # Filtrar datos por prospección
-        y_values = datos_prospeccion.iloc[0, 2:16].values  # Obtener porcentajes de paso (primer registro)
-        sorted_indices = np.argsort(x_values)[::-1]  # Ordenar en orden descendente
-        x_values_sorted = x_values[sorted_indices]
-        y_values_sorted = y_values[sorted_indices]
-        ax.plot(x_values_sorted, y_values_sorted, color=colores[prospeccion], label=prospeccion)
-
-    # Configurar escala logarítmica en el eje X
-    ax.set_xscale('log')
-    ax.set_xlim(0.01, 100)  # Límites del eje X
-    ax.xaxis.set_major_locator(LogLocator(base=10, numticks=10))  # Marcas principales
-    ax.xaxis.set_minor_locator(LogLocator(base=10, subs='auto', numticks=50))  # Marcas menores
-
-    # Formatear etiquetas del eje X
-    def log_format(x, _):
-        if x < 1:
-            return f"{x:.2f}"  # Decimales para valores < 1
-        else:
-            return f"{int(x)}"  # Enteros para valores >= 1
-    ax.xaxis.set_major_formatter(FuncFormatter(log_format))
-    ax.invert_xaxis()  # Invertir eje X
-
-    # Etiquetas y título
-    ax.set_xlabel('Tamaño de partícula (mm)')
-    ax.set_ylabel('Porcentaje que pasa (%)')
-    ax.set_title('Distribución Granulométrica por Prospección', pad=40)
-
-    # Configurar leyenda
-    handles, labels = ax.get_legend_handles_labels()
-    max_legends = 27  # Limitar número de elementos en la leyenda
-    if len(handles) > max_legends:
-        handles = handles[:max_legends]
-        labels = labels[:max_legends]
-    ax.legend(handles, labels, loc='upper right', fontsize=8, ncol=1, columnspacing=0.5,
-              handlelength=2, handletextpad=0.5, borderpad=0.5, framealpha=0.5, borderaxespad=0.5)
-
-    # Líneas verticales para tamaños de tamiz
-    ax.axvline(x=76.8, color='black', linestyle='--', linewidth=1, label='3')
-    ax.axvline(x=19, color='black', linestyle='--', linewidth=1, label='3/4')
-    ax.axvline(x=4.76, color='black', linestyle='--', linewidth=1, label='N°4')
-    ax.axvline(x=0.42, color='black', linestyle='--', linewidth=1, label='N°40')
-    ax.axvline(x=0.0749, color='black', linestyle='--', linewidth=1, label='N°200')
-    ax.axhline(y=50, color='black', linestyle='--', linewidth=1, label='50')
-
-    # Etiquetas sobre las líneas verticales
-    ax.text(76.8, 106.5, '3', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(19, 106.5, '3/4', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(4.76, 106.5, '4', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(0.42, 106.5, '40', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(0.0749, 106.5, '200', color='black', va='bottom', ha='center', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-    ax.text(140, 50, '50', color='black', va='bottom', ha='left', fontsize=9, bbox=dict(facecolor='white', edgecolor='none', alpha=0))
-
-    # Función auxiliar para agregar texto con caja
-    def add_text_with_box(ax, x, y, text, color, pad=0.5, boxstyle='square'):
-        ax.text(x, y, text, color=color, va='bottom', ha='center', fontsize=8,
-                bbox=dict(facecolor='white', edgecolor="black", boxstyle=boxstyle, pad=pad))
-
-    # Agregar etiquetas de clasificación de materiales
-    add_text_with_box(ax, 19, 112, "    G    R    A    V    A     ", color='black', pad=0.3)
-    add_text_with_box(ax, 0.60, 112, '      A         R         E         N         A      ', color='black', pad=0.3)
-    add_text_with_box(ax, 0.025, 112, '   F   I   N   O   S   ', color='black', pad=0.3)
-
-    # Agregar cuadrícula
-    plt.grid(True)
-
-    # Guardar gráfico en un buffer como imagen PNG
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png', dpi=100, bbox_inches="tight", pad_inches=0.5)
-    buffer.seek(0)
-    plt.close()  # Cerrar la figura para liberar memoria
-
-    # Convertir la imagen a base64 para incrustarla en HTML
-    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    return image_base64
-
-
-# Endpoint API para obtener tipos de prospección dinámicamente
+# Funciones de API para granulometria
 def obtener_tipos_prospeccion_granulometria(request):
-    # Obtener lista de IDs de proyectos desde la solicitud GET
     id_proyectos = request.GET.getlist('id_proyecto')
-    # Consultar todos los registros de Granulometria
     tipos = Granulometria.objects.all()
-    # Filtrar por proyectos si se proporcionan IDs
     if id_proyectos:
         tipos = tipos.filter(id_proyecto__in=id_proyectos)
-    # Obtener lista única de tipos de prospección, excluyendo nulos y vacíos
     tipos_list = list(tipos.values_list('tipo_prospeccion', flat=True)
                      .distinct()
                      .exclude(tipo_prospeccion__isnull=True)
                      .exclude(tipo_prospeccion=''))
-    # Imprimir para depuración
     print(f"Tipos para id_proyectos={id_proyectos}: {tipos_list}")
-    # Devolver respuesta en formato JSON
     return JsonResponse({'options': tipos_list}, safe=False)
 
-# Endpoint API para obtener áreas dinámicamente
 def obtener_areas_granulometria(request):
-    # Obtener lista de IDs de proyectos desde la solicitud GET
     id_proyectos = request.GET.getlist('id_proyecto')
-    # Consultar todos los registros de Granulometria
     areas = Granulometria.objects.all()
-    # Filtrar por proyectos si se proporcionan IDs
     if id_proyectos:
         areas = areas.filter(id_proyecto__in=id_proyectos)
-    # Obtener lista única de áreas, excluyendo nulos y vacíos
     areas_list = list(areas.values_list('area', flat=True)
                      .distinct()
                      .exclude(area__isnull=True)
                      .exclude(area=''))
-    # Imprimir para depuración
     print(f"Áreas para id_proyectos={id_proyectos}: {areas_list}")
-    # Devolver respuesta en formato JSON
     return JsonResponse({'options': areas_list}, safe=False)
 
-# Endpoint API para obtener IDs de prospección dinámicamente
 def obtener_id_prospecciones_granulometria(request):
-    # Obtener parámetros de la solicitud GET
     id_proyectos = request.GET.getlist('id_proyecto')
     tipos_prospeccion = request.GET.getlist('tipo_prospeccion')
     areas = request.GET.getlist('area')
-    # Consultar todos los registros de Granulometria
     query = Granulometria.objects.all()
-    # Aplicar filtros según parámetros recibidos
     if id_proyectos:
         query = query.filter(id_proyecto__in=id_proyectos)
     if tipos_prospeccion:
         query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
     if areas:
         query = query.filter(area__in=areas)
-    # Obtener lista única de IDs de prospección, excluyendo nulos y vacíos
     id_prospecciones_list = list(query.values_list('id_prospeccion', flat=True)
                                 .distinct()
                                 .exclude(id_prospeccion__isnull=True)
                                 .exclude(id_prospeccion=''))
-    # Imprimir para depuración
     print(f"ID Prospecciones para id_proyectos={id_proyectos}, tipos={tipos_prospeccion}, areas={areas}: {id_prospecciones_list}")
-    # Devolver respuesta en formato JSON
     return JsonResponse({'options': id_prospecciones_list}, safe=False)
 
-# Endpoint API para obtener proyectos dinámicamente
 def obtener_id_proyecto_granulometria(request):
-    # Obtener parámetros de la solicitud GET
     tipos_prospeccion = request.GET.getlist('tipo_prospeccion')
     areas = request.GET.getlist('area')
     id_prospecciones = request.GET.getlist('id_prospeccion')
-    # Consultar todos los registros de Granulometria
     query = Granulometria.objects.all()
-    # Aplicar filtros según parámetros recibidos
     if tipos_prospeccion:
         query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
     if areas:
         query = query.filter(area__in=areas)
     if id_prospecciones:
         query = query.filter(id_prospeccion__in=id_prospecciones)
-    # Obtener lista única de proyectos, excluyendo nulos y vacíos
     proyectos_list = list(query.values_list('id_proyecto', flat=True)
                          .distinct()
                          .exclude(id_proyecto__isnull=True)
                          .exclude(id_proyecto=''))
-    # Imprimir para depuración
     print(f"Proyectos para tipos={tipos_prospeccion}, areas={areas}, id_prospecciones={id_prospecciones}: {proyectos_list}")
-    # Devolver respuesta en formato JSON
     return JsonResponse({'options': proyectos_list}, safe=False)
-
-
 
 
 
@@ -1234,35 +2398,45 @@ def obtener_id_proyecto_granulometria(request):
 #### MUESTREO ##############################################
 
 # Agregar muestreo
+import logging
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Proyectos, Prospecciones, Muestreo
+from .forms import MuestreoForm
+
+logger = logging.getLogger(__name__)
+
 @login_required
 def agregar_muestreo(request):
     proyectos = Proyectos.objects.all()
     if request.method == 'POST':
-        post_data = request.POST.copy()
-        proyecto_id = post_data.get('id_proyecto')
-        if proyecto_id:
-            try:
-                proyecto = Proyectos.objects.get(id=proyecto_id)
-                post_data['id_proyecto'] = proyecto
-            except Proyectos.DoesNotExist:
-                post_data['id_proyecto'] = None
-        prospeccion_id = post_data.get('id_prospeccion')
-        if prospeccion_id:
-            try:
-                prospeccion = Prospecciones.objects.get(id_prospeccion=prospeccion_id)  # Cambiar n por id_prospeccion
-                post_data['id_prospeccion'] = prospeccion
-            except Prospecciones.DoesNotExist:
-                post_data['id_prospeccion'] = None
-        form = MuestreoForm(post_data)
+        logger.debug(f"Datos enviados: {request.POST}")
+        form = MuestreoForm(request.POST)
         if form.is_valid():
             muestreo = form.save(commit=False)
             muestreo.user = request.user
-            muestreo.save()
-            return redirect('listar_muestreo')
+            # Asignar tipo_prospeccion desde el formulario
+            muestreo.tipo_prospeccion = request.POST.get('tipo_prospeccion', '')
+            try:
+                muestreo.save()
+                logger.info(f"Muestreo creado: ID {muestreo.id}")
+                return redirect('listar_muestreo')
+            except Exception as e:
+                logger.error(f"Error al guardar muestreo: {e}")
+                return render(request, 'terreno/muestreo/agregar_muestreo.html', {
+                    'form': form, 'proyectos': proyectos, 'errors': [str(e)]
+                })
+        else:
+            logger.debug(f"Errores del formulario: {form.errors}")
+            return render(request, 'terreno/muestreo/agregar_muestreo.html', {
+                'form': form, 'proyectos': proyectos, 'errors': form.errors
+            })
     else:
         form = MuestreoForm()
-    return render(request, 'terreno/muestreo/agregar_muestreo.html', {'form': form, 'proyectos': proyectos})
-
+    return render(request, 'terreno/muestreo/agregar_muestreo.html', {
+        'form': form, 'proyectos': proyectos
+    })  
+    
 # Listar muestreo
 def listar_muestreo(request):
     muestreos = Muestreo.objects.all().order_by('id')  # Cambiar n por id
@@ -1285,7 +2459,7 @@ def listar_muestreo(request):
                 query_filter |= Q(**{f"{field}__icontains": query})
         muestreos = muestreos.filter(query_filter)
 
-    paginator = Paginator(muestreos, 10)
+    paginator = Paginator(muestreos, 1000)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -1343,7 +2517,6 @@ def eliminar_muestreo(request, id):  # Cambiar pk por id
 
 ############ PROGRAMA ##############################################
 
-# Agregar programa
 @login_required
 def agregar_programa(request):
     proyectos = Proyectos.objects.all()
@@ -1354,45 +2527,30 @@ def agregar_programa(request):
             try:
                 proyecto = Proyectos.objects.get(id=proyecto_id)
                 post_data['id_proyecto'] = proyecto
-                print(f"Proyecto asignado: {proyecto}")
             except Proyectos.DoesNotExist:
                 post_data['id_proyecto'] = None
-                print("Proyecto no encontrado")
-        prospeccion_id = post_data.get('id_prospeccion')
-        if prospeccion_id:
-            try:
-                prospeccion = Prospecciones.objects.get(id_prospeccion=prospeccion_id)  # Cambiar n por id_prospeccion
-                post_data['id_prospeccion'] = prospeccion
-                print(f"Prospección asignada: {prospeccion}")
-            except Prospecciones.DoesNotExist:
-                post_data['id_prospeccion'] = None
-                print("Prospección no encontrada")
+        
         form = ProgramaForm(post_data)
         if form.is_valid():
-            programa = form.save(commit=False)
-            programa.user = request.user
-            programa.save()
-            print("Formulario válido. Datos a guardar:", form.cleaned_data)
-            return redirect('listar_programa')
+            try:
+                programa = form.save(commit=False)
+                programa.user = request.user
+                programa.save()
+                print(f"Programa creado: ID {programa.id}")  # Depuración
+                return redirect('listar_programa')
+            except Exception as e:
+                print(f"Error al guardar programa: {e}")  # Depuración
+                form.add_error(None, f"Error al guardar: {e}")
         else:
-            print("Formulario no válido. Errores:", form.errors)
+            print("Formulario no válido:", form.errors)  # Depuración
     else:
         form = ProgramaForm()
     return render(request, 'laboratorio/programa/agregar_programa.html', {'form': form, 'proyectos': proyectos})
 
-# Traer el campo de área automáticamente
-def get_area(request):
-    prospeccion_id = request.GET.get('prospeccion_id')
-    try:
-        prospeccion = Prospecciones.objects.get(id_prospeccion=prospeccion_id)  # Cambiar n por id_prospeccion
-        area = prospeccion.area
-    except Prospecciones.DoesNotExist:
-        area = ''
-    return JsonResponse({'area': area})
-
 # Listar programas
+@login_required
 def listar_programa(request):
-    programas = Programa.objects.all().order_by('id')  # Cambiar n por id
+    programas = Programa.objects.all().order_by('id')
     query = request.GET.get('q', '')
     if query:
         Programa_model = apps.get_model('administrador', 'Programa')
@@ -1420,29 +2578,145 @@ def listar_programa(request):
         return render(request, 'laboratorio/programa/programa_table.html', {'page_obj': page_obj})
     return render(request, 'laboratorio/programa/listar_programa.html', {'page_obj': page_obj, 'query': query})
 
-# Exportar a excel
+# Exportar a Excel
+@login_required
 def export_to_excel_programa(request):
-    programas = Programa.objects.all().values()
-    df = pd.DataFrame(programas)
+    query = request.GET.get('q', '')
+    headers = [
+        'ID', 'ID Proyecto', 'Tipo Prospección', 'ID Prospección', 'Área', 'Objetivo', 'Cantidad', 
+        'Fecha Ingreso Lab', 'ID Ingreso', 'Fecha Envío', 'Asignar Muestra', 'Fecha Informe', 
+        'Cantidad Recibida', 'N° Informe', 'N° EP', 'Usuario'
+    ]
+
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=programas.xlsx'
-    df.to_excel(response, index=False)
+    response['Content-Disposition'] = 'attachment; filename="programas_filtrados.xlsx"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Programas Filtrados"
+    ws.append(headers)
+
+    programas = Programa.objects.all().order_by('id')
+    if query:
+        Programa_model = apps.get_model('administrador', 'Programa')
+        fields = [field.name for field in Programa_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+        query_filter = Q()
+        for field in fields:
+            if isinstance(Programa_model._meta.get_field(field), (DateField, DateTimeField)):
+                query_filter |= Q(**{f"{field}__year__icontains": query})
+                query_filter |= Q(**{f"{field}__month__icontains": query})
+                query_filter |= Q(**{f"{field}__day__icontains": query})
+            elif isinstance(Programa_model._meta.get_field(field), ForeignKey):
+                related_model = Programa_model._meta.get_field(field).related_model
+                related_fields = [f"{field}__{related_field.name}" for related_field in related_model._meta.get_fields() if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    query_filter |= Q(**{f"{related_field}__icontains": query})
+            else:
+                query_filter |= Q(**{f"{field}__icontains": query})
+        programas = programas.filter(query_filter)
+
+    for programa in programas:
+        row = [
+            programa.id,
+            str(programa.id_proyecto.id) if programa.id_proyecto else 'N/A',
+            programa.tipo_prospeccion or 'N/A',
+            str(programa.id_prospeccion.id) if programa.id_prospeccion else 'N/A',
+            programa.area or 'N/A',
+            programa.objetivo or 'N/A',
+            programa.cantidad or 'N/A',
+            programa.fecha_ingreso_lab.strftime('%d/%m/%Y') if programa.fecha_ingreso_lab else 'N/A',
+            programa.id_ingreso or 'N/A',
+            programa.fecha_envio_programa.strftime('%d/%m/%Y') if programa.fecha_envio_programa else 'N/A',
+            programa.asignar_muestra or 'N/A',
+            programa.fecha_informe.strftime('%d/%m/%Y') if programa.fecha_informe else 'N/A',
+            programa.cantidad_recibida or 'N/A',
+            programa.n_informe or 'N/A',
+            programa.n_ep or 'N/A',
+            programa.user.username if programa.user else 'Sin usuario'
+        ]
+        ws.append(row)
+
+    wb.save(response)
     return response
 
+# Exportar a PDF
+@login_required
 def export_to_pdf_programa(request):
-    pass
+    query = request.GET.get('q', '')
+    headers = [
+        'ID', 'ID Proyecto', 'Tipo Prospección', 'ID Prospección', 'Área', 'Objetivo', 'Cantidad', 
+        'Fecha Ingreso Lab', 'ID Ingreso', 'Fecha Envío', 'Asignar Muestra', 'Fecha Informe', 
+        'Cantidad Recibida', 'N° Informe', 'N° EP', 'Usuario'
+    ]
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="programas_filtrados.pdf"'
+
+    p = canvas.Canvas(response)
+    p.drawString(100, 750, "Reporte de Programas Filtrados")
+    p.drawString(100, 730, " | ".join(headers))
+
+    programas = Programa.objects.all().order_by('id')
+    if query:
+        Programa_model = apps.get_model('administrador', 'Programa')
+        fields = [field.name for field in Programa_model._meta.get_fields() if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+        query_filter = Q()
+        for field in fields:
+            if isinstance(Programa_model._meta.get_field(field), (DateField, DateTimeField)):
+                query_filter |= Q(**{f"{field}__year__icontains": query})
+                query_filter |= Q(**{f"{field}__month__icontains": query})
+                query_filter |= Q(**{f"{field}__day__icontains": query})
+            elif isinstance(Programa_model._meta.get_field(field), ForeignKey):
+                related_model = Programa_model._meta.get_field(field).related_model
+                related_fields = [f"{field}__{related_field.name}" for related_field in related_model._meta.get_fields() if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    query_filter |= Q(**{f"{related_field}__icontains": query})
+            else:
+                query_filter |= Q(**{f"{field}__icontains": query})
+        programas = programas.filter(query_filter)
+
+    y = 710
+    for programa in programas:
+        row = [
+            str(programa.id),
+            str(programa.id_proyecto.id) if programa.id_proyecto else 'N/A',
+            programa.tipo_prospeccion or 'N/A',
+            str(programa.id_prospeccion.id) if programa.id_prospeccion else 'N/A',
+            programa.area or 'N/A',
+            programa.objetivo or 'N/A',
+            str(programa.cantidad) if programa.cantidad else 'N/A',
+            programa.fecha_ingreso_lab.strftime('%d/%m/%Y') if programa.fecha_ingreso_lab else 'N/A',
+            programa.id_ingreso or 'N/A',
+            programa.fecha_envio_programa.strftime('%d/%m/%Y') if programa.fecha_envio_programa else 'N/A',
+            programa.asignar_muestra or 'N/A',
+            programa.fecha_informe.strftime('%d/%m/%Y') if programa.fecha_informe else 'N/A',
+            str(programa.cantidad_recibida) if programa.cantidad_recibida else 'N/A',
+            programa.n_informe or 'N/A',
+            programa.n_ep or 'N/A',
+            programa.user.username if programa.user else 'Sin usuario'
+        ]
+        text = " | ".join(row)
+        p.drawString(100, y, text[:500])  # Limitar longitud para evitar desbordamiento
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = 750
+
+    p.showPage()
+    p.save()
+    return response
 
 # Ver programa
-def ver_programa(request, id):  # Cambiar n por id
-    programa = get_object_or_404(Programa, id=id)  # Cambiar pk por id y corregir "programa" a "Programa"
-    return render(request, 'laboratorio/programa/listar_programa.html', {'programa': programa})
+@login_required
+def ver_programa(request, id):
+    programa = get_object_or_404(Programa, id=id)
+    return render(request, 'laboratorio/programa/ver_programa.html', {'programa': programa})
 
 # Editar programa
 @login_required
-def editar_programa(request, id):  # Cambiar n por id
-    programa = get_object_or_404(Programa, id=id)  # Cambiar pk por id
+def editar_programa(request, id):
+    programa = get_object_or_404(Programa, id=id)
     proyectos = Proyectos.objects.all()
-    prospecciones = Prospecciones.objects.all()
     if request.method == 'POST':
         form = ProgramaForm(request.POST, instance=programa)
         if form.is_valid():
@@ -1453,16 +2727,19 @@ def editar_programa(request, id):  # Cambiar n por id
     return render(request, 'laboratorio/programa/editar_programa.html', {
         'form': form,
         'programa': programa,
-        'proyectos': proyectos,
-        'prospecciones': prospecciones
+        'proyectos': proyectos
     })
 
 # Eliminar programa
-def eliminar_programa(request, id):  # Cambiar n por id
-    programa = get_object_or_404(Programa, id=id)  # Cambiar pk por id y corregir "programa" a "Programa"
-    programa.delete()
-    return redirect('listar_programa')
+@login_required
+def eliminar_programa(request, id):
+    programa = get_object_or_404(Programa, id=id)
+    if request.method == 'POST':
+        programa.delete()
+        return redirect('listar_programa')
+    return render(request, 'laboratorio/programa/eliminar_programa.html', {'programa': programa})
 
+# Estatus programa (sin cambios significativos, ya usa id)
 @login_required
 def estatus_programa(request):
     id_proyecto = request.GET.get('id_proyecto')
@@ -1488,6 +2765,7 @@ def estatus_programa(request):
     total_count = float(objetivo_counts.sum())
     total_avance = float(avance_counts.sum())
 
+    # Gráfico de barras horizontales
     plt.figure(figsize=(12, len(objetivo_counts) * 0.5))
     indices = np.arange(len(objetivo_counts))
     bar_width = 0.35
@@ -1498,9 +2776,15 @@ def estatus_programa(request):
     plt.title('Estatus de Programas')
     plt.yticks(indices, objetivo_counts.index)
     plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.legend(loc='upper right')
+    
+    # Mover la leyenda fuera del gráfico
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    
+    # Etiquetas de valores fuera de las barras
+    max_value = objetivo_counts.max()
     for i, (total, avance) in enumerate(zip(objetivo_counts, avance_counts)):
-        plt.text(total + 0.5, i, f'{avance}', va='center', color='blue')
+        plt.text(max_value + 0.5, i, f'{avance}', va='center', color='blue')
+    
     plt.tight_layout()
 
     buffer_barras = BytesIO()
@@ -1509,6 +2793,7 @@ def estatus_programa(request):
     image_base64_barras = base64.b64encode(buffer_barras.getvalue()).decode('utf-8')
     plt.close()
 
+    # Gráfico de anillo (sin cambios)
     plt.figure(figsize=(4, 4))
     labels = ['Avance', 'Pendiente']
     sizes = [total_avance, total_count - total_avance]
@@ -1534,7 +2819,6 @@ def estatus_programa(request):
     })
 
 
-
 ############ AUDITORIAS ##############################################
 
 # Auditoria prospecciones
@@ -1554,28 +2838,6 @@ def historial(request):
                     'resumen': f"En la fecha {historial.history_date} se modificó el campo {change.field} de {change.old} a {change.new}"
                 })
     return render(request, 'historial.html', {'cambios': cambios})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1634,10 +2896,171 @@ def listar_nomina(request):
                 filtro_consulta |= Q(**{f"{campo}__icontains": consulta})
         nomina_list = nomina_list.filter(filtro_consulta)
 
-    paginator = Paginator(nomina_list, 10)  # 10 registros por página
+    paginator = Paginator(nomina_list, 1000)  # 10 registros por página
     page_number = request.GET.get('page')
     nomina_list = paginator.get_page(page_number)
     return render(request, 'nomina/listar_nomina.html', {'nomina_list': nomina_list, 'consulta': consulta})
+
+from django.http import HttpResponse
+from openpyxl import Workbook
+def export_to_excel_nomina(request):
+    query = request.GET.get('q', '')
+    headers_str = request.GET.get('headers', '')
+    headers = headers_str.split(',') if headers_str else [
+        'ID', 'Proyecto', 'Empresa', 'Fecha Ingreso', 'Nombre', 'Apellido', 'RUT', 'Email',
+        'Teléfono', 'Cargo', 'Título', 'Turno', 'Horas Semanales', 'Primer Día'
+    ]
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="nomina_filtrada.xlsx"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Nómina Filtrada"
+    ws.append(headers)
+
+    nominas = Nomina.objects.select_related('id_proyecto').all().order_by('id')
+    if query:
+        campos = [field.name for field in Nomina._meta.get_fields() 
+                  if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+        filtro_consulta = Q()
+        for campo in campos:
+            if isinstance(Nomina._meta.get_field(campo), (DateField, DateTimeField)):
+                filtro_consulta |= Q(**{f"{campo}__year__icontains": query})
+                filtro_consulta |= Q(**{f"{campo}__month__icontains": query})
+                filtro_consulta |= Q(**{f"{campo}__day__icontains": query})
+            elif isinstance(Nomina._meta.get_field(campo), ForeignKey):
+                related_model = Nomina._meta.get_field(campo).related_model
+                related_fields = [f"{campo}__{related_field.name}" for related_field in related_model._meta.get_fields() 
+                                  if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    filtro_consulta |= Q(**{f"{related_field}__icontains": query})
+            else:
+                filtro_consulta |= Q(**{f"{campo}__icontains": query})
+        nominas = nominas.filter(filtro_consulta)
+
+    for nomina in nominas:
+        row = []
+        for header in headers:
+            if header == 'ID':
+                value = nomina.id
+            elif header == 'Proyecto':
+                value = str(nomina.id_proyecto) if nomina.id_proyecto else 'N/A'
+            elif header == 'Empresa':
+                value = nomina.empresa
+            elif header == 'Fecha Ingreso':
+                value = nomina.fecha_ingreso.strftime('%d/%m/%Y') if nomina.fecha_ingreso else 'N/A'
+            elif header == 'Nombre':
+                value = nomina.nombre
+            elif header == 'Apellido':
+                value = nomina.apellido
+            elif header == 'RUT':
+                value = nomina.rut
+            elif header == 'Email':
+                value = nomina.email
+            elif header == 'Teléfono':
+                value = nomina.telefono
+            elif header == 'Cargo':
+                value = nomina.cargo
+            elif header == 'Título':
+                value = nomina.titulo
+            elif header == 'Turno':
+                value = nomina.turno if nomina.turno else 'N/A'
+            elif header == 'Horas Semanales':
+                value = float(nomina.horas_semanales) if nomina.horas_semanales is not None else 'N/A'
+            elif header == 'Primer Día':
+                value = nomina.primer_dia.strftime('%d/%m/%Y') if nomina.primer_dia else 'N/A'
+            else:
+                value = 'N/A'
+            row.append(value)
+        ws.append(row)
+
+    wb.save(response)
+    return response
+
+
+
+@login_required
+def export_to_pdf_nomina(request):
+    query = request.GET.get('q', '')
+    headers_str = request.GET.get('headers', '')
+    headers = headers_str.split(',') if headers_str else [
+        'ID', 'Proyecto', 'Empresa', 'Fecha Ingreso', 'Nombre', 'Apellido', 'RUT', 'Email',
+        'Teléfono', 'Cargo', 'Título', 'Turno', 'Horas Semanales', 'Primer Día'
+    ]
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="nomina_filtrada.pdf"'
+
+    p = canvas.Canvas(response)
+    p.drawString(100, 750, "Reporte de Nómina Filtrada")
+    p.drawString(100, 730, " | ".join(headers))
+
+    nominas = Nomina.objects.select_related('id_proyecto').all().order_by('id')
+    if query:
+        campos = [field.name for field in Nomina._meta.get_fields() 
+                  if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+        filtro_consulta = Q()
+        for campo in campos:
+            if isinstance(Nomina._meta.get_field(campo), (DateField, DateTimeField)):
+                filtro_consulta |= Q(**{f"{campo}__year__icontains": query})
+                filtro_consulta |= Q(**{f"{campo}__month__icontains": query})
+                filtro_consulta |= Q(**{f"{campo}__day__icontains": query})
+            elif isinstance(Nomina._meta.get_field(campo), ForeignKey):
+                related_model = Nomina._meta.get_field(campo).related_model
+                related_fields = [f"{campo}__{related_field.name}" for related_field in related_model._meta.get_fields() 
+                                  if isinstance(related_field, (CharField, TextField))]
+                for related_field in related_fields:
+                    filtro_consulta |= Q(**{f"{related_field}__icontains": query})
+            else:
+                filtro_consulta |= Q(**{f"{campo}__icontains": query})
+        nominas = nominas.filter(filtro_consulta)
+
+    y = 710
+    for nomina in nominas:
+        row = []
+        for header in headers:
+            if header == 'ID':
+                value = str(nomina.id)
+            elif header == 'Proyecto':
+                value = str(nomina.id_proyecto) if nomina.id_proyecto else 'N/A'
+            elif header == 'Empresa':
+                value = nomina.empresa
+            elif header == 'Fecha Ingreso':
+                value = nomina.fecha_ingreso.strftime('%d/%m/%Y') if nomina.fecha_ingreso else 'N/A'
+            elif header == 'Nombre':
+                value = nomina.nombre
+            elif header == 'Apellido':
+                value = nomina.apellido
+            elif header == 'RUT':
+                value = nomina.rut
+            elif header == 'Email':
+                value = nomina.email
+            elif header == 'Teléfono':
+                value = nomina.telefono
+            elif header == 'Cargo':
+                value = nomina.cargo
+            elif header == 'Título':
+                value = nomina.titulo
+            elif header == 'Turno':
+                value = nomina.turno if nomina.turno else 'N/A'
+            elif header == 'Horas Semanales':
+                value = str(nomina.horas_semanales) if nomina.horas_semanales is not None else 'N/A'
+            elif header == 'Primer Día':
+                value = nomina.primer_dia.strftime('%d/%m/%Y') if nomina.primer_dia else 'N/A'
+            else:
+                value = 'N/A'
+            row.append(value)
+        text = " | ".join(row)
+        p.drawString(100, y, text[:500])  # Limitar longitud para evitar desbordamiento
+        y -= 20
+        if y < 50:
+            p.showPage()
+            y = 750
+
+    p.showPage()
+    p.save()
+    return response
 
 # Editar nómina
 @login_required
@@ -1681,173 +3104,7 @@ def eliminar_nomina(request, id):
             return HttpResponse(f"Error al eliminar: {e}", status=500)
     return render(request, 'nomina/eliminar_nomina.html', {'nomina': nomina})
 
-# Exportar a Excel
-logger = logging.getLogger(__name__)
 
-@login_required
-def export_to_excel_nomina(request):
-    try:
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Roster"
-
-        # Definir el rango de fechas (1 de enero al 28 de febrero de 2025)
-        fecha_inicio = date(2025, 1, 1)  # Usar date en lugar de datetime
-        fecha_fin = date(2025, 2, 28)
-        dias = (fecha_fin - fecha_inicio).days + 1
-        dias_semana = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-
-        # Encabezados
-        base_headers = ["ID Proyecto", "Nombre", "RUT", "Cargo", "Turno"]
-        date_headers = [
-            f"{dias_semana[i % 7]}-{fecha_inicio + timedelta(days=i):%d-%m-%y}"
-            for i in range(dias)
-        ]
-        headers = base_headers + date_headers + ["Total Trabajador"]
-        ws.append(headers)
-
-        # Obtener todas las nóminas y sus rosters
-        nominas = Nomina.objects.prefetch_related('rosters', 'id_proyecto').all()
-        totales_por_dia = [0.0] * dias
-
-        for nomina in nominas:
-            row = [
-                nomina.id_proyecto.nombre if nomina.id_proyecto else "N/A",
-                f"{nomina.nombre} {nomina.apellido}",
-                nomina.rut,
-                nomina.cargo,
-                nomina.turno if nomina.turno else "N/A"
-            ]
-            
-            # Obtener los rosters o calcular horas si no existen
-            rosters = nomina.rosters.filter(fecha__range=[fecha_inicio, fecha_fin]).order_by('fecha')
-            roster_dict = {roster.fecha: float(roster.horas_asignadas) for roster in rosters}
-            
-            # Rellenar las horas por día
-            total_trabajador = 0.0
-            for i in range(dias):
-                fecha = fecha_inicio + timedelta(days=i)
-                horas = roster_dict.get(fecha, nomina.get_hours_for_date(fecha))
-                row.append(horas)
-                total_trabajador += horas
-                totales_por_dia[i] += horas
-            
-            row.append(total_trabajador)
-            ws.append(row)
-
-        # Agregar fila de totales por día
-        total_row = ["Total por Día", "", "", "", ""]
-        total_row.extend(totales_por_dia)
-        total_row.append("")
-        ws.append(total_row)
-
-        # Ajustar ancho de columnas
-        for col in ws.columns:
-            max_length = 0
-            column = col[0].column_letter
-            for cell in col:
-                try:
-                    if len(str(cell.value)) > max_length:
-                        max_length = len(str(cell.value))
-                except:
-                    pass
-            adjusted_width = min((max_length + 2), 15)
-            ws.column_dimensions[column].width = adjusted_width
-
-        # Crear y retornar la respuesta
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename="roster.xlsx"'
-        wb.save(response)
-        return response
-
-    except Exception as e:
-        logger.error(f"Error al generar archivo Excel: {str(e)}")
-        return HttpResponse(f"Error al generar el archivo Excel: {str(e)}", status=500)
-            
-# Exportar a PDF
-logger = logging.getLogger(__name__)
-
-@login_required
-def export_to_pdf_nomina(request):
-    try:
-        # Crear el objeto HttpResponse para PDF
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="roster.pdf"'
-        doc = SimpleDocTemplate(response, pagesize=landscape(letter))
-        elements = []
-
-        # Definir el rango de fechas (1 de enero al 28 de febrero de 2025)
-        fecha_inicio = datetime(2025, 1, 1)
-        fecha_fin = datetime(2025, 2, 28)
-        dias = (fecha_fin - fecha_inicio).days + 1
-        dias_semana = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
-
-        # Encabezados
-        base_headers = ["ID Proyecto", "Nombre", "RUT", "Cargo", "Turno"]
-        date_headers = [
-            f"{dias_semana[i % 7]}-{fecha_inicio + timedelta(days=i):%d-%m-%y}"
-            for i in range(dias)
-        ]
-        headers = base_headers + date_headers + ["Total Trabajador"]
-        data = [headers]
-
-        # Obtener todas las nóminas y sus rosters
-        nominas = Nomina.objects.prefetch_related('rosters', 'id_proyecto').all()
-        totales_por_dia = [0.0] * dias
-
-        for nomina in nominas:
-            row = [
-                nomina.id_proyecto.nombre if nomina.id_proyecto else "N/A",
-                f"{nomina.nombre} {nomina.apellido}",
-                nomina.rut,
-                nomina.cargo,
-                nomina.turno if nomina.turno else "N/A"
-            ]
-            
-            # Obtener los rosters o calcular horas si no existen
-            rosters = nomina.rosters.filter(fecha__range=[fecha_inicio, fecha_fin]).order_by('fecha')
-            roster_dict = {roster.fecha: float(roster.horas_asignadas) for roster in rosters}
-            
-            # Rellenar las horas por día
-            total_trabajador = 0.0
-            for i in range(dias):
-                fecha = fecha_inicio + timedelta(days=i)
-                horas = roster_dict.get(fecha, nomina.get_hours_for_date(fecha))
-                row.append(str(horas))  # Convertir a string para reportlab
-                total_trabajador += horas
-                totales_por_dia[i] += horas
-            
-            row.append(str(total_trabajador))
-            data.append(row)
-
-        # Agregar fila de totales por día
-        total_row = ["Total por Día", "", "", "", ""]
-        total_row.extend([str(total) for total in totales_por_dia])
-        total_row.append("")
-        data.append(total_row)
-
-        # Crear la tabla
-        table = Table(data, colWidths=[80, 120, 80, 60, 80] + [40] * (dias + 1))
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTSIZE', (0, 1), (-1, -1), 7),
-        ]))
-        elements.append(table)
-
-        # Generar el PDF
-        doc.build(elements)
-        return response
-
-    except Exception as e:
-        logger.error(f"Error al generar archivo PDF: {str(e)}")
-        return HttpResponse(f"Error al generar el archivo PDF: {str(e)}", status=500)
 
 
 ###Listar Roster
@@ -1978,6 +3235,7 @@ def listar_roster(request):
     }
     return render(request, 'nomina/listar_roster.html', context)
 
+
 # Actualizar horas en el roster
 @csrf_exempt
 @login_required
@@ -2027,5 +3285,180 @@ def actualizar_hora(request):
 
 
 
-from .models import Granulometria
-print(Granulometria.objects.values('tipo_prospeccion', 'area', 'id_prospeccion').distinct())
+
+#exportar excel
+logger = logging.getLogger(__name__)
+
+@login_required
+def export_to_excel_roster(request):
+    try:
+        consulta = request.GET.get('q', '')
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Roster"
+
+        # Filtrar datos como en listar_roster
+        roster_list = Roster.objects.select_related('nomina__id_proyecto').all()
+        nominas = Nomina.objects.select_related('id_proyecto').all()
+        
+        if consulta:
+            campos_nomina = [field.name for field in Nomina._meta.get_fields() 
+                            if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+            filtro_nomina = Q()
+            for campo in campos_nomina:
+                if isinstance(Nomina._meta.get_field(campo), (DateField, DateTimeField)):
+                    filtro_nomina |= Q(**{f"{campo}__year__icontains": consulta})
+                    filtro_nomina |= Q(**{f"{campo}__month__icontains": consulta})
+                    filtro_nomina |= Q(**{f"{campo}__day__icontains": consulta})
+                elif isinstance(Nomina._meta.get_field(campo), ForeignKey):
+                    related_model = Nomina._meta.get_field(campo).related_model
+                    related_fields = [f"{campo}__{related_field.name}" for related_field in related_model._meta.get_fields() 
+                                      if isinstance(related_field, (CharField, TextField))]
+                    for related_field in related_fields:
+                        filtro_nomina |= Q(**{f"{related_field}__icontains": consulta})
+                else:
+                    filtro_nomina |= Q(**{f"{campo}__icontains": consulta})
+            nominas = nominas.filter(filtro_nomina)
+            roster_list = roster_list.filter(Q(nomina__in=nominas))
+
+        # Obtener fechas únicas y calcular horas como en listar_roster
+        fechas_unicas = roster_list.values_list('fecha', flat=True).distinct().order_by('fecha')
+        dias_semana = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+        dias_del_año = [f"{dias_semana[fecha.weekday()]}-{fecha.strftime('%d-%m-%y')}" for fecha in fechas_unicas]
+        headers = ["Proyecto", "Nombre", "RUT", "Cargo", "Turno"] + dias_del_año + ["Total Trabajador"]
+        ws.append(headers)
+
+        # Calcular horas por día y totales
+        for nomina in nominas:
+            roster_nomina = roster_list.filter(nomina=nomina)
+            roster_dict = {roster.fecha: float(roster.horas_asignadas) for roster in roster_nomina}
+            horas_por_dia = [roster_dict.get(fecha, 0.0) for fecha in fechas_unicas]
+            nomina.horas_por_dia_lista = horas_por_dia  # Asignar para consistencia
+
+        totales_por_dia = [0.0] * len(fechas_unicas)
+        for nomina in nominas:
+            row = [
+                str(nomina.id_proyecto) if nomina.id_proyecto else "Sin Proyecto",
+                f"{nomina.nombre} {nomina.apellido}",
+                nomina.rut,
+                nomina.cargo,
+                nomina.turno if nomina.turno else "N/A"
+            ]
+            total_trabajador = 0.0
+            for i, horas in enumerate(nomina.horas_por_dia_lista):
+                row.append(horas)
+                total_trabajador += horas
+                totales_por_dia[i] += horas
+            row.append(total_trabajador)
+            ws.append(row)
+
+        total_row = ["Total por Día", "", "", "", ""] + totales_por_dia + [""]
+        ws.append(total_row)
+
+        # Ajustar ancho de columnas
+        for col in ws.columns:
+            max_length = max(len(str(cell.value)) for cell in col if cell.value)
+            column = col[0].column_letter
+            ws.column_dimensions[column].width = min(max_length + 2, 15)
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="roster.xlsx"'
+        wb.save(response)
+        return response
+    except Exception as e:
+        logger.error(f"Error al generar archivo Excel: {str(e)}")
+        return HttpResponse(f"Error al generar el archivo Excel: {str(e)}", status=500)
+    
+
+
+
+#Exportar pdf
+logger = logging.getLogger(__name__)
+
+@login_required
+def export_to_pdf_roster(request):
+    try:
+        consulta = request.GET.get('q', '')
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="roster.pdf"'
+        doc = SimpleDocTemplate(response, pagesize=landscape(letter))
+        elements = []
+
+        # Filtrar datos como en listar_roster
+        roster_list = Roster.objects.select_related('nomina__id_proyecto').all()
+        nominas = Nomina.objects.select_related('id_proyecto').all()
+        
+        if consulta:
+            campos_nomina = [field.name for field in Nomina._meta.get_fields() 
+                            if isinstance(field, (CharField, TextField, DateField, DateTimeField, ForeignKey))]
+            filtro_nomina = Q()
+            for campo in campos_nomina:
+                if isinstance(Nomina._meta.get_field(campo), (DateField, DateTimeField)):
+                    filtro_nomina |= Q(**{f"{campo}__year__icontains": consulta})
+                    filtro_nomina |= Q(**{f"{campo}__month__icontains": consulta})
+                    filtro_nomina |= Q(**{f"{campo}__day__icontains": consulta})
+                elif isinstance(Nomina._meta.get_field(campo), ForeignKey):
+                    related_model = Nomina._meta.get_field(campo).related_model
+                    related_fields = [f"{campo}__{related_field.name}" for related_field in related_model._meta.get_fields() 
+                                      if isinstance(related_field, (CharField, TextField))]
+                    for related_field in related_fields:
+                        filtro_nomina |= Q(**{f"{related_field}__icontains": consulta})
+                else:
+                    filtro_nomina |= Q(**{f"{campo}__icontains": consulta})
+            nominas = nominas.filter(filtro_nomina)
+            roster_list = roster_list.filter(Q(nomina__in=nominas))
+
+        # Obtener fechas únicas y calcular horas como en listar_roster
+        fechas_unicas = roster_list.values_list('fecha', flat=True).distinct().order_by('fecha')
+        dias_semana = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+        dias_del_año = [f"{dias_semana[fecha.weekday()]}-{fecha.strftime('%d-%m-%y')}" for fecha in fechas_unicas]
+        headers = ["Proyecto", "Nombre", "RUT", "Cargo", "Turno"] + dias_del_año + ["Total Trabajador"]
+        data = [headers]
+
+        # Calcular horas por día y totales
+        for nomina in nominas:
+            roster_nomina = roster_list.filter(nomina=nomina)
+            roster_dict = {roster.fecha: float(roster.horas_asignadas) for roster in roster_nomina}
+            horas_por_dia = [roster_dict.get(fecha, 0.0) for fecha in fechas_unicas]
+            nomina.horas_por_dia_lista = horas_por_dia  # Asignar para consistencia
+
+        totales_por_dia = [0.0] * len(fechas_unicas)
+        for nomina in nominas:
+            row = [
+                str(nomina.id_proyecto) if nomina.id_proyecto else "Sin Proyecto",
+                f"{nomina.nombre} {nomina.apellido}",
+                nomina.rut,
+                nomina.cargo,
+                nomina.turno if nomina.turno else "N/A"
+            ]
+            total_trabajador = 0.0
+            for i, horas in enumerate(nomina.horas_por_dia_lista):
+                row.append(str(horas))
+                total_trabajador += horas
+                totales_por_dia[i] += horas
+            row.append(str(total_trabajador))
+            data.append(row)
+
+        total_row = ["Total por Día", "", "", "", ""] + [str(total) for total in totales_por_dia] + [""]
+        data.append(total_row)
+
+        # Crear la tabla
+        table = Table(data, colWidths=[80, 120, 80, 60, 80] + [40] * (len(fechas_unicas) + 1))
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+        ]))
+        elements.append(table)
+
+        doc.build(elements)
+        return response
+    except Exception as e:
+        logger.error(f"Error al generar archivo PDF: {str(e)}")
+        return HttpResponse(f"Error al generar el archivo PDF: {str(e)}", status=500)

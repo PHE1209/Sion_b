@@ -1,0 +1,14 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Eliminar Gravedad Específica - ID: {{ gravedad_especifica.id }}</h1>
+    <p>¿Estás seguro de que deseas eliminar esta gravedad específica?</p>
+    <p>ID Proyecto: {{ gravedad_especifica.id_proyecto.id }} | ID Prospección: {{ gravedad_especifica.id_prospeccion.id_prospeccion }} | Muestra: {{ gravedad_especifica.id_muestra }} | Gravedad Específica: {{ gravedad_especifica.gravedad_especifica }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_gravedad_especifica' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

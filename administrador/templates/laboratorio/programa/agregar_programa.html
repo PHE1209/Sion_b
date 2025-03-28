@@ -1,4 +1,5 @@
 {% extends "index_master.html" %}
+{% load static %}
 
 {% block content %}
 <div class="right_col" role="main">
@@ -20,20 +21,15 @@
                 <div class="input-group">
                     <div class="input-group-prepend">
                         <div class="input-group-text">
-                            <i class="fa fa-500px"></i>
+                            <i class="fas fa-project-diagram"></i>
                         </div>
                     </div>
                     <select id="id_proyecto" name="id_proyecto" class="form-control">
                         <option value="">Seleccione Proyecto</option>
                         {% for proyecto in proyectos %}
-                        <option value="{{ proyecto.id }}">{{ proyecto.id }}</option>
+                        <option value="{{ proyecto.id }}">{{ proyecto.id_proyecto|default:proyecto.id }}</option>
                         {% endfor %}
                     </select>
-                    {% if form.id_proyecto.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.id_proyecto.errors }}
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -42,9 +38,16 @@
         <div class="form-group row">
             <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
             <div class="col-8">
-                <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
-                    <option value="">Seleccione Tipo de Prospección</option>
-                </select>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
+                        <option value="">Seleccione Tipo de Prospección</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -52,9 +55,16 @@
         <div class="form-group row">
             <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
             <div class="col-8">
-                <select id="id_prospeccion" name="id_prospeccion" class="form-control">
-                    <option value="">Seleccione Prospección</option>
-                </select>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-id-badge"></i>
+                        </div>
+                    </div>
+                    <select id="id_prospeccion" name="id_prospeccion" class="form-control">
+                        <option value="">Seleccione Prospección</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -62,26 +72,34 @@
         <div class="form-group row">
             <label for="id_area" class="col-4 col-form-label">Área</label>
             <div class="col-8">
-                <input type="text" class="form-control" id="id_area" name="area" readonly>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-map"></i>
+                        </div>
+                    </div>
+                    <input type="text" class="form-control" id="id_area" name="area" readonly>
+                </div>
             </div>
         </div>
-
 
         <!-- Objetivo -->
         <div class="form-group row">
             <label for="objetivo" class="col-4 col-form-label">Objetivo</label>
             <div class="col-8">
-                <select id="objetivo" name="objetivo" class="form-control">
-                    <option value="">Seleccione Objetivo</option>
-                    {% for key, value in form.objetivo.field.choices %}
-                    <option value="{{ key }}">{{ value }}</option>
-                    {% endfor %}
-                </select>
-                {% if form.objetivo.errors %}
-                <div class="alert alert-danger">
-                    {{ form.objetivo.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                    </div>
+                    <select id="objetivo" name="objetivo" class="form-control">
+                        <option value="">Seleccione Objetivo</option>
+                        {% for key, value in form.objetivo.field.choices %}
+                        <option value="{{ key }}">{{ value }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -89,12 +107,14 @@
         <div class="form-group row">
             <label for="cantidad" class="col-4 col-form-label">Cantidad</label>
             <div class="col-8">
-                {{ form.cantidad }}
-                {% if form.cantidad.errors %}
-                <div class="alert alert-danger">
-                    {{ form.cantidad.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-tally"></i>
+                        </div>
+                    </div>
+                    {{ form.cantidad }}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -102,12 +122,14 @@
         <div class="form-group row">
             <label for="fecha_ingreso_lab" class="col-4 col-form-label">Fecha de Ingreso al Laboratorio</label>
             <div class="col-8">
-                {{ form.fecha_ingreso_lab }}
-                {% if form.fecha_ingreso_lab.errors %}
-                <div class="alert alert-danger">
-                    {{ form.fecha_ingreso_lab.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                    <input type="date" id="fecha_ingreso_lab" name="fecha_ingreso_lab" class="form-control" value="{{ form.fecha_ingreso_lab.value|default:'' }}">
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -115,12 +137,14 @@
         <div class="form-group row">
             <label for="id_ingreso" class="col-4 col-form-label">ID Ingreso</label>
             <div class="col-8">
-                {{ form.id_ingreso }}
-                {% if form.id_ingreso.errors %}
-                <div class="alert alert-danger">
-                    {{ form.id_ingreso.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                    </div>
+                    {{ form.id_ingreso }}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -128,12 +152,14 @@
         <div class="form-group row">
             <label for="fecha_envio_programa" class="col-4 col-form-label">Fecha de Envío del Programa</label>
             <div class="col-8">
-                {{ form.fecha_envio_programa }}
-                {% if form.fecha_envio_programa.errors %}
-                <div class="alert alert-danger">
-                    {{ form.fecha_envio_programa.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                    <input type="date" id="fecha_envio_programa" name="fecha_envio_programa" class="form-control" value="{{ form.fecha_envio_programa.value|default:'' }}">
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -141,12 +167,14 @@
         <div class="form-group row">
             <label for="asignar_muestra" class="col-4 col-form-label">Asignar Muestra</label>
             <div class="col-8">
-                {{ form.asignar_muestra }}
-                {% if form.asignar_muestra.errors %}
-                <div class="alert alert-danger">
-                    {{ form.asignar_muestra.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-vial"></i>
+                        </div>
+                    </div>
+                    {{ form.asignar_muestra }}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -154,12 +182,14 @@
         <div class="form-group row">
             <label for="fecha_informe" class="col-4 col-form-label">Fecha del Informe</label>
             <div class="col-8">
-                {{ form.fecha_informe }}
-                {% if form.fecha_informe.errors %}
-                <div class="alert alert-danger">
-                    {{ form.fecha_informe.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                    <input type="date" id="fecha_informe" name="fecha_informe" class="form-control" value="{{ form.fecha_informe.value|default:'' }}">
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -167,12 +197,14 @@
         <div class="form-group row">
             <label for="cantidad_recibida" class="col-4 col-form-label">Cantidad Recibida</label>
             <div class="col-8">
-                {{ form.cantidad_recibida }}
-                {% if form.cantidad_recibida.errors %}
-                <div class="alert alert-danger">
-                    {{ form.cantidad_recibida.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-tally"></i>
+                        </div>
+                    </div>
+                    {{ form.cantidad_recibida }}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -180,12 +212,14 @@
         <div class="form-group row">
             <label for="n_informe" class="col-4 col-form-label">N° Informe</label>
             <div class="col-8">
-                {{ form.n_informe }}
-                {% if form.n_informe.errors %}
-                <div class="alert alert-danger">
-                    {{ form.n_informe.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                    </div>
+                    {{ form.n_informe }}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -193,12 +227,14 @@
         <div class="form-group row">
             <label for="n_ep" class="col-4 col-form-label">N° EP</label>
             <div class="col-8">
-                {{ form.n_ep }}
-                {% if form.n_ep.errors %}
-                <div class="alert alert-danger">
-                    {{ form.n_ep.errors }}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                    </div>
+                    {{ form.n_ep }}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -211,83 +247,99 @@
     </form>
 </div>
 
+<!-- Añadir Font Awesome si no está en index_master.html -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+    /* Ajustar tamaño y alineación de los iconos */
+    .input-group-text i {
+        font-size: 16px; /* Tamaño de los iconos */
+        width: 16px; /* Ancho fijo para consistencia */
+        text-align: center; /* Centrar el icono */
+    }
+    .input-group-text {
+        background-color: #f8f9fa; /* Fondo claro para destacar los iconos */
+        border: 1px solid #ced4da; /* Borde consistente con el formulario */
+    }
+</style>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
-        $('#id_proyecto').change(function() {
-            var id_proyecto = $(this).val();
-            if (id_proyecto) {
-                $.ajax({
-                    url: '{% url "obtener_tipos_prospeccion" %}',
-                    data: {'id_proyecto': id_proyecto},
-                    success: function(data) {
-                        var tipoProspeccionSelect = $('#tipo_prospeccion');
-                        tipoProspeccionSelect.empty();
-                        tipoProspeccionSelect.append('<option value="">Seleccione Tipo de Prospección</option>');
-                        $.each(data, function(key, value) {
-                            tipoProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
-                        });
-                    }
-                });
-            } else {
-                $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo de Prospección</option>');
-                $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
-            }
-        });
-
-        $('#tipo_prospeccion').change(function() {
-            var id_proyecto = $('#id_proyecto').val();
-            var tipo_prospeccion = $(this).val();
-            if (id_proyecto && tipo_prospeccion) {
-                $.ajax({
-                    url: '{% url "obtener_id_prospecciones" %}',
-                    data: {
-                        'id_proyecto': id_proyecto,
-                        'tipo_prospeccion': tipo_prospeccion
-                    },
-                    success: function(data) {
-                        var idProspeccionSelect = $('#id_prospeccion');
-                        idProspeccionSelect.empty();
-                        idProspeccionSelect.append('<option value="">Seleccione Prospección</option>');
-                        $.each(data, function(key, value) {
-                            idProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
-                        });
-                    }
-                });
-            } else {
-                $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
-            }
-        });
-
-        $('#id_prospeccion').change(function() {
-            var prospeccion_id = $(this).val();
-            if (prospeccion_id) {
-                $.ajax({
-                    url: '{% url "get_area" %}',
-                    data: {'prospeccion_id': prospeccion_id},
-                    success: function(data) {
-                        $('#area').val(data.area);
-                    }
-                });
-            } else {
-                $('#area').val('');
-            }
-        });
-        $('#id_prospeccion').change(function() {
-            var prospeccion_id = $(this).val();
-            if (prospeccion_id) {
-                $.ajax({
-                    url: '{% url "get_area" %}',
-                    data: {'prospeccion_id': prospeccion_id},
-                    success: function(data) {
-                        $('#id_area').val(data.area);
-                    }
-                });
-            } else {
-                $('#id_area').val('');
-            }
-        });
+$(document).ready(function() {
+    $('#id_proyecto').change(function() {
+        var id_proyecto = $(this).val();
+        console.log('Proyecto seleccionado:', id_proyecto);
+        if (id_proyecto) {
+            $.ajax({
+                url: '{% url "obtener_tipos_prospeccion" %}',
+                data: {'id_proyecto': id_proyecto},
+                success: function(data) {
+                    console.log('Tipos de prospección recibidos:', data);
+                    var tipoProspeccionSelect = $('#tipo_prospeccion');
+                    tipoProspeccionSelect.empty();
+                    tipoProspeccionSelect.append('<option value="">Seleccione Tipo de Prospección</option>');
+                    $.each(data, function(key, value) {
+                        tipoProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error en obtener_tipos_prospeccion:', error);
+                }
+            });
+        } else {
+            $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo de Prospección</option>');
+            $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
+        }
     });
-</script>
 
+    $('#tipo_prospeccion').change(function() {
+        var id_proyecto = $('#id_proyecto').val();
+        var tipo_prospeccion = $(this).val();
+        console.log('Tipo prospección seleccionado:', tipo_prospeccion);
+        if (id_proyecto && tipo_prospeccion) {
+            $.ajax({
+                url: '{% url "obtener_id_prospecciones" %}',
+                data: {
+                    'id_proyecto': id_proyecto,
+                    'tipo_prospeccion': tipo_prospeccion
+                },
+                success: function(data) {
+                    console.log('Prospecciones recibidas:', data);
+                    var idProspeccionSelect = $('#id_prospeccion');
+                    idProspeccionSelect.empty();
+                    idProspeccionSelect.append('<option value="">Seleccione Prospección</option>');
+                    $.each(data, function(key, value) {
+                        idProspeccionSelect.append('<option value="'+ key +'">'+ value +'</option>');
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error en obtener_id_prospecciones:', error);
+                }
+            });
+        } else {
+            $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
+        }
+    });
+
+    $('#id_prospeccion').change(function() {
+        var prospeccion_id = $(this).val();
+        console.log('Prospección seleccionada:', prospeccion_id);
+        if (prospeccion_id) {
+            $.ajax({
+                url: '{% url "get_area" %}',
+                data: {'prospeccion_id': prospeccion_id},
+                success: function(data) {
+                    console.log('Área recibida:', data.area);
+                    $('#id_area').val(data.area);
+                },
+                error: function(xhr, status, error) {
+                    console.log('Error en get_area:', error);
+                }
+            });
+        } else {
+            $('#id_area').val('');
+        }
+    });
+});
+</script>
 {% endblock %}

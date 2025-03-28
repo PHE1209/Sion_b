@@ -1,9 +1,14 @@
 # forms.py
 from django import forms
-from .models import Proyectos, Prospecciones, Proyectos, Humedad, Muestreo, Programa # Asegúrate de importar tu modelo
+from .models import Proyectos, Prospecciones, Proyectos, Humedad, Muestreo, Programa, Granulometria, Nomina # Asegúrate de importar tu modelo
 from django.forms.widgets import TextInput, DateInput
 import re
-
+from django import forms
+from .models import Muestreo
+from django import forms
+from .models import Programa, Proyectos, Prospecciones
+from django import forms
+from .models import Muestreo
 
 #formulario de inicio de sesión definido.
 
@@ -77,40 +82,55 @@ class ProspeccionesForm(forms.ModelForm):
             raise forms.ValidationError("Este proyecto no existe en la base de datos.")
         return id_proyecto
 
-# PARA MUESTREO
-# forms.py
-from django import forms
-from .models import Muestreo
 
+#Muestreo
 class MuestreoForm(forms.ModelForm):
     class Meta:
         model = Muestreo
-        fields = '__all__'
-
-######################################################################
+        fields = [
+            'id_proyecto', 'id_prospeccion', 'area', 'fecha_muestreo', 'id_muestra',
+            'tipo_embalaje', 'cantidad', 'peso_unitario', 'peso_total',
+            'profundidad_desde', 'profundidad_hasta', 'estrato', 'tipo',
+            'nombre_despachador', 'fecha_despacho', 'destino', 'orden_transporte',  # Corregido
+            'observacion'
+        ]
+        widgets = {
+            'fecha_muestreo': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_despacho': forms.DateInput(attrs={'type': 'date'}),
+            'observacion': forms.Textarea(attrs={'rows': 3}),
+        }
 
 #Agregar humedad
 class HumedadForm(forms.ModelForm):
-    id_proyecto = forms.ModelChoiceField(queryset=Proyectos.objects.all(), label='ID Proyecto', required=True)
-    id_prospeccion = forms.ModelChoiceField(queryset=Prospecciones.objects.all(), label='Prospección', required=True)
-    tipo_prospeccion = forms.CharField(max_length=25, label='Tipo Prospección')
-
     class Meta:
         model = Humedad
-        fields = ['id_proyecto', 'id_prospeccion', 'tipo_prospeccion', 'humedad', 'profundidad_promedio', 'area']
-
-
+        fields = [
+            'id_proyecto', 'id_prospeccion', 'humedad', 'profundidad_promedio', 
+            'area', 'tipo_prospeccion'
+        ]               
+        
 #Agregar programa
 class ProgramaForm(forms.ModelForm):
     class Meta:
         model = Programa
-        fields = '__all__'
-        
+        fields = [
+            'id_proyecto', 'tipo_prospeccion', 'id_prospeccion', 'objetivo', 'cantidad',
+            'fecha_ingreso_lab', 'id_ingreso', 'area', 'fecha_envio_programa', 'asignar_muestra',
+            'fecha_informe', 'cantidad_recibida', 'n_informe', 'n_ep'
+        ]
+        widgets = {
+            'fecha_ingreso_lab': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_envio_programa': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_informe': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Opcional: Personalizar los campos de claves foráneas
+        self.fields['id_proyecto'].queryset = Proyectos.objects.all()
+        self.fields['id_prospeccion'].queryset = Prospecciones.objects.all()
         
 ##Granulometria
-from django import forms
-from .models import Granulometria
-
 class GranulometriaForm(forms.ModelForm):
     class Meta:
         model = Granulometria
@@ -118,44 +138,8 @@ class GranulometriaForm(forms.ModelForm):
             'id_proyecto', 'id_prospeccion', 'n_0075', 'n_0110', 'n_0250', 
             'n_0420', 'n_0840', 'n_2000', 'n_4760', 'n_9520', 'n_19000', 
             'n_25400', 'n_38100', 'n_50800', 'n_63500', 'n_75000', 'area', 'tipo_prospeccion'
-        ]
-        
-        
-        
-# administrador/forms.py
-# from django import forms
-# from .models import Nomina, Proyectos
+        ]      
 
-# class NominaForm(forms.ModelForm):
-#     class Meta:
-#         model = Nomina
-#         fields = [
-#             'id_proyecto', 'empresa', 'fecha_ingreso', 'nombre', 'apellido', 'rut', 'email', 
-#             'telefono', 'cargo', 'titulo', 'turno', 'primer_dia', 'ultimo_dia',
-#         ]
-#         widgets = {
-#             'id_proyecto': forms.Select(attrs={'class': 'form-control'}),
-#             'empresa': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '25'}),
-#             'fecha_ingreso': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-#             'nombre': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '50'}),
-#             'apellido': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '50'}),
-#             'rut': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '25'}),
-#             'email': forms.EmailInput(attrs={'class': 'form-control', 'maxlength': '50'}),
-#             'telefono': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '15'}),
-#             'cargo': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '25'}),
-#             'titulo': forms.TextInput(attrs={'class': 'form-control', 'maxlength': '25'}),
-#             'turno': forms.Select(attrs={'class': 'form-control'}),
-#             'primer_dia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-#             'ultimo_dia': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-#         }
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.fields['id_proyecto'].queryset = Proyectos.objects.all()
-        
-        
-from django import forms
-from .models import Nomina
 
 class NominaForm(forms.ModelForm):
     class Meta:
@@ -166,4 +150,30 @@ class NominaForm(forms.ModelForm):
             'fecha_ingreso': forms.DateInput(attrs={'type': 'date'}),
             'primer_dia': forms.DateInput(attrs={'type': 'date'}),
             'ultimo_dia': forms.DateInput(attrs={'type': 'date'}),
+        }
+        
+
+from django import forms
+from .models import uscs
+
+class UscsForm(forms.ModelForm):
+    class Meta:
+        model = uscs
+        fields = ['id_proyecto', 'tipo_prospeccion', 'id_prospeccion', 'id_muestra', 'uscs', 'area', 'profundidad_desde', 'profundidad_hasta']
+        widgets = {
+            'area': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'profundidad_desde': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'profundidad_hasta': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
+from django import forms
+from .models import gravedad_especifica
+
+class GravedadEspecificaForm(forms.ModelForm):
+    class Meta:
+        model = gravedad_especifica
+        fields = ['id_proyecto', 'tipo_prospeccion', 'id_prospeccion', 'id_muestra', 'gravedad_especifica', 'area', 'profundidad_desde', 'profundidad_hasta']
+        widgets = {
+            'area': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'profundidad_desde': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'profundidad_hasta': forms.TextInput(attrs={'readonly': 'readonly'}),
         }

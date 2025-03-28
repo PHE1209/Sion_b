@@ -1,281 +1,542 @@
 {% extends "index_master.html" %}
+{% load static %}
 
 {% block content %}
-    <!-- page content -->
-    <div class="right_col" role="main">
-        <h1>AGREGAR PROSPECCIÓN</h1>
+<div class="right_col" role="main">
+    <h1>AGREGAR PROSPECCIÓN</h1>
 
-        {% if error %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <form action="{% url 'agregar_prospecciones' %}" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-
-            <div class="form-group row">
-                <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
-                <div class="col-8">
-                    {{ form.tipo_prospeccion }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-500px"></i>
-                            </div>
-                        </div>
-                        {{ form.id_proyecto }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-address-card-o"></i>
-                            </div>
-                        </div>
-                        {{ form.id_prospeccion }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Area -->
-            <div class="form-group row">
-                <label for="area" class="col-4 col-form-label">Área</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-cogs"></i>
-                            </div>
-                        </div>
-                        {{ form.area }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fecha de inicio -->
-            <div class="form-group row">
-                <label for="fecha_inicio" class="col-4 col-form-label">Fecha de Inicio</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-calendar"></i>
-                            </div>
-                        </div>
-                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fecha de término -->
-            <div class="form-group row">
-                <label for="fecha_termino" class="col-4 col-form-label">Fecha de Término</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-calendar"></i>
-                            </div>
-                        </div>
-                        <input type="date" id="fecha_termino" name="fecha_termino" class="form-control">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Otros campos -->
-            <div class="form-group row">
-                <label for="coordenada_este" class="col-4 col-form-label">Coordenada Este (Formato: 123456)</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-map-marker"></i>
-                            </div>
-                        </div>
-                        {{ form.coordenada_este }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="coordenada_norte" class="col-4 col-form-label">Coordenada Norte (Formato: 1234567)</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-map-marker"></i>
-                            </div>
-                        </div>
-                        {{ form.coordenada_norte }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="elevacion" class="col-4 col-form-label">Elevación (Formato: 12345)</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-arrow-up"></i>
-                            </div>
-                        </div>
-                        {{ form.elevacion }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="profundidad" class="col-4 col-form-label">Profundidad</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-pencil"></i>
-                            </div>
-                        </div>
-                        {{ form.profundidad }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="observacion" class="col-4 col-form-label">Observación</label>
-                <div class="col-8">
-                    {{ form.observacion }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="verificacion_puntos" class="col-4 col-form-label">Verificación de Puntos</label>
-                <div class="col-8">
-                    {{ form.verificacion_puntos }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="plataforma" class="col-4 col-form-label">Plataforma</label>
-                <div class="col-8">
-                    {{ form.plataforma }}
-                </div>
-            </div>
-
-            <div class="form-group row" id="inclinacionField" style="display:none;">
-                <label for="inclinacion" class="col-4 col-form-label">Inclinación</label>
-                <div class="col-8">
-                    {{ form.inclinacion }}
-                </div>
-            </div>
-
-            <div class="form-group row" id="diametroField" style="display:none;">
-                <label for="diametro" class="col-4 col-form-label">Diámetro</label>
-                <div class="col-8">
-                    {{ form.diametro }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="tapado" class="col-4 col-form-label">Tapado</label>
-                <div class="col-8">
-                    {{ form.tapado }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="contratista" class="col-4 col-form-label">Contratista</label>
-                <div class="col-8">
-                    {{ form.contratista }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="marca_maquina1" class="col-4 col-form-label">Marca Máquina 1</label>
-                <div class="col-8">
-                    {{ form.marca_maquina1 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="modelo_maquina1" class="col-4 col-form-label">Modelo Máquina 1</label>
-                <div class="col-8">
-                    {{ form.modelo_maquina1 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="ppu1" class="col-4 col-form-label">PPU 1</label>
-                <div class="col-8">
-                    {{ form.ppu1 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="marca_maquina2" class="col-4 col-form-label">Marca Máquina 2</label>
-                <div class="col-8">
-                    {{ form.marca_maquina2 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="modelo_maquina2" class="col-4 col-form-label">Modelo Máquina 2</label>
-                <div class="col-8">
-                    {{ form.modelo_maquina2 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="ppu2" class="col-4 col-form-label">PPU 2</label>
-                <div class="col-8">
-                    {{ form.ppu2 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="image" class="col-4 col-form-label">Cargar Imagen</label>
-                <div class="col-8">
-                    <input type="file" name="image" id="image" class="form-control" accept="image/*">
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <div class="col-8 offset-4">
-                    <button type="submit" class="btn btn-primary">Agregar Prospección</button>
-                </div>
-            </div>
-        </form>
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
     </div>
-    <!-- /page content -->
+    {% endif %}
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var tipoProspeccionField = document.getElementById('id_tipo_prospeccion');
-            var inclinacionField = document.getElementById('inclinacionField');
-            var diametroField = document.getElementById('diametroField');
+    <form action="{% url 'agregar_prospecciones' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-            tipoProspeccionField.addEventListener('change', function () {
-                if (tipoProspeccionField.value === 'sondajes') {
-                    inclinacionField.style.display = 'block';
-                    diametroField.style.display = 'block';
-                } else {
-                    inclinacionField.style.display = 'none';
-                    diametroField.style.display = 'none';
-                }
-            });
+        <!-- Tipo de Prospección -->
+        <div class="form-group row">
+            <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                    {{ form.tipo_prospeccion }}
+                    {% if form.tipo_prospeccion.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.tipo_prospeccion.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-            // Trigger change event on page load to set initial visibility
-            tipoProspeccionField.dispatchEvent(new Event('change'));
-        });
-    </script>
+        <!-- ID Proyecto -->
+        <div class="form-group row">
+            <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-project-diagram"></i>
+                        </div>
+                    </div>
+                    {{ form.id_proyecto }}
+                    {% if form.id_proyecto.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.id_proyecto.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ID Prospección -->
+        <div class="form-group row">
+            <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-id-badge"></i>
+                        </div>
+                    </div>
+                    {{ form.id_prospeccion }}
+                    {% if form.id_prospeccion.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.id_prospeccion.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Área -->
+        <div class="form-group row">
+            <label for="area" class="col-4 col-form-label">Área</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-map"></i>
+                        </div>
+                    </div>
+                    {{ form.area }}
+                    {% if form.area.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.area.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Fecha de Inicio -->
+        <div class="form-group row">
+            <label for="fecha_inicio" class="col-4 col-form-label">Fecha de Inicio</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" value="{{ form.fecha_inicio.value|default:'' }}">
+                    {% if form.fecha_inicio.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.fecha_inicio.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Fecha de Término -->
+        <div class="form-group row">
+            <label for="fecha_termino" class="col-4 col-form-label">Fecha de Término</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                    <input type="date" id="fecha_termino" name="fecha_termino" class="form-control" value="{{ form.fecha_termino.value|default:'' }}">
+                    {% if form.fecha_termino.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.fecha_termino.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Coordenada Este -->
+        <div class="form-group row">
+            <label for="coordenada_este" class="col-4 col-form-label">Coordenada Este (Formato: 123456)</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                    </div>
+                    {{ form.coordenada_este }}
+                    {% if form.coordenada_este.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.coordenada_este.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Coordenada Norte -->
+        <div class="form-group row">
+            <label for="coordenada_norte" class="col-4 col-form-label">Coordenada Norte (Formato: 1234567)</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                    </div>
+                    {{ form.coordenada_norte }}
+                    {% if form.coordenada_norte.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.coordenada_norte.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Elevación -->
+        <div class="form-group row">
+            <label for="elevacion" class="col-4 col-form-label">Elevación (Formato: 12345)</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                    </div>
+                    {{ form.elevacion }}
+                    {% if form.elevacion.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.elevacion.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Profundidad -->
+        <div class="form-group row">
+            <label for="profundidad" class="col-4 col-form-label">Profundidad</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-ruler-vertical"></i>
+                        </div>
+                    </div>
+                    {{ form.profundidad }}
+                    {% if form.profundidad.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.profundidad.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Observación -->
+        <div class="form-group row">
+            <label for="observacion" class="col-4 col-form-label">Observación</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-comment"></i>
+                        </div>
+                    </div>
+                    {{ form.observacion }}
+                    {% if form.observacion.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.observacion.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Verificación de Puntos -->
+        <div class="form-group row">
+            <label for="verificacion_puntos" class="col-4 col-form-label">Verificación de Puntos</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    {{ form.verificacion_puntos }}
+                    {% if form.verificacion_puntos.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.verificacion_puntos.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Plataforma -->
+        <div class="form-group row">
+            <label for="plataforma" class="col-4 col-form-label">Plataforma</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                    </div>
+                    {{ form.plataforma }}
+                    {% if form.plataforma.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.plataforma.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Inclinación -->
+        <div class="form-group row" id="inclinacionField" style="display:none;">
+            <label for="inclinacion" class="col-4 col-form-label">Inclinación</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-angle-double-up"></i>
+                        </div>
+                    </div>
+                    {{ form.inclinacion }}
+                    {% if form.inclinacion.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.inclinacion.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Diámetro -->
+        <div class="form-group row" id="diametroField" style="display:none;">
+            <label for="diametro" class="col-4 col-form-label">Diámetro</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                    </div>
+                    {{ form.diametro }}
+                    {% if form.diametro.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.diametro.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tapado -->
+        <div class="form-group row">
+            <label for="tapado" class="col-4 col-form-label">Tapado</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    {{ form.tapado }}
+                    {% if form.tapado.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.tapado.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contratista -->
+        <div class="form-group row">
+            <label for="contratista" class="col-4 col-form-label">Contratista</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                    </div>
+                    {{ form.contratista }}
+                    {% if form.contratista.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.contratista.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Marca Máquina 1 -->
+        <div class="form-group row">
+            <label for="marca_maquina1" class="col-4 col-form-label">Marca Máquina 1</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                    </div>
+                    {{ form.marca_maquina1 }}
+                    {% if form.marca_maquina1.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.marca_maquina1.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Modelo Máquina 1 -->
+        <div class="form-group row">
+            <label for="modelo_maquina1" class="col-4 col-form-label">Modelo Máquina 1</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                    </div>
+                    {{ form.modelo_maquina1 }}
+                    {% if form.modelo_maquina1.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.modelo_maquina1.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- PPU 1 -->
+        <div class="form-group row">
+            <label for="ppu1" class="col-4 col-form-label">PPU 1</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                    </div>
+                    {{ form.ppu1 }}
+                    {% if form.ppu1.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.ppu1.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Marca Máquina 2 -->
+        <div class="form-group row">
+            <label for="marca_maquina2" class="col-4 col-form-label">Marca Máquina 2</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                    </div>
+                    {{ form.marca_maquina2 }}
+                    {% if form.marca_maquina2.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.marca_maquina2.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Modelo Máquina 2 -->
+        <div class="form-group row">
+            <label for="modelo_maquina2" class="col-4 col-form-label">Modelo Máquina 2</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                    </div>
+                    {{ form.modelo_maquina2 }}
+                    {% if form.modelo_maquina2.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.modelo_maquina2.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- PPU 2 -->
+        <div class="form-group row">
+            <label for="ppu2" class="col-4 col-form-label">PPU 2</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                    </div>
+                    {{ form.ppu2 }}
+                    {% if form.ppu2.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.ppu2.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Cargar Imagen -->
+        <div class="form-group row">
+            <label for="image" class="col-4 col-form-label">Cargar Imagen</label>
+            <div class="col-8">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <i class="fas fa-image"></i>
+                        </div>
+                    </div>
+                    <input type="file" name="image" id="image" class="form-control" accept="image/*">
+                    {% if form.image.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.image.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón de Envío -->
+        <div class="form-group row">
+            <div class="col-8 offset-4">
+                <button type="submit" class="btn btn-primary">Agregar Prospección</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Añadir Font Awesome si no está en index_master.html -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+    /* Ajustar tamaño y alineación de los iconos */
+    .input-group-text i {
+        font-size: 16px; /* Tamaño de los iconos */
+        width: 16px; /* Ancho fijo para consistencia */
+        text-align: center; /* Centrar el icono */
+    }
+    .input-group-text {
+        background-color: #f8f9fa; /* Fondo claro para destacar los iconos */
+        border: 1px solid #ced4da; /* Borde consistente con el formulario */
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var tipoProspeccionField = document.getElementById('id_tipo_prospeccion');
+    var inclinacionField = document.getElementById('inclinacionField');
+    var diametroField = document.getElementById('diametroField');
+
+    tipoProspeccionField.addEventListener('change', function () {
+        if (tipoProspeccionField.value === 'sondajes') {
+            inclinacionField.style.display = 'block';
+            diametroField.style.display = 'block';
+        } else {
+            inclinacionField.style.display = 'none';
+            diametroField.style.display = 'none';
+        }
+    });
+
+    // Trigger change event on page load to set initial visibility
+    tipoProspeccionField.dispatchEvent(new Event('change'));
+});
+</script>
 {% endblock %}

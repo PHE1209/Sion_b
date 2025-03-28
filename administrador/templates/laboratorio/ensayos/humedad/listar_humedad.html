@@ -13,49 +13,57 @@
             <a href="{% url 'agregar_humedad' %}" class="btn btn-success">
                 <i class="fa fa-plus"></i> Agregar Humedad
             </a>
-            <a href="{% url 'export_to_excel_humedad' %}" class="btn btn-info">
-                <i class="fa fa-file-excel-o"></i> Exportar a Excel
-            </a>
-            <a href="{% url 'export_to_pdf_humedad' %}" class="btn btn-danger">
-                <i class="fa fa-file-pdf-o"></i> Exportar a PDF
-            </a>
+            <form id="exportExcelForm" action="{% url 'export_to_excel_humedad' %}" method="get" style="display:inline;">
+                <input type="hidden" name="q" value="{{ query }}">
+                <input type="hidden" name="headers" value="ID Proyecto,ID Prospección,Tipo Prospección,Humedad (%),Profundidad Promedio (m),Área,Usuario">
+                <button type="submit" class="btn btn-info">
+                    <i class="fa fa-file-excel-o"></i> Exportar a Excel
+                </button>
+            </form>
+            <form id="exportPdfForm" action="{% url 'export_to_pdf_humedad' %}" method="get" style="display:inline;">
+                <input type="hidden" name="q" value="{{ query }}">
+                <input type="hidden" name="headers" value="ID Proyecto,ID Prospección,Tipo Prospección,Humedad (%),Profundidad Promedio (m),Área,Usuario">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa fa-file-pdf-o"></i> Exportar a PDF
+                </button>
+            </form>
         </div>
 
         <table id="humedadTable" class="table table-striped table-bordered">
             <thead>
                 <tr>
-                    <th>N</th>
                     <th>ID Proyecto</th>
-                    <th>Tipo Prospección</th>
                     <th>ID Prospección</th>
+                    <th>Tipo Prospección</th>
+                    <th>Humedad (%)</th>
+                    <th>Profundidad Promedio (m)</th>
                     <th>Área</th>
-                    <th>Humedad</th>
-                    <th>Profundidad Promedio</th>
+                    <th>Usuario</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="humedadTableBody">
+            <tbody>
                 {% for humedad in page_obj %}
                 <tr>
-                    <td>{{ humedad.n }}</td>
-                    <td>{{ humedad.id_proyecto }}</td>
+                    <td>{{ humedad.id_proyecto.id }}</td>
+                    <td>{{ humedad.id_prospeccion.id_prospeccion }}</td>
                     <td>{{ humedad.tipo_prospeccion }}</td>
-                    <td>{{ humedad.id_prospeccion }}</td>
-                    <td>{{ humedad.area }}</td>
                     <td>{{ humedad.humedad }}</td>
                     <td>{{ humedad.profundidad_promedio }}</td>
+                    <td>{{ humedad.area }}</td>
+                    <td>{{ humedad.user.username|default:'Sin usuario' }}</td>
                     <td>
-                        {% if humedad.n %}
-                            <a href="{% url 'ver_humedad' humedad.n %}" class="btn btn-info btn-sm">Ver</a>
-                            <a href="{% url 'editar_humedad' humedad.n %}" class="btn btn-warning btn-sm">Editar</a>
-                            <form action="{% url 'eliminar_humedad' humedad.n %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta entrada de humedad?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                            </form>
-                        {% else %}
-                            <span class="text-muted">No disponible</span>
-                        {% endif %}
+                        <a href="{% url 'ver_humedad' humedad.id %}" class="btn btn-info btn-sm">Ver</a>
+                        <a href="{% url 'editar_humedad' humedad.id %}" class="btn btn-warning btn-sm">Editar</a>
+                        <form action="{% url 'eliminar_humedad' humedad.id %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta entrada de humedad?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
                     </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No hay humedades disponibles.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -76,4 +84,6 @@
             </div>
         </div>
     </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 {% endblock %}

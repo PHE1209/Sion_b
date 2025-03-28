@@ -12,8 +12,14 @@
 
     <div class="mb-3">
         <a href="{% url 'agregar_nomina' %}" class="btn btn-success"><i class="fa fa-plus"></i> Agregar Nómina</a>
-        <a href="{% url 'export_to_excel_nomina' %}" class="btn btn-success"><i class="fa fa-file-excel-o"></i> Exportar a Excel</a>
-        <a href="{% url 'export_to_pdf_nomina' %}" class="btn btn-danger"><i class="fa fa-file-pdf-o"></i> Exportar a PDF</a>
+        <form action="{% url 'export_to_excel_roster' %}" method="get" style="display:inline;">
+            <input type="hidden" name="q" value="{{ consulta }}">
+            <button type="submit" class="btn btn-success"><i class="fa fa-file-excel-o"></i> Exportar a Excel</button>
+        </form>
+        <form action="{% url 'export_to_pdf_roster' %}" method="get" style="display:inline;">
+            <input type="hidden" name="q" value="{{ consulta }}">
+            <button type="submit" class="btn btn-danger"><i class="fa fa-file-pdf-o"></i> Exportar a PDF</button>
+        </form>
     </div>
 
     <!-- Cuadro de resumen (sin columna Proyecto, meses dinámicos) -->

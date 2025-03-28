@@ -2,12 +2,12 @@
 
 {% block content %}
     <div class="right_col" role="main">
-        <h1 class="mb-4">Editar Humedad</h1>
+        <h1 class="mb-4">Editar Gravedad Específica - ID: {{ gravedad_especifica_obj.id }}</h1>
         <form method="post">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Guardar cambios</button>
-            <a href="{% url 'listar_humedad' %}" class="btn btn-secondary">Cancelar</a>
+            <a href="{% url 'listar_gravedad_especifica' %}" class="btn btn-secondary">Cancelar</a>
         </form>
     </div>
 {% endblock %}

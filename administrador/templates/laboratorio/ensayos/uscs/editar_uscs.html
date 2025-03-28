@@ -2,12 +2,12 @@
 
 {% block content %}
 <div class="right_col" role="main">
-    <h1>Editar Humedad - ID: {{ humedad.id }}</h1>
+    <h1>Editar Clasificación USCS - ID: {{ uscs.id }}</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Guardar</button>
-        <a href="{% url 'listar_humedad' %}" class="btn btn-secondary">Cancelar</a>
+        <a href="{% url 'listar_uscs' %}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>
 {% endblock %}

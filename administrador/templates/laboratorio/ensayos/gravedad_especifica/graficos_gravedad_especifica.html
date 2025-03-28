@@ -2,14 +2,16 @@
 
 {% block content %}
 <div class="right_col" role="main">
-    <h1>Gráfico de Humedad</h1>
+    <h1>Gráfico de Gravedad Específica</h1>
 
-    <form id="filtrosForm" method="GET" action="{% url 'graficos_humedad' %}" class="form-inline mb-3">
+    <form id="filtrosForm" method="GET" action="{% url 'graficos_gravedad_especifica' %}" class="form-inline mb-3">
         <div class="form-group mr-3">
             <label for="id_proyectos">Proyecto:</label>
             <select id="id_proyectos" name="id_proyectos" class="form-control select2-checkbox" multiple>
                 {% for proyecto in proyectos %}
-                <option value="{{ proyecto.id_proyecto }}" {% if proyecto.id_proyecto|stringformat:"s" in selected_id_proyectos %}selected{% endif %}>{{ proyecto.id_proyecto }}</option>
+                <option value="{{ proyecto.id_proyecto }}" {% if proyecto.id_proyecto|stringformat:"s" in selected_id_proyectos %}selected{% endif %}>
+                    {{ proyecto.id_proyecto }}
+                </option>
                 {% endfor %}
             </select>
         </div>
@@ -18,7 +20,9 @@
             <label for="tipos_prospeccion">Tipo de Prospección:</label>
             <select id="tipos_prospeccion" name="tipos_prospeccion" class="form-control select2-checkbox" multiple>
                 {% for tipo in tipos_prospeccion_inicial %}
-                <option value="{{ tipo }}" {% if tipo|stringformat:"s" in selected_tipos_prospeccion %}selected{% endif %}>{{ tipo }}</option>
+                <option value="{{ tipo }}" {% if tipo|stringformat:"s" in selected_tipos_prospeccion %}selected{% endif %}>
+                    {{ tipo }}
+                </option>
                 {% endfor %}
             </select>
         </div>
@@ -27,7 +31,9 @@
             <label for="areas">Área:</label>
             <select id="areas" name="areas" class="form-control select2-checkbox" multiple>
                 {% for area in areas_inicial %}
-                <option value="{{ area }}" {% if area|stringformat:"s" in selected_areas %}selected{% endif %}>{{ area }}</option>
+                <option value="{{ area }}" {% if area|stringformat:"s" in selected_areas %}selected{% endif %}>
+                    {{ area }}
+                </option>
                 {% endfor %}
             </select>
         </div>
@@ -36,28 +42,30 @@
             <label for="id_prospecciones">ID Prospección:</label>
             <select id="id_prospecciones" name="id_prospecciones" class="form-control select2-checkbox" multiple>
                 {% for id_pros in id_prospecciones_inicial %}
-                <option value="{{ id_pros }}" {% if id_pros|stringformat:"s" in selected_id_prospecciones %}selected{% endif %}>{{ id_pros }}</option>
+                <option value="{{ id_pros }}" {% if id_pros|stringformat:"s" in selected_id_prospecciones %}selected{% endif %}>
+                    {{ id_pros }}
+                </option>
                 {% endfor %}
             </select>
         </div>
 
-        <button type="submit" class="btn btn-primary">Actualizar Gráfico</button>
-        <button type="button" class="btn btn-secondary" id="limpiarBtn" onclick="window.location.href='{% url "graficos_humedad" %}'">Limpiar</button>
+        <button type="submit" class="btn btn-primary mr-2">Actualizar Gráfico</button>
+        <button type="button" class="btn btn-secondary" id="limpiarBtn" onclick="window.location.href='{% url "graficos_gravedad_especifica" %}'">Limpiar</button>
     </form>
 
-    <h2>Gráfico agrupado por área</h2>
+    <h2>Gráfico agrupado por Área (Dispersión)</h2>
     <div id="grafico-area">
         {% if image_base64_area %}
-            <img id="grafico_humedad_area" src="data:image/png;base64,{{ image_base64_area }}" class="img-fluid" alt="Gráfico de Humedad por Área">
+            <img id="grafico_gravedad_area" src="data:image/png;base64,{{ image_base64_area }}" class="img-fluid" alt="Gráfico de Gravedad Específica por Área">
         {% else %}
             <p class="text-muted">{% if error %}{{ error }}{% else %}No hay datos disponibles para mostrar.{% endif %}</p>
         {% endif %}
     </div>
 
-    <h2>Gráfico agrupado por Prospección</h2>
-    <div id="grafico-prospeccion">
-        {% if image_base64_prospeccion %}
-            <img id="grafico_humedad_prospeccion" src="data:image/png;base64,{{ image_base64_prospeccion }}" class="img-fluid" alt="Gráfico de Humedad por Prospección">
+    <h2>Gráfico agrupado por Muestra (Dispersión)</h2>
+    <div id="grafico-muestra">
+        {% if image_base64_muestra %}
+            <img id="grafico_gravedad_muestra" src="data:image/png;base64,{{ image_base64_muestra }}" class="img-fluid" alt="Gráfico de Gravedad Específica por Muestra">
         {% else %}
             <p class="text-muted">{% if error %}{{ error }}{% else %}No hay datos disponibles para mostrar.{% endif %}</p>
         {% endif %}
@@ -73,11 +81,13 @@
     .select2-container { width: 200px !important; }
     .select2-selection__choice { background-color: #007bff; color: white; }
     .select2-selection__choice__remove { color: white; }
+    .form-inline .form-group { display: flex; align-items: center; }
+    .form-inline label { margin-right: 10px; }
+    .img-fluid { max-width: 100%; height: auto; }
 </style>
 
 <script type="text/javascript">
 $(document).ready(function() {
-    // Inicializar Select2 con checkboxes
     $('.select2-checkbox').select2({
         placeholder: "Seleccione una opción",
         allowClear: true,
@@ -96,16 +106,12 @@ $(document).ready(function() {
         }
     });
 
-    // Evento para actualizar tipos de prospección y áreas cuando cambian los proyectos
     $('#id_proyectos').on('change', function() {
         var selectedProyectos = $(this).val() || [];
         if (selectedProyectos.length > 0) {
-            // Cargar tipos de prospección
             $.ajax({
-                url: '{% url "obtener_tipos_prospeccion_humedad" %}',
-                data: {
-                    'id_proyectos': selectedProyectos.join(',')
-                },
+                url: '{% url "obtener_tipos_prospeccion_gravedad" %}',
+                data: { 'id_proyectos': selectedProyectos.join(',') },
                 success: function(data) {
                     var tipoProspeccionSelect = $('#tipos_prospeccion');
                     var selectedTipos = tipoProspeccionSelect.val() || [];
@@ -113,54 +119,10 @@ $(document).ready(function() {
                     $.each(data.options, function(index, value) {
                         tipoProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
                     });
-                    tipoProspeccionSelect.val(selectedTipos).trigger('change');
+                    tipoProspeccionSelect.val(selectedTipos.filter(t => data.options.includes(t))).trigger('change');
                 },
                 error: function(xhr, status, error) {
                     console.error("Error al obtener los tipos de prospección: ", error);
-                }
-            });
-
-            // Cargar áreas
-            $.ajax({
-                url: '{% url "obtener_areas_humedad" %}',
-                data: {
-                    'id_proyectos': selectedProyectos.join(',')
-                },
-                success: function(data) {
-                    var areaSelect = $('#areas');
-                    var selectedAreas = areaSelect.val() || [];
-                    areaSelect.empty();
-                    $.each(data.options, function(index, value) {
-                        areaSelect.append('<option value="' + value + '">' + value + '</option>');
-                    });
-                    areaSelect.val(selectedAreas).trigger('change');
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error al obtener las áreas: ", error);
-                }
-            });
-
-            // Cargar IDs de prospección (depende también de tipos y áreas)
-            var selectedTipos = $('#tipos_prospeccion').val() || [];
-            var selectedAreas = $('#areas').val() || [];
-            $.ajax({
-                url: '{% url "obtener_id_prospecciones_humedad" %}',
-                data: {
-                    'id_proyectos': selectedProyectos.join(','),
-                    'tipos_prospeccion': selectedTipos.join(','),
-                    'areas': selectedAreas.join(',')
-                },
-                success: function(data) {
-                    var idProspeccionSelect = $('#id_prospecciones');
-                    var selectedProspecciones = idProspeccionSelect.val() || [];
-                    idProspeccionSelect.empty();
-                    $.each(data.options, function(index, value) {
-                        idProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
-                    });
-                    idProspeccionSelect.val(selectedProspecciones).trigger('change');
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error al obtener los IDs de prospección: ", error);
                 }
             });
         } else {
@@ -170,14 +132,31 @@ $(document).ready(function() {
         }
     });
 
-    // Evento para actualizar IDs de prospección cuando cambian tipos o áreas
-    $('#tipos_prospeccion, #areas').on('change', function() {
+    $('#id_proyectos, #tipos_prospeccion, #areas').on('change', function() {
         var selectedProyectos = $('#id_proyectos').val() || [];
         var selectedTipos = $('#tipos_prospeccion').val() || [];
         var selectedAreas = $('#areas').val() || [];
+        
         if (selectedProyectos.length > 0) {
             $.ajax({
-                url: '{% url "obtener_id_prospecciones_humedad" %}',
+                url: '{% url "obtener_area_gravedad" %}',
+                data: { 'id_proyectos': selectedProyectos.join(',') },
+                success: function(data) {
+                    var areaSelect = $('#areas');
+                    var selectedAreasCurrent = areaSelect.val() || [];
+                    areaSelect.empty();
+                    $.each(data.options, function(index, value) {
+                        areaSelect.append('<option value="' + value + '">' + value + '</option>');
+                    });
+                    areaSelect.val(selectedAreasCurrent.filter(a => data.options.includes(a))).trigger('change');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al obtener las áreas: ", error);
+                }
+            });
+
+            $.ajax({
+                url: '{% url "obtener_id_prospecciones_gravedad" %}',
                 data: {
                     'id_proyectos': selectedProyectos.join(','),
                     'tipos_prospeccion': selectedTipos.join(','),
@@ -190,25 +169,16 @@ $(document).ready(function() {
                     $.each(data.options, function(index, value) {
                         idProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
                     });
-                    idProspeccionSelect.val(selectedProspecciones).trigger('change');
+                    idProspeccionSelect.val(selectedProspecciones.filter(p => data.options.includes(p))).trigger('change');
                 },
                 error: function(xhr, status, error) {
                     console.error("Error al obtener los IDs de prospección: ", error);
                 }
             });
+        } else {
+            $('#areas').empty();
+            $('#id_prospecciones').empty();
         }
-    });
-
-    // Evento del botón Limpiar (como respaldo del onclick)
-    $('#limpiarBtn').on('click', function(e) {
-        e.preventDefault(); // Evitar comportamiento por defecto si hay algún conflicto
-        // Limpiar los valores de los campos del formulario
-        $('#id_proyectos').val(null).trigger('change');
-        $('#tipos_prospeccion').val(null).trigger('change');
-        $('#areas').val(null).trigger('change');
-        $('#id_prospecciones').val(null).trigger('change');
-        // Redirigir a la URL base sin parámetros
-        window.location.href = '{% url "graficos_humedad" %}';
     });
 });
 </script>

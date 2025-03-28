@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="right_col" role="main">
-    <h1>AGREGAR HUMEDAD</h1>
+    <h1>AGREGAR GRAVEDAD ESPECÍFICA</h1>
 
     {% if errors %}
     <div class="alert alert-danger">
@@ -13,7 +13,7 @@
     </div>
     {% endif %}
 
-    <form action="{% url 'agregar_humedad' %}" method="POST">
+    <form action="{% url 'agregar_gravedad_especifica' %}" method="POST">
         {% csrf_token %}
 
         <!-- Filtros alineados a la izquierda -->
@@ -24,10 +24,10 @@
                     <div class="input-group-prepend">
                         <div class="input-group-text"><i class="fas fa-project-diagram"></i></div>
                     </div>
-                    <select id="id_proyecto" name="id_proyecto" class="form-control">
+                    <select id="id_proyecto" name="id_proyecto" class="form-control" required>
                         <option value="">Seleccione Proyecto</option>
                         {% for proyecto in proyectos %}
-                        <option value="{{ proyecto.id }}">{{ proyecto }}</option>
+                        <option value="{{ proyecto.id }}" {% if proyecto.id|stringformat:"s" == request.POST.id_proyecto %}selected{% endif %}>{{ proyecto }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -41,6 +41,9 @@
                     </div>
                     <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
                         <option value="">Seleccione Tipo de Prospección</option>
+                        {% for tipo in tipo_prospeccion_choices %}
+                        <option value="{{ tipo }}" {% if tipo == request.POST.tipo_prospeccion %}selected{% endif %}>{{ tipo }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -51,7 +54,7 @@
                     <div class="input-group-prepend">
                         <div class="input-group-text"><i class="fas fa-map"></i></div>
                     </div>
-                    <input type="text" id="area" name="area" class="form-control" readonly>
+                    <input type="text" id="area" name="area" class="form-control" value="{{ area }}" readonly>
                 </div>
             </div>
         </div>
@@ -61,27 +64,33 @@
             <div class="muestra-row form-group row align-items-center">
                 <div class="col-2">
                     <label for="id_prospeccion_0" class="col-form-label">Prospección</label>
-                    <select id="id_prospeccion_0" name="id_prospeccion" class="form-control id-prospeccion">
+                    <select id="id_prospeccion_0" name="id_prospeccion[]" class="form-control id-prospeccion" required>
                         <option value="">Seleccione</option>
+                        {% for prospeccion in prospecciones %}
+                        <option value="{{ prospeccion }}" {% if prospeccion == request.POST.id_prospeccion.0 %}selected{% endif %}>{{ prospeccion }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-2">
                     <label for="id_muestra_0" class="col-form-label">ID Muestra</label>
-                    <select id="id_muestra_0" name="id_muestra" class="form-control id-muestra">
+                    <select id="id_muestra_0" name="id_muestra[]" class="form-control id-muestra" required>
                         <option value="">Seleccione</option>
+                        {% for muestra in muestras %}
+                        <option value="{{ muestra }}" {% if muestra == request.POST.id_muestra.0 %}selected{% endif %}>{{ muestra }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-2">
                     <label for="profundidad_desde_0" class="col-form-label">Desde (m)</label>
-                    <input type="text" id="profundidad_desde_0" name="profundidad_desde" class="form-control profundidad-desde" readonly>
+                    <input type="text" id="profundidad_desde_0" name="profundidad_desde[]" class="form-control profundidad-desde" readonly>
                 </div>
                 <div class="col-2">
                     <label for="profundidad_hasta_0" class="col-form-label">Hasta (m)</label>
-                    <input type="text" id="profundidad_hasta_0" name="profundidad_hasta" class="form-control profundidad-hasta" readonly>
+                    <input type="text" id="profundidad_hasta_0" name="profundidad_hasta[]" class="form-control profundidad-hasta" readonly>
                 </div>
                 <div class="col-2">
-                    <label for="humedad_0" class="col-form-label">Humedad (%)</label>
-                    <input type="number" step="0.001" id="humedad_0" name="humedad" class="form-control" placeholder="Ej: 12.345">
+                    <label for="gravedad_especifica_0" class="col-form-label">Gravedad Específica</label>
+                    <input type="number" step="0.001" id="gravedad_especifica_0" name="gravedad_especifica[]" class="form-control" placeholder="Ej: 2.650" required>
                 </div>
             </div>
         </div>
@@ -91,14 +100,16 @@
         <!-- Botón de envío -->
         <div class="form-group row mt-3">
             <div class="col-8 offset-4">
-                <button type="submit" class="btn btn-primary">Agregar Humedades</button>
+                <button type="submit" class="btn btn-primary">Agregar Gravedades Específicas</button>
             </div>
         </div>
     </form>
 </div>
 
+<!-- Recursos externos -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <style>
     .filtros-superiores {
         margin-left: 0;
@@ -108,7 +119,7 @@
         align-items: flex-start;
     }
     .filtro-item {
-        width: 300px; /* Ancho fijo para que los filtros sean consistentes */
+        width: 300px;
         margin-bottom: 10px;
     }
     .filtro-item label {
@@ -135,27 +146,28 @@
         margin-bottom: 10px;
     }
 </style>
+
 <script type="text/javascript">
 $(document).ready(function() {
     let muestraCount = 0;
 
+    // Actualizar tipos de prospección al cambiar proyecto
     $('#id_proyecto').change(function() {
         var idProyecto = $(this).val();
         if (idProyecto) {
             $.ajax({
-                url: '{% url "obtener_tipos_prospeccion_muestreo" %}',
+                url: '{% url "agregar_gravedad_especifica" %}',
                 type: 'GET',
                 data: {'id_proyecto': idProyecto},
                 success: function(data) {
                     var tipoProspeccionSelect = $('#tipo_prospeccion');
-                    tipoProspeccionSelect.empty();
-                    tipoProspeccionSelect.append('<option value="">Seleccione Tipo de Prospección</option>');
-                    $.each(data.options, function(index, value) {
-                        tipoProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
+                    tipoProspeccionSelect.empty().append('<option value="">Seleccione Tipo de Prospección</option>');
+                    $.each(data.tipo_prospeccion_choices, function(index, value) {
+                        if (value) tipoProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
                     });
                     $('.id-prospeccion').empty().append('<option value="">Seleccione</option>');
-                    $('#area').val('');
                     $('.id-muestra').empty().append('<option value="">Seleccione</option>');
+                    $('#area').val(data.area);
                     $('.profundidad-desde').val('');
                     $('.profundidad-hasta').val('');
                 }
@@ -163,19 +175,20 @@ $(document).ready(function() {
         } else {
             $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo de Prospección</option>');
             $('.id-prospeccion').empty().append('<option value="">Seleccione</option>');
-            $('#area').val('');
             $('.id-muestra').empty().append('<option value="">Seleccione</option>');
+            $('#area').val('');
             $('.profundidad-desde').val('');
             $('.profundidad-hasta').val('');
         }
     });
 
+    // Actualizar prospecciones al cambiar tipo de prospección
     $('#tipo_prospeccion').change(function() {
         var idProyecto = $('#id_proyecto').val();
         var tipoProspeccion = $(this).val();
         if (idProyecto && tipoProspeccion) {
             $.ajax({
-                url: '{% url "obtener_id_prospecciones_muestreo" %}',
+                url: '{% url "agregar_gravedad_especifica" %}',
                 type: 'GET',
                 data: {
                     'id_proyecto': idProyecto,
@@ -184,112 +197,115 @@ $(document).ready(function() {
                 success: function(data) {
                     $('.id-prospeccion').each(function() {
                         var idProspeccionSelect = $(this);
-                        idProspeccionSelect.empty();
-                        idProspeccionSelect.append('<option value="">Seleccione</option>');
-                        $.each(data.options, function(index, value) {
-                            idProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
+                        idProspeccionSelect.empty().append('<option value="">Seleccione</option>');
+                        $.each(data.prospecciones, function(index, value) {
+                            if (value) idProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
                         });
                     });
-                    $('#area').val('');
                     $('.id-muestra').empty().append('<option value="">Seleccione</option>');
+                    $('#area').val(data.area);
                     $('.profundidad-desde').val('');
                     $('.profundidad-hasta').val('');
                 }
             });
         } else {
             $('.id-prospeccion').empty().append('<option value="">Seleccione</option>');
-            $('#area').val('');
             $('.id-muestra').empty().append('<option value="">Seleccione</option>');
+            $('#area').val('');
             $('.profundidad-desde').val('');
             $('.profundidad-hasta').val('');
         }
     });
 
+    // Actualizar muestras al cambiar prospección
     $(document).on('change', '.id-prospeccion', function() {
+        var idProyecto = $('#id_proyecto').val();
+        var tipoProspeccion = $('#tipo_prospeccion').val();
         var prospeccionId = $(this).val();
         var row = $(this).closest('.muestra-row');
-        if (prospeccionId) {
+        if (idProyecto && tipoProspeccion && prospeccionId) {
             $.ajax({
-                url: '{% url "obtener_area_muestreo" %}',
+                url: '{% url "agregar_gravedad_especifica" %}',
                 type: 'GET',
-                data: {'prospeccion_id': prospeccionId},
-                success: function(data) {
-                    $('#area').val(data.area);
-                }
-            });
-            $.ajax({
-                url: '{% url "obtener_id_muestras_muestreo" %}',
-                type: 'GET',
-                data: {'id_prospeccion': prospeccionId},
+                data: {
+                    'id_proyecto': idProyecto,
+                    'tipo_prospeccion': tipoProspeccion,
+                    'id_prospeccion': prospeccionId
+                },
                 success: function(data) {
                     var idMuestraSelect = row.find('.id-muestra');
-                    idMuestraSelect.empty();
-                    idMuestraSelect.append('<option value="">Seleccione</option>');
-                    $.each(data.options, function(index, value) {
-                        idMuestraSelect.append('<option value="' + value + '">' + value + '</option>');
+                    idMuestraSelect.empty().append('<option value="">Seleccione</option>');
+                    $.each(data.muestras, function(index, value) {
+                        if (value) idMuestraSelect.append('<option value="' + value + '">' + value + '</option>');
                     });
+                    $('#area').val(data.area);
                     row.find('.profundidad-desde').val('');
                     row.find('.profundidad-hasta').val('');
                 }
             });
         } else {
-            $('#area').val('');
             row.find('.id-muestra').empty().append('<option value="">Seleccione</option>');
             row.find('.profundidad-desde').val('');
             row.find('.profundidad-hasta').val('');
         }
     });
 
-    function actualizarProfundidades(selectElement) {
-        var idMuestra = $(selectElement).val();
-        var row = $(selectElement).closest('.muestra-row');
-        if (idMuestra) {
+    // Actualizar profundidades al cambiar muestra
+    $(document).on('change', '.id-muestra', function() {
+        var idProyecto = $('#id_proyecto').val();
+        var tipoProspeccion = $('#tipo_prospeccion').val();
+        var idProspeccion = $(this).closest('.muestra-row').find('.id-prospeccion').val();
+        var idMuestra = $(this).val();
+        var row = $(this).closest('.muestra-row');
+        if (idProyecto && tipoProspeccion && idProspeccion && idMuestra) {
             $.ajax({
-                url: '{% url "obtener_profundidades_muestreo" %}',
+                url: '{% url "agregar_gravedad_especifica" %}',
                 type: 'GET',
-                data: {'id_muestra': idMuestra},
+                data: {
+                    'id_proyecto': idProyecto,
+                    'tipo_prospeccion': tipoProspeccion,
+                    'id_prospeccion': idProspeccion,
+                    'id_muestra': idMuestra
+                },
                 success: function(data) {
-                    row.find('.profundidad-desde').val(data.profundidad_desde);
-                    row.find('.profundidad-hasta').val(data.profundidad_hasta);
+                    row.find('.profundidad-desde').val(data.profundidad_desde || '');
+                    row.find('.profundidad-hasta').val(data.profundidad_hasta || '');
                 }
             });
         } else {
             row.find('.profundidad-desde').val('');
             row.find('.profundidad-hasta').val('');
         }
-    }
-
-    $(document).on('change', '.id-muestra', function() {
-        actualizarProfundidades(this);
     });
 
+    // Agregar nueva fila de muestra
     $('#add-muestra').click(function() {
         muestraCount++;
         var newRow = `
             <div class="muestra-row form-group row align-items-center">
                 <div class="col-2">
                     <label for="id_prospeccion_${muestraCount}" class="col-form-label">Prospección</label>
-                    <select id="id_prospeccion_${muestraCount}" name="id_prospeccion" class="form-control id-prospeccion">
+                    <select id="id_prospeccion_${muestraCount}" name="id_prospeccion[]" class="form-control id-prospeccion" required>
                         <option value="">Seleccione</option>
                     </select>
                 </div>
                 <div class="col-2">
                     <label for="id_muestra_${muestraCount}" class="col-form-label">ID Muestra</label>
-                    <select id="id_muestra_${muestraCount}" name="id_muestra" class="form-control id-muestra">
+                    <select id="id_muestra_${muestraCount}" name="id_muestra[]" class="form-control id-muestra" required>
                         <option value="">Seleccione</option>
                     </select>
                 </div>
                 <div class="col-2">
                     <label for="profundidad_desde_${muestraCount}" class="col-form-label">Desde (m)</label>
-                    <input type="text" id="profundidad_desde_${muestraCount}" name="profundidad_desde" class="form-control profundidad-desde" readonly>
+                    <input type="text" id="profundidad_desde_${muestraCount}" name="profundidad_desde[]" class="form-control profundidad-desde" readonly>
                 </div>
                 <div class="col-2">
                     <label for="profundidad_hasta_${muestraCount}" class="col-form-label">Hasta (m)</label>
-                    <input type="text" id="profundidad_hasta_${muestraCount}" name="profundidad_hasta" class="form-control profundidad-hasta" readonly>
+                    <input type="text" id="profundidad_hasta_${muestraCount}" name="profundidad_hasta[]" class="form-control profundidad-hasta" readonly>
                 </div>
                 <div class="col-2">
-                    <label for="humedad_${muestraCount}" class="col-form-label">Humedad (%)</label>
-                    <input type="number" step="0.001" id="humedad_${muestraCount}" name="humedad" class="form-control" placeholder="Ej: 12.345">
+                    <label for="gravedad_especifica_${muestraCount}" class="col-form-label">Gravedad Específica</label>
+                    <input type="number" step="0.001" id="gravedad_especifica_${muestraCount}" name="gravedad_especifica[]" class="form-control" placeholder="Ej: 2.650" required>
                 </div>
             </div>`;
         $('#muestras-container').append(newRow);
@@ -298,7 +314,7 @@ $(document).ready(function() {
         var tipoProspeccion = $('#tipo_prospeccion').val();
         if (idProyecto && tipoProspeccion) {
             $.ajax({
-                url: '{% url "obtener_id_prospecciones_muestreo" %}',
+                url: '{% url "agregar_gravedad_especifica" %}',
                 type: 'GET',
                 data: {
                     'id_proyecto': idProyecto,
@@ -306,13 +322,25 @@ $(document).ready(function() {
                 },
                 success: function(data) {
                     var newProspeccionSelect = $('#id_prospeccion_' + muestraCount);
-                    newProspeccionSelect.empty();
-                    newProspeccionSelect.append('<option value="">Seleccione</option>');
-                    $.each(data.options, function(index, value) {
-                        newProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
+                    newProspeccionSelect.empty().append('<option value="">Seleccione</option>');
+                    $.each(data.prospecciones, function(index, value) {
+                        if (value) newProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
                     });
                 }
             });
+        }
+    });
+
+    // Inicializar valores si hay datos previos
+    if ($('#id_proyecto').val()) {
+        $('#id_proyecto').trigger('change');
+    }
+    if ($('#tipo_prospeccion').val()) {
+        $('#tipo_prospeccion').trigger('change');
+    }
+    $('.id-prospeccion').each(function() {
+        if ($(this).val()) {
+            $(this).trigger('change');
         }
     });
 });

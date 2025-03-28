@@ -1,0 +1,14 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Eliminar Clasificación USCS - ID: {{ uscs.id }}</h1>
+    <p>¿Estás seguro de que deseas eliminar esta clasificación USCS?</p>
+    <p>ID Proyecto: {{ uscs.id_proyecto.id }} | ID Prospección: {{ uscs.id_prospeccion.id_prospeccion }} | Muestra: {{ uscs.id_muestra }} | USCS: {{ uscs.uscs }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_uscs' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
