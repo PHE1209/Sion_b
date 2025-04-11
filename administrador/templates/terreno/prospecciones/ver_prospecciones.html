@@ -1,83 +1,207 @@
 {% extends "index_master.html" %}
-
 {% block content %}
-<!-- page content -->
 <div class="right_col" role="main">
-    <h1>VER PROSPECCIÓN</h1>
+    <h1>Detalles de Prospección</h1>
 
-    {% if error %}
-    <div class="alert alert-danger">
-        {{ error }}
-    </div>
-    {% endif %}
-
-    <div class="form-group row">
-        <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
-        <div class="col-8">
-            <p class="form-control-static">{{ prospeccion.tipo_prospeccion }}</p>
+    <div class="row">
+        <!-- Columna izquierda: Datos -->
+        <div class="col-md-3 mb-4">
+            <div class="details-column">
+                <p><strong>ID Prospección:</strong> {{ prospeccion.id_prospeccion|default:'-' }}</p>
+                <p><strong>ID Proyecto:</strong> {{ prospeccion.id_proyecto|default:'-' }}</p>
+                <p><strong>Tipo Prospección:</strong> {{ prospeccion.get_tipo_prospeccion_display|default:'-' }}</p>
+                <p><strong>Área:</strong> {{ prospeccion.area|default:'-' }}</p>
+                <p><strong>Coordenada Este:</strong> {{ prospeccion.coordenada_este|default:'-' }}</p>
+                <p><strong>Coordenada Norte:</strong> {{ prospeccion.coordenada_norte|default:'-' }}</p>
+                <p><strong>Elevación:</strong> {{ prospeccion.elevacion|default:'-' }}</p>
+                <p><strong>Profundidad:</strong> {{ prospeccion.profundidad|default:'-' }}</p>
+                <p><strong>Inclinación:</strong> {{ prospeccion.inclinacion|default:'-' }}</p>
+                <p><strong>Fecha Inicio Perforación:</strong> {{ prospeccion.fecha_inicio_perforacion|date:"d/m/Y"|default:'-' }}</p>
+                <p><strong>Fecha Término Perforación:</strong> {{ prospeccion.fecha_termino_perforacion|date:"d/m/Y"|default:'-' }}</p>
+                <p><strong>Tipo Sondaje:</strong> {{ prospeccion.get_tipo_sondaje_display|default:'-' }}</p>
+                <p><strong>Metodología Sondaje:</strong> {{ prospeccion.get_metodologia_sondaje_display|default:'-' }}</p>
+                <p><strong>Metodología Geofísica:</strong> {{ prospeccion.get_metodologia_geofisica_display|default:'-' }}</p>
+                <p><strong>Habilitación:</strong> {{ prospeccion.get_habilitacion_display|default:'-' }}</p>
+            </div>
         </div>
-    </div>
 
-    <div class="form-group row">
-        <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
-        <div class="col-8">
-            <p class="form-control-static">{{ prospeccion.id_proyecto }}</p>
+        <!-- Columna central: Datos adicionales -->
+        <div class="col-md-3 mb-4">
+            <div class="details-column">
+                <p><strong>Monolito:</strong> {{ prospeccion.get_monolito_display|default:'-' }}</p>
+                <p><strong>Tapado:</strong> {{ prospeccion.get_tapado_display|default:'-' }}</p>
+                <p><strong>Contratista:</strong> {{ prospeccion.contratista|default:'-' }}</p>
+                <p><strong>Marca Máquina 1:</strong> {{ prospeccion.marca_maquina1|default:'-' }}</p>
+                <p><strong>Modelo Máquina 1:</strong> {{ prospeccion.modelo_maquina1|default:'-' }}</p>
+                <p><strong>PPU1:</strong> {{ prospeccion.ppu1|default:'-' }}</p>
+                <p><strong>Marca Máquina 2:</strong> {{ prospeccion.marca_maquina2|default:'-' }}</p>
+                <p><strong>Modelo Máquina 2:</strong> {{ prospeccion.modelo_maquina2|default:'-' }}</p>
+                <p><strong>PPU2:</strong> {{ prospeccion.ppu2|default:'-' }}</p>
+                <p><strong>Observación:</strong> {{ prospeccion.observacion|default:'-' }}</p>
+                <p><strong>Usuario:</strong> {{ prospeccion.user.username|default:'Sin usuario' }}</p>
+                <p><strong>Diámetro Sondaje:</strong> {{ prospeccion.get_diametro_sondaje_display|default:'-' }}</p>
+            </div>
         </div>
-    </div>
 
-    <div class="form-group row">
-        <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
-        <div class="col-8">
-            <p class="form-control-static">{{ prospeccion.id_prospeccion }}</p>
-        </div>
-    </div>
-
-    <!-- Repite esta estructura para todos los campos de la prospección -->
-    <div class="form-group row">
-        <label for="area" class="col-4 col-form-label">Área</label>
-        <div class="col-8">
-            <p class="form-control-static">{{ prospeccion.area }}</p>
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label for="fecha_inicio" class="col-4 col-form-label">Fecha de Inicio</label>
-        <div class="col-8">
-            <p class="form-control-static">{{ prospeccion.fecha_inicio }}</p>
-        </div>
-    </div>
-
-    <div class="form-group row">
-        <label for="fecha_termino" class="col-4 col-form-label">Fecha de Término</label>
-        <div class="col-8">
-            <p class="form-control-static">{{ prospeccion.fecha_termino }}</p>
-        </div>
-    </div>
-
-    <!-- Campo para mostrar la imagen subida -->
-    <div class="form-group row">
-        <label for="imagen" class="col-4 col-form-label">Imagen Subida</label>
-        <div class="col-8">
-            {% if prospeccion.imagen %}
-                <img src="{{ prospeccion.imagen.url }}" alt="Imagen de la prospección" class="img-fluid">
+        <!-- Columna derecha: Mapa con Folleto -->
+        <div class="col-md-6 mb-4">
+            {% if lat and lon %}
+            <div id="mapa" style="height: 500px; width: 100%;"></div>
             {% else %}
-                <p>No se ha subido ninguna imagen.</p>
+            <p class="text-muted">No hay coordenadas válidas disponibles para mostrar el mapa.</p>
             {% endif %}
         </div>
     </div>
 
-    <!-- Historial de modificaciones -->
-    <div class="form-group row">
-        <label for="historial_modificaciones" class="col-4 col-form-label">Historial de Modificaciones</label>
-        <div class="col-8">
-            <ul>
-                {% for modificacion in prospeccion.historial_modificaciones %}
-                    <li>{{ modificacion.fecha }} - {{ modificacion.descripcion }}</li>
+    <!-- Cuadrícula de imágenes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>Imágenes Asociadas</h2>
+            <div class="image-grid">
+                {% for image in prospeccion.imagenes.all %}
+                <div class="image-item">
+                    <img src="{{ image.image.url }}" alt="Imagen de {{ prospeccion.id_prospeccion }}" class="img-thumbnail" data-toggle="modal" data-target="#imageModal" data-src="{{ image.image.url }}">
+                </div>
                 {% endfor %}
-            </ul>
+                {% if not prospeccion.imagenes.all %}
+                <p class="text-muted">No hay imágenes asociadas a esta prospección.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 
+    <!-- Botón para volver -->
+    <div class="mb-4">
+        <a href="{% url 'listar_prospecciones' %}" class="btn btn-primary">Volver</a>
+    </div>
+
+    <!-- Historial de Cambios -->
+    <h2>Historial de Cambios</h2>
+    {% if history_records %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Tipo de Cambio</th>
+                    <th>Cambios Realizados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in history_records %}
+                <tr>
+                    <td>{{ record.date|date:"d/m/Y H:i:s" }}</td>
+                    <td>{{ record.user.username|default:'Sin usuario' }}</td>
+                    <td>
+                        {% if record.type == '+' %}Creado
+                        {% elif record.type == '~' %}Modificado
+                        {% elif record.type == '-' %}Eliminado
+                        {% else %}{{ record.type }}{% endif %}
+                    </td>
+                    <td>
+                        {% if record.reason %}
+                        <strong>Razón:</strong> {{ record.reason }}<br>
+                        {% endif %}
+                        {% if record.changes %}
+                        {% for change in record.changes %}
+                        <strong>{{ change.field_name|capfirst }}:</strong> {{ change.old_value }} → {{ change.new_value }}<br>
+                        {% endfor %}
+                        {% else %}
+                        <em>Registro inicial</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No hay un historial de cambios disponibles para este registro.</p>
+    {% endif %}
 </div>
-<!-- /page content -->
+
+<!-- Modal para agrandar imágenes -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Imagen Ampliada</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="" id="modalImage" class="img-fluid" alt="Imagen ampliada">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts para Leaflet.js y OpenStreetMap -->
+{% if lat and lon %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var mapa = L.map('mapa').setView([{{ lat }}, {{ lon }}], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© Colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(mapa);
+        L.marker([{{ lat }}, {{ lon }}])
+            .addTo(mapa)
+            .bindPopup('{{ prospeccion.id_prospeccion }}')
+            .openPopup();
+    });
+</script>
+{% endif %}
+
+<!-- Bootstrap JS y jQuery para el modal -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+
+<script>
+    $(document).ready(function() {
+        $('.image-item img').on('click', function() {
+            var src = $(this).data('src');
+            $('#modalImage').attr('src', src);
+        });
+    });
+</script>
+
+<style>
+    .table-responsive { overflow-x: auto; }
+    .table th, .table td { vertical-align: middle; font-size: 14px; }
+    .table th { background-color: #f8f9fa; }
+
+    /* Estilos para la cuadrícula de imágenes */
+    .image-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .image-item {
+        position: relative;
+    }
+    .image-item img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+    .image-item img:hover {
+        opacity: 0.8;
+    }
+    .modal-body img {
+        width: 100%;
+        height: auto;
+    }
+    .details-column {
+        column-count: 1;
+        column-gap: 1rem;
+    }
+</style>
+
 {% endblock %}

@@ -8,513 +8,444 @@
     {% if errors %}
     <div class="alert alert-danger">
         {% for error in errors %}
-        <p>{{ error }}</p>
+            <p>{{ error }}</p>
         {% endfor %}
     </div>
     {% endif %}
 
-    <form action="{% url 'agregar_muestreo' %}" method="POST">
+    <form action="{% url 'agregar_muestreo' %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <!-- ID Proyecto -->
-        <div class="form-group row">
-            <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-project-diagram"></i>
-                        </div>
-                    </div>
-                    <select id="id_proyecto" name="id_proyecto" class="form-control">
-                        <option value="">Seleccione Proyecto</option>
-                        {% for proyecto in proyectos %}
-                        <option value="{{ proyecto.id }}">{{ proyecto.id }}</option>
+        <div class="filtros-superiores">
+            <div class="form-group filtro-item">
+                <label for="id_proyecto">ID Proyecto</label>
+                <select id="id_proyecto" name="id_proyecto" class="form-control" required>
+                    <option value="">Seleccione Proyecto</option>
+                    {% for proyecto in proyectos %}
+                    <option value="{{ proyecto.id }}" {% if form_data.id_proyecto == proyecto.id|stringformat:"s" %}selected{% endif %}>{{ proyecto }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group filtro-item">
+                <label for="tipo_prospeccion">Tipo de Prospección</label>
+                <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
+                    <option value="">Seleccione Tipo</option>
+                    {% for tipo in tipo_prospeccion_choices %}
+                    <option value="{{ tipo }}" {% if form_data.tipo_prospeccion == tipo %}selected{% endif %}>{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div id="muestras-container" class="mt-3">
+            <div class="muestra-row form-group row align-items-start">
+                <div class="col-2 field-container">
+                    <label style="white-space: nowrap;">Prospección</label>
+                    <select name="id_prospeccion[]" class="form-control id-prospeccion" required>
+                        <option value="">Seleccione</option>
+                        {% for prospeccion in prospecciones %}
+                        <option value="{{ prospeccion }}" {% if form_data.id_prospeccion.0 == prospeccion %}selected{% endif %}>{{ prospeccion }}</option>
                         {% endfor %}
                     </select>
-                    {% if form.id_proyecto.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.id_proyecto.errors }}
-                    </div>
-                    {% endif %}
                 </div>
-            </div>
-        </div>
-
-        <!-- Tipo de Prospección -->
-        <div class="form-group row">
-            <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-search"></i>
-                        </div>
-                    </div>
-                    <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
-                        <option value="">Seleccione Tipo de Prospección</option>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Área</label><input type="text" name="area[]" class="form-control area" value="{{ form_data.area.0|default:area }}" required></div>
+                <div class="col-2 field-container">
+                    <label style="white-space: nowrap;">Objetivo</label>
+                    <select name="objetivo[]" class="form-control objetivo" required>
+                        <option value="">Seleccione</option>
+                        {% for value, label in objetivo_choices %}
+                        <option value="{{ value }}" {% if form_data.objetivo.0 == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
                     </select>
-                    {% if form.tipo_prospeccion.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.tipo_prospeccion.errors }}
-                    </div>
-                    {% endif %}
                 </div>
-            </div>
-        </div>
-
-        <!-- ID Prospección -->
-        <div class="form-group row">
-            <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-id-badge"></i>
-                        </div>
-                    </div>
-                    <select id="id_prospeccion" name="id_prospeccion" class="form-control">
-                        <option value="">Seleccione Prospección</option>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Fecha Muestreo</label><input type="date" name="fecha_muestreo[]" class="form-control" value="{{ form_data.fecha_muestreo.0 }}"></div>
+                <div class="col-2 field-container">
+                    <label style="white-space: nowrap;">Tipo Bulto</label>
+                    <select name="tipo_bulto[]" class="form-control">
+                        <option value="">Seleccione</option>
+                        {% for value, label in tipo_bulto_choices %}
+                        <option value="{{ value }}" {% if form_data.tipo_bulto.0 == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
                     </select>
-                    {% if form.id_prospeccion.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.id_prospeccion.errors }}
-                    </div>
-                    {% endif %}
+                </div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">ID Bulto</label><input type="text" name="id_bulto[]" class="form-control" value="{{ form_data.id_bulto.0 }}"></div>
+                <div class="col-2 field-container">
+                    <label style="white-space: nowrap;">Tipo Embalaje Muestra</label>
+                    <select name="tipo_embalaje_muestra[]" class="form-control">
+                        <option value="">Seleccione</option>
+                        {% for value, label in tipo_embalaje_muestra_choices %}
+                        <option value="{{ value }}" {% if form_data.tipo_embalaje_muestra.0 == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">ID Embalaje Muestra</label><input type="text" name="id_embalaje_muestra[]" class="form-control" value="{{ form_data.id_embalaje_muestra.0 }}"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Cantidad</label><input type="number" step="0.01" name="cantidad[]" class="form-control cantidad" value="{{ form_data.cantidad.0 }}"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Peso Unitario</label><input type="number" step="0.01" name="peso_unitario[]" class="form-control peso-unitario" value="{{ form_data.peso_unitario.0 }}"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Peso Total</label><input type="number" step="0.01" name="peso_total[]" class="form-control peso-total" value="{{ form_data.peso_total.0 }}" readonly></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">ID Muestra</label><input type="text" name="id_muestra[]" class="form-control id-muestra" value="{{ form_data.id_muestra.0 }}" required></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Prof. Desde</label><input type="number" step="0.01" name="profundidad_desde[]" class="form-control profundidad-desde" value="{{ form_data.profundidad_desde.0 }}"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Prof. Hasta</label><input type="number" step="0.01" name="profundidad_hasta[]" class="form-control profundidad-hasta" value="{{ form_data.profundidad_hasta.0 }}"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Prof. Promedio</label><input type="number" step="0.01" name="profundidad_promedio[]" class="form-control profundidad-promedio" value="{{ form_data.profundidad_promedio.0 }}" readonly></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Espesor Estrato</label><input type="number" step="0.01" name="espesor_estrato[]" class="form-control espesor-estrato" value="{{ form_data.espesor_estrato.0 }}" readonly></div>
+                <div class="col-1 field-container">
+                    <label style="white-space: nowrap;">Estrato</label>
+                    <select name="estrato[]" class="form-control">
+                        <option value="">Seleccione</option>
+                        {% for value, label in estrato_choices %}
+                        <option value="{{ value }}" {% if form_data.estrato.0 == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-1 field-container">
+                    <label style="white-space: nowrap;">Tipo</label>
+                    <select name="tipo[]" class="form-control">
+                        <option value="">Seleccione</option>
+                        {% for value, label in tipo_choices %}
+                        <option value="{{ value }}" {% if form_data.tipo.0 == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Fecha Despacho</label><input type="date" name="fecha_despacho[]" class="form-control" value="{{ form_data.fecha_despacho.0 }}"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Despachador</label><input type="text" name="nombre_despachador[]" class="form-control" value="{{ form_data.nombre_despachador.0 }}"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Destino</label><input type="text" name="destino[]" class="form-control" value="{{ form_data.destino.0 }}"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Orden Transporte</label><input type="text" name="orden_transporte[]" class="form-control" value="{{ form_data.orden_transporte.0 }}"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Observación</label><input type="text" name="observacion[]" class="form-control" value="{{ form_data.observacion.0 }}"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">ID Laboratorio</label><input type="text" name="id_laboratorio[]" class="form-control id-laboratorio" value="{{ form_data.id_laboratorio.0 }}" readonly></div>
+                <div class="col-12 field-container image-field-container">
+                    <label>Imágenes (máximo 10)</label>
+                    <input type="file" name="image[]" class="form-control image-input" accept="image/*" multiple>
+                    <small class="form-text text-muted">Seleccione hasta 10 imágenes.</small>
                 </div>
             </div>
         </div>
 
-        <!-- Área -->
-        <div class="form-group row">
-            <label for="id_area" class="col-4 col-form-label">Área</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-map"></i>
-                        </div>
-                    </div>
-                    <input type="text" class="form-control" id="id_area" name="area" value="{{ form.area.value|default:'' }}" readonly>
-                    {% if form.area.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.area.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="mt-2">
+            <button type="button" id="add-muestra" class="btn btn-secondary">Agregar otra muestra</button>
+            <button type="button" id="duplicate-muestra" class="btn btn-info">Duplicar última fila</button>
+            <button type="button" id="remove-muestra" class="btn btn-danger">Eliminar última muestra</button>
         </div>
-
-        <!-- Fecha de Muestreo -->
-        <div class="form-group row">
-            <label for="fecha_muestreo" class="col-4 col-form-label">Fecha de Muestreo</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                    </div>
-                    {{ form.fecha_muestreo }}
-                    {% if form.fecha_muestreo.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.fecha_muestreo.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- ID Muestra -->
-        <div class="form-group row">
-            <label for="id_muestra" class="col-4 col-form-label">ID Muestra</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-vial"></i>
-                        </div>
-                    </div>
-                    {{ form.id_muestra }}
-                    {% if form.id_muestra.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.id_muestra.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Tipo de Embalaje -->
-        <div class="form-group row">
-            <label for="tipo_embalaje" class="col-4 col-form-label">Tipo de Embalaje</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-box"></i>
-                        </div>
-                    </div>
-                    {{ form.tipo_embalaje }}
-                    {% if form.tipo_embalaje.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.tipo_embalaje.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Cantidad -->
-        <div class="form-group row">
-            <label for="cantidad" class="col-4 col-form-label">Cantidad</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-hashtag"></i>
-                        </div>
-                    </div>
-                    {{ form.cantidad }}
-                    {% if form.cantidad.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.cantidad.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Peso Unitario -->
-        <div class="form-group row">
-            <label for="peso_unitario" class="col-4 col-form-label">Peso Unitario</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-weight"></i>
-                        </div>
-                    </div>
-                    {{ form.peso_unitario }}
-                    {% if form.peso_unitario.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.peso_unitario.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Peso Total -->
-        <div class="form-group row">
-            <label for="peso_total" class="col-4 col-form-label">Peso Total</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-balance-scale"></i>
-                        </div>
-                    </div>
-                    {{ form.peso_total }}
-                    {% if form.peso_total.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.peso_total.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Profundidad Desde -->
-        <div class="form-group row">
-            <label for="profundidad_desde" class="col-4 col-form-label">Profundidad Desde</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-arrow-down"></i>
-                        </div>
-                    </div>
-                    {{ form.profundidad_desde }}
-                    {% if form.profundidad_desde.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.profundidad_desde.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Profundidad Hasta -->
-        <div class="form-group row">
-            <label for="profundidad_hasta" class="col-4 col-form-label">Profundidad Hasta</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-arrow-up"></i>
-                        </div>
-                    </div>
-                    {{ form.profundidad_hasta }}
-                    {% if form.profundidad_hasta.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.profundidad_hasta.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Estrato -->
-        <div class="form-group row">
-            <label for="estrato" class="col-4 col-form-label">Estrato</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-layer-group"></i>
-                        </div>
-                    </div>
-                    {{ form.estrato }}
-                    {% if form.estrato.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.estrato.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Tipo -->
-        <div class="form-group row">
-            <label for="tipo" class="col-4 col-form-label">Tipo</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-tag"></i>
-                        </div>
-                    </div>
-                    {{ form.tipo }}
-                    {% if form.tipo.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.tipo.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Nombre del Despachador -->
-        <div class="form-group row">
-            <label for="nombre_despachador" class="col-4 col-form-label">Nombre del Despachador</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-user"></i>
-                        </div>
-                    </div>
-                    {{ form.nombre_despachador }}
-                    {% if form.nombre_despachador.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.nombre_despachador.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Fecha de Despacho -->
-        <div class="form-group row">
-            <label for="fecha_despacho" class="col-4 col-form-label">Fecha de Despacho</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                    </div>
-                    {{ form.fecha_despacho }}
-                    {% if form.fecha_despacho.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.fecha_despacho.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Destino -->
-        <div class="form-group row">
-            <label for="destino" class="col-4 col-form-label">Destino</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                    </div>
-                    {{ form.destino }}
-                    {% if form.destino.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.destino.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Orden de Transporte -->
-        <div class="form-group row">
-            <label for="orden_transporte" class="col-4 col-form-label">Orden de Transporte</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                    </div>
-                    {{ form.orden_transporte }}  <!-- Corregido -->
-                    {% if form.orden_transporte.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.orden_transporte.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Observación -->
-        <div class="form-group row">
-            <label for="observacion" class="col-4 col-form-label">Observación</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-comment"></i>
-                        </div>
-                    </div>
-                    {{ form.observacion }}
-                    {% if form.observacion.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.observacion.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Botón de Envío -->
-        <div class="form-group row">
-            <div class="col-8 offset-4">
+        <div class="form-group row mt-3">
+            <div class="col-12">
                 <button type="submit" class="btn btn-primary">Agregar Muestreo</button>
             </div>
         </div>
     </form>
 </div>
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
-    .input-group-text i {
-        font-size: 16px;
-        width: 16px;
-        text-align: center;
-    }
-    .input-group-text {
-        background-color: #f8f9fa;
-        border: 1px solid #ced4da;
-    }
+    .filtros-superiores { display: flex; flex-direction: column; align-items: flex-start; }
+    .filtro-item { width: 300px; margin-bottom: 10px; }
+    .muestra-row { margin-bottom: 15px; }
+    .field-container { display: flex; flex-direction: column; justify-content: flex-start; min-height: 70px; }
+    .field-container label { font-size: 12px; margin-bottom: 2px; }
+    .field-container .form-control { height: 32px; font-size: 14px; width: 100%; box-sizing: border-box; }
+    .image-field-container .image-input { height: auto; padding: 6px 12px; font-size: 14px; line-height: 1.5; width: 100%; }
+    #add-muestra, #duplicate-muestra, #remove-muestra { margin-right: 10px; }
 </style>
 
-<!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
+    let muestraCount = 1;
+
+    function updateProspeccionOptions(selectElement, prospecciones) {
+        selectElement.empty().append('<option value="">Seleccione</option>');
+        $.each(prospecciones, function(index, value) {
+            if (value) selectElement.append('<option value="' + value + '">' + value + '</option>');
+        });
+    }
+
+    function calculateValues($row) {
+        var cantidad = parseFloat($row.find('.cantidad').val()) || 0;
+        var pesoUnitario = parseFloat($row.find('.peso-unitario').val()) || 0;
+        var pesoTotal = cantidad * pesoUnitario;
+        $row.find('.peso-total').val(pesoTotal ? pesoTotal.toFixed(2) : '');
+
+        var desde = parseFloat($row.find('.profundidad-desde').val()) || 0;
+        var hasta = parseFloat($row.find('.profundidad-hasta').val()) || 0;
+        var promedio = (desde + hasta) / 2;
+        var espesor = hasta - desde;
+        $row.find('.profundidad-promedio').val(promedio ? promedio.toFixed(2) : '');
+        $row.find('.espesor-estrato').val(espesor >= 0 ? espesor.toFixed(2) : '');
+
+        var idProspeccion = $row.find('.id-prospeccion').val();
+        var idMuestra = $row.find('.id-muestra').val();
+        var objetivo = $row.find('.objetivo').val();
+        if (idProspeccion && idMuestra && objetivo) {
+            $row.find('.id-laboratorio').val(`${idProspeccion}_${idMuestra}_${objetivo}`);
+        } else {
+            $row.find('.id-laboratorio').val('');
+        }
+    }
+
     $('#id_proyecto').change(function() {
         var idProyecto = $(this).val();
-        console.log('Proyecto seleccionado:', idProyecto);
         if (idProyecto) {
             $.ajax({
-                url: '{% url "obtener_tipos_prospeccion" %}',
+                url: '{% url "agregar_muestreo" %}',
                 type: 'GET',
                 data: {'id_proyecto': idProyecto},
                 success: function(data) {
-                    console.log('Tipos de prospección recibidos:', data);
-                    var tipoProspeccionSelect = $('#tipo_prospeccion');
-                    tipoProspeccionSelect.empty();
-                    tipoProspeccionSelect.append('<option value="">Seleccione Tipo de Prospección</option>');
-                    $.each(data, function(key, value) {
-                        tipoProspeccionSelect.append('<option value="' + key + '">' + value + '</option>');
+                    $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo</option>');
+                    $.each(data.tipo_prospeccion_choices, function(index, value) {
+                        if (value) $('#tipo_prospeccion').append('<option value="' + value + '">' + value + '</option>');
                     });
-                    $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
-                    $('#id_area').val('');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error al obtener tipos de prospección:', error);
+                    $('.id-prospeccion').each(function() {
+                        updateProspeccionOptions($(this), data.prospecciones);
+                    });
                 }
             });
-        } else {
-            $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo de Prospección</option>');
-            $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
-            $('#id_area').val('');
         }
     });
 
     $('#tipo_prospeccion').change(function() {
         var idProyecto = $('#id_proyecto').val();
         var tipoProspeccion = $(this).val();
-        console.log('Proyecto:', idProyecto, 'Tipo:', tipoProspeccion);
         if (idProyecto && tipoProspeccion) {
             $.ajax({
-                url: '{% url "obtener_id_prospecciones" %}',
+                url: '{% url "agregar_muestreo" %}',
                 type: 'GET',
-                data: {
-                    'id_proyecto': idProyecto,
-                    'tipo_prospeccion': tipoProspeccion
-                },
+                data: {'id_proyecto': idProyecto, 'tipo_prospeccion': tipoProspeccion},
                 success: function(data) {
-                    console.log('IDs de prospección recibidos:', data);
-                    var idProspeccionSelect = $('#id_prospeccion');
-                    idProspeccionSelect.empty();
-                    idProspeccionSelect.append('<option value="">Seleccione Prospección</option>');
-                    $.each(data, function(key, value) {
-                        idProspeccionSelect.append('<option value="' + key + '">' + value + '</option>');
+                    $('.id-prospeccion').each(function() {
+                        updateProspeccionOptions($(this), data.prospecciones);
                     });
-                    $('#id_area').val('');
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error al obtener IDs de prospección:', error);
                 }
             });
-        } else {
-            $('#id_prospeccion').empty().append('<option value="">Seleccione Prospección</option>');
-            $('#id_area').val('');
         }
     });
 
-    $('#id_prospeccion').change(function() {
-        var prospeccionId = $(this).val();
-        console.log('Prospección seleccionada:', prospeccionId);
-        if (prospeccionId) {
+    $(document).on('change', '.id-prospeccion', function() {
+        var idProspeccion = $(this).val();
+        var $row = $(this).closest('.muestra-row');
+        if (idProspeccion) {
             $.ajax({
-                url: '{% url "get_area" %}',
+                url: '{% url "agregar_muestreo" %}',
                 type: 'GET',
-                data: {'prospeccion_id': prospeccionId},
+                data: {'id_prospeccion': idProspeccion},
                 success: function(data) {
-                    console.log('Área recibida:', data);
-                    $('#id_area').val(data.area);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error al obtener área:', error);
+                    $row.find('.area').val(data.area || '');
+                    calculateValues($row);
                 }
             });
         } else {
-            $('#id_area').val('');
+            $row.find('.area').val('');
+            calculateValues($row);
         }
     });
+
+    $(document).on('input change', '.cantidad, .peso-unitario, .profundidad-desde, .profundidad-hasta, .id-muestra, .objetivo', function() {
+        var $row = $(this).closest('.muestra-row');
+        calculateValues($row);
+    });
+
+    $('#add-muestra').click(function() {
+        if (muestraCount >= 10) {
+            alert('No se pueden agregar más de 10 muestras.');
+            return;
+        }
+        muestraCount++;
+        var newRow = `
+            <div class="muestra-row form-group row align-items-start">
+                <div class="col-2 field-container">
+                    <label style="white-space: nowrap;">Prospección</label>
+                    <select name="id_prospeccion[]" class="form-control id-prospeccion" required>
+                        <option value="">Seleccione</option>
+                    </select>
+                </div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Área</label><input type="text" name="area[]" class="form-control area" required></div>
+                <div class="col-2 field-container">
+                    <label style="white-space: nowrap;">Objetivo</label>
+                    <select name="objetivo[]" class="form-control objetivo" required>
+                        <option value="">Seleccione</option>
+                        {% for value, label in objetivo_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Fecha Muestreo</label><input type="date" name="fecha_muestreo[]" class="form-control"></div>
+                <div class="col-2 field-container">
+                    <label style="white-space: nowrap;">Tipo Bulto</label>
+                    <select name="tipo_bulto[]" class="form-control">
+                        <option value="">Seleccione</option>
+                        {% for value, label in tipo_bulto_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">ID Bulto</label><input type="text" name="id_bulto[]" class="form-control"></div>
+                <div class="col-2 field-container">
+                    <label style="white-space: nowrap;">Tipo Embalaje Muestra</label>
+                    <select name="tipo_embalaje_muestra[]" class="form-control">
+                        <option value="">Seleccione</option>
+                        {% for value, label in tipo_embalaje_muestra_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">ID Embalaje Muestra</label><input type="text" name="id_embalaje_muestra[]" class="form-control"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Cantidad</label><input type="number" step="0.01" name="cantidad[]" class="form-control cantidad"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Peso Unitario</label><input type="number" step="0.01" name="peso_unitario[]" class="form-control peso-unitario"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Peso Total</label><input type="number" step="0.01" name="peso_total[]" class="form-control peso-total" readonly></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">ID Muestra</label><input type="text" name="id_muestra[]" class="form-control id-muestra" required></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Prof. Desde</label><input type="number" step="0.01" name="profundidad_desde[]" class="form-control profundidad-desde"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Prof. Hasta</label><input type="number" step="0.01" name="profundidad_hasta[]" class="form-control profundidad-hasta"></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Prof. Promedio</label><input type="number" step="0.01" name="profundidad_promedio[]" class="form-control profundidad-promedio" readonly></div>
+                <div class="col-1 field-container"><label style="white-space: nowrap;">Espesor Estrato</label><input type="number" step="0.01" name="espesor_estrato[]" class="form-control espesor-estrato" readonly></div>
+                <div class="col-1 field-container">
+                    <label style="white-space: nowrap;">Estrato</label>
+                    <select name="estrato[]" class="form-control">
+                        <option value="">Seleccione</option>
+                        {% for value, label in estrato_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-1 field-container">
+                    <label style="white-space: nowrap;">Tipo</label>
+                    <select name="tipo[]" class="form-control">
+                        <option value="">Seleccione</option>
+                        {% for value, label in tipo_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Fecha Despacho</label><input type="date" name="fecha_despacho[]" class="form-control"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Despachador</label><input type="text" name="nombre_despachador[]" class="form-control"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Destino</label><input type="text" name="destino[]" class="form-control"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Orden Transporte</label><input type="text" name="orden_transporte[]" class="form-control"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">Observación</label><input type="text" name="observacion[]" class="form-control"></div>
+                <div class="col-2 field-container"><label style="white-space: nowrap;">ID Laboratorio</label><input type="text" name="id_laboratorio[]" class="form-control id-laboratorio" readonly></div>
+                <div class="col-12 field-container image-field-container">
+                    <label>Imágenes (máximo 10)</label>
+                    <input type="file" name="image[]" class="form-control image-input" accept="image/*" multiple>
+                    <small class="form-text text-muted">Seleccione hasta 10 imágenes.</small>
+                </div>
+            </div>`;
+        $('#muestras-container').append(newRow);
+
+        var idProyecto = $('#id_proyecto').val();
+        var tipoProspeccion = $('#tipo_prospeccion').val();
+        if (idProyecto) {
+            $.ajax({
+                url: '{% url "agregar_muestreo" %}',
+                type: 'GET',
+                data: {'id_proyecto': idProyecto, 'tipo_prospeccion': tipoProspeccion},
+                success: function(data) {
+                    updateProspeccionOptions($('.id-prospeccion').last(), data.prospecciones);
+                }
+            });
+        }
+    });
+
+    $('#duplicate-muestra').click(function() {
+        if (muestraCount >= 10) {
+            alert('No se pueden agregar más de 10 muestras.');
+            return;
+        }
+        if (muestraCount === 0) {
+            alert('No hay filas para duplicar. Agregue una muestra primero.');
+            return;
+        }
+
+        muestraCount++;
+        var $lastRow = $('.muestra-row').last();
+        var $newRow = $lastRow.clone();
+
+        // Limpiar el campo de imágenes en la nueva fila (no se pueden duplicar archivos)
+        $newRow.find('.image-input').val('');
+
+        // Actualizar las opciones de prospección en la nueva fila
+        var idProyecto = $('#id_proyecto').val();
+        var tipoProspeccion = $('#tipo_prospeccion').val();
+        var $newProspeccionSelect = $newRow.find('.id-prospeccion');
+        var lastProspeccionValue = $lastRow.find('.id-prospeccion').val();
+
+        if (idProyecto) {
+            $.ajax({
+                url: '{% url "agregar_muestreo" %}',
+                type: 'GET',
+                data: {'id_proyecto': idProyecto, 'tipo_prospeccion': tipoProspeccion},
+                success: function(data) {
+                    updateProspeccionOptions($newProspeccionSelect, data.prospecciones);
+                    $newProspeccionSelect.val(lastProspeccionValue); // Mantener el valor seleccionado
+                    calculateValues($newRow); // Recalcular valores como id_laboratorio
+                }
+            });
+        } else {
+            $newProspeccionSelect.val(lastProspeccionValue);
+        }
+
+        // Copiar valores de los selects
+        $newRow.find('select').each(function() {
+            var $originalSelect = $lastRow.find('select[name="' + $(this).attr('name') + '"]');
+            $(this).val($originalSelect.val());
+        });
+
+        // Copiar valores de los inputs
+        $newRow.find('input:not(.image-input)').each(function() {
+            var $originalInput = $lastRow.find('input[name="' + $(this).attr('name') + '"]');
+            if (!$(this).is('[readonly]')) { // No copiar campos readonly como peso_total
+                $(this).val($originalInput.val());
+            }
+        });
+
+        $('#muestras-container').append($newRow);
+        calculateValues($newRow); // Recalcular valores inmediatamente después de agregar
+    });
+
+    $('#remove-muestra').click(function() {
+        if (muestraCount > 1) {
+            $('.muestra-row').last().remove();
+            muestraCount--;
+        } else {
+            alert('No se puede eliminar la última fila.');
+        }
+    });
+
+    $('body').on('change', '.image-input', function() {
+        if (this.files.length > 10) {
+            alert('No puede seleccionar más de 10 imágenes por muestreo.');
+            this.value = '';
+        }
+    });
+
+    $('.muestra-row').each(function() {
+        calculateValues($(this));
+    });
+
+    var initialProyecto = $('#id_proyecto').val();
+    if (initialProyecto) {
+        $.ajax({
+            url: '{% url "agregar_muestreo" %}',
+            type: 'GET',
+            data: {'id_proyecto': initialProyecto},
+            success: function(data) {
+                $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo</option>');
+                $.each(data.tipo_prospeccion_choices, function(index, value) {
+                    if (value) $('#tipo_prospeccion').append('<option value="' + value + '">' + value + '</option>');
+                });
+                $('.id-prospeccion').each(function() {
+                    updateProspeccionOptions($(this), data.prospecciones);
+                    var selectedProspeccion = $(this).val();
+                    if (selectedProspeccion) {
+                        $.ajax({
+                            url: '{% url "agregar_muestreo" %}',
+                            type: 'GET',
+                            data: {'id_prospeccion': selectedProspeccion},
+                            success: function(data) {
+                                $(this).closest('.muestra-row').find('.area').val(data.area || '');
+                                calculateValues($(this).closest('.muestra-row'));
+                            }.bind(this)
+                        });
+                    }
+                });
+                if ("{{ form_data.tipo_prospeccion }}") {
+                    $('#tipo_prospeccion').val("{{ form_data.tipo_prospeccion }}");
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

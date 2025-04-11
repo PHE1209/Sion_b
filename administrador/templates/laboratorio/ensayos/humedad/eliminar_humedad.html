@@ -1,0 +1,15 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Eliminar Humedad</h1>
+    <p>¿Estás seguro de que deseas eliminar este registro de humedad?</p>
+    <p><strong>ID Muestra:</strong> {{ humedad.id_muestra }}</p>
+    <p><strong>Humedad:</strong> {{ humedad.humedad }}</p>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_humedad' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

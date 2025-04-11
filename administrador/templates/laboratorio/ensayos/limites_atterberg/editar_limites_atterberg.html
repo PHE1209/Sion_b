@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Editar Límites de Atterberg{% endblock %}
+{% block content %}
+    <h2>Editar Límites de Atterberg</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a href="{% url 'listar_limites_atterberg' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

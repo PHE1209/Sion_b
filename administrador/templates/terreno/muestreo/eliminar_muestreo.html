@@ -1,0 +1,19 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>ELIMINAR MUESTREO</h1>
+
+    <div class="alert alert-warning">
+        <p>¿Está seguro de que desea eliminar el muestreo con ID: <strong>{{ muestreo.id }}</strong>?</p>
+        <p>Proyecto: {{ muestreo.id_proyecto }} | Muestra: {{ muestreo.id_muestra }}</p>
+    </div>
+
+    <form method="POST" action="{% url 'eliminar_muestreo' muestreo.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_muestreo' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

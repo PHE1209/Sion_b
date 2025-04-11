@@ -1,0 +1,14 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Eliminar CBR - ID: {{ cbr.id }}</h1>
+    <p>¿Estás seguro de que deseas eliminar este registro?</p>
+    <p>ID Proyecto: {{ cbr.id_proyecto.id }} | ID Prospección: {{ cbr.id_prospeccion.id_prospeccion }} | Muestra: {{ cbr.id_muestra }} | CBR 0.1: {{ cbr.cbr_01 }} | CBR 0.2: {{ cbr.cbr_02 }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_cbr' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

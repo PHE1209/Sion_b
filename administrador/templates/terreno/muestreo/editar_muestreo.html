@@ -1,0 +1,333 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>EDITAR MUESTREO - ID: {{ muestreo_obj.id_muestra }}</h1>
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        {% for field in form %}
+        {% for error in field.errors %}
+        <p>{{ field.label }}: {{ error }}</p>
+        {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form method="POST" action="{% url 'editar_muestreo' muestreo_obj.id %}" enctype="multipart/form-data" id="mainForm">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>ID Proyecto</label>
+            <p>Valor actual: {{ muestreo_obj.id_proyecto.id }}</p>
+            {{ form.id_proyecto }}
+        </div>
+        <div class="form-group">
+            <label>Tipo Prospección</label>
+            <p>Valor actual: {{ muestreo_obj.tipo_prospeccion|default:"No definido" }}</p>
+            {{ form.tipo_prospeccion }}
+        </div>
+        <div class="form-group">
+            <label>ID Prospección</label>
+            <p>Valor actual: {{ muestreo_obj.id_prospeccion.id_prospeccion }}</p>
+            {{ form.id_prospeccion }}
+        </div>
+        <div class="form-group">
+            <label>Área</label>
+            <p>Valor actual: {{ muestreo_obj.area|default:"No definido" }}</p>
+            {{ form.area }}
+        </div>
+        <div class="form-group">
+            <label>Objetivo</label>
+            <p>Valor actual: {{ muestreo_obj.get_objetivo_display|default:"No definido" }}</p>
+            {{ form.objetivo }}
+        </div>
+        <div class="form-group">
+            <label>Fecha Muestreo</label>
+            <p>Valor actual: {{ muestreo_obj.fecha_muestreo|default:"No definido" }}</p>
+            {{ form.fecha_muestreo }}
+        </div>
+        <div class="form-group">
+            <label>Tipo Bulto</label>
+            <p>Valor actual: {{ muestreo_obj.get_tipo_bulto_display|default:"No definido" }}</p>
+            {{ form.tipo_bulto }}
+        </div>
+        <div class="form-group">
+            <label>ID Bulto</label>
+            <p>Valor actual: {{ muestreo_obj.id_bulto|default:"No definido" }}</p>
+            {{ form.id_bulto }}
+        </div>
+        <div class="form-group">
+            <label>Tipo Embalaje Muestra</label>
+            <p>Valor actual: {{ muestreo_obj.get_tipo_embalaje_muestra_display|default:"No definido" }}</p>
+            {{ form.tipo_embalaje_muestra }}
+        </div>
+        <div class="form-group">
+            <label>ID Embalaje Muestra</label>
+            <p>Valor actual: {{ muestreo_obj.id_embalaje_muestra|default:"No definido" }}</p>
+            {{ form.id_embalaje_muestra }}
+        </div>
+        <div class="form-group">
+            <label>Cantidad</label>
+            <p>Valor actual: {{ muestreo_obj.cantidad|floatformat:2|default:"No definido" }}</p>
+            {{ form.cantidad }}
+        </div>
+        <div class="form-group">
+            <label>Peso Unitario</label>
+            <p>Valor actual: {{ muestreo_obj.peso_unitario|floatformat:2|default:"No definido" }}</p>
+            {{ form.peso_unitario }}
+        </div>
+        <div class="form-group">
+            <label>Peso Total</label>
+            <p>Valor actual: {{ muestreo_obj.peso_total|floatformat:2|default:"No definido" }}</p>
+            {{ form.peso_total }}
+        </div>
+        <div class="form-group">
+            <label>ID Muestra</label>
+            <p>Valor actual: {{ muestreo_obj.id_muestra }}</p>
+            {{ form.id_muestra }}
+        </div>
+        <div class="form-group">
+            <label>Profundidad Desde</label>
+            <p>Valor actual: {{ muestreo_obj.profundidad_desde|floatformat:2|default:"No definido" }}</p>
+            {{ form.profundidad_desde }}
+        </div>
+        <div class="form-group">
+            <label>Profundidad Hasta</label>
+            <p>Valor actual: {{ muestreo_obj.profundidad_hasta|floatformat:2|default:"No definido" }}</p>
+            {{ form.profundidad_hasta }}
+        </div>
+        <div class="form-group">
+            <label>Profundidad Promedio</label>
+            <p>Valor actual: {{ muestreo_obj.profundidad_promedio|floatformat:2|default:"No definido" }}</p>
+            {{ form.profundidad_promedio }}
+        </div>
+        <div class="form-group">
+            <label>Espesor Estrato</label>
+            <p>Valor actual: {{ muestreo_obj.espesor_estrato|floatformat:2|default:"No definido" }}</p>
+            {{ form.espesor_estrato }}
+        </div>
+        <div class="form-group">
+            <label>Estrato</label>
+            <p>Valor actual: {{ muestreo_obj.get_estrato_display|default:"No definido" }}</p>
+            {{ form.estrato }}
+        </div>
+        <div class="form-group">
+            <label>Tipo</label>
+            <p>Valor actual: {{ muestreo_obj.get_tipo_display|default:"No definido" }}</p>
+            {{ form.tipo }}
+        </div>
+        <div class="form-group">
+            <label>Fecha Despacho</label>
+            <p>Valor actual: {{ muestreo_obj.fecha_despacho|default:"No definido" }}</p>
+            {{ form.fecha_despacho }}
+        </div>
+        <div class="form-group">
+            <label>Nombre Despachador</label>
+            <p>Valor actual: {{ muestreo_obj.nombre_despachador|default:"No definido" }}</p>
+            {{ form.nombre_despachador }}
+        </div>
+        <div class="form-group">
+            <label>Destino</label>
+            <p>Valor actual: {{ muestreo_obj.destino|default:"No definido" }}</p>
+            {{ form.destino }}
+        </div>
+        <div class="form-group">
+            <label>Orden Transporte</label>
+            <p>Valor actual: {{ muestreo_obj.orden_transporte|default:"No definido" }}</p>
+            {{ form.orden_transporte }}
+        </div>
+        <div class="form-group">
+            <label>Observación</label>
+            <p>Valor actual: {{ muestreo_obj.observacion|default:"No definido" }}</p>
+            {{ form.observacion }}
+        </div>
+        <div class="form-group">
+            <label>ID Laboratorio</label>
+            <p>Valor actual: {{ muestreo_obj.id_laboratorio|default:"No definido" }}</p>
+            {{ form.id_laboratorio }}
+        </div>
+        <div class="form-group">
+            <label>Usuario</label>
+            <p>Valor actual: {{ muestreo_obj.user.username|default:"Sin usuario" }}</p>
+            {{ form.user }}
+        </div>
+        <div class="form-group">
+            <label>Imágenes Asociadas</label>
+            <div class="image-grid" id="imageGrid">
+                {% for image in muestreo_obj.imagenes.all %}
+                <div class="image-item" data-image-id="{{ image.id }}">
+                    <img src="{{ image.image.url }}" alt="Imagen de {{ muestreo_obj.id_muestra }}" class="img-thumbnail" width="150" data-toggle="modal" data-target="#imageModal" data-src="{{ image.image.url }}">
+                    <button type="button" class="btn btn-danger btn-sm remove-image" data-image-id="{{ image.id }}">Eliminar</button>
+                </div>
+                {% endfor %}
+                {% if not muestreo_obj.imagenes.all %}
+                <p class="text-muted" id="noImagesText">No hay imágenes asociadas a este muestreo.</p>
+                {% endif %}
+            </div>
+            <div class="form-group mt-3">
+                <label for="newImage">Agregar nueva imagen</label>
+                <input type="file" id="newImage" name="image" accept="image/*" class="form-control-file">
+                <button type="button" id="addImageBtn" class="btn btn-success btn-sm mt-2">Subir imagen</button>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a href="{% url 'listar_muestreo' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Imagen Ampliada</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="" id="modalImage" class="img-fluid" alt="Imagen ampliada">
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-group { margin-bottom: 15px; }
+    .form-control { max-width: 300px; }
+    p { margin: 5px 0; font-style: italic; color: #555; }
+    .image-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+    .image-item { position: relative; }
+    .remove-image { position: absolute; top: 5px; right: 5px; }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar imagen en el modal
+    document.querySelectorAll('.image-item img').forEach(img => {
+        img.addEventListener('click', function() {
+            const src = this.getAttribute('data-src');
+            document.getElementById('modalImage').setAttribute('src', src);
+        });
+    });
+
+    // Eliminar imagen
+    document.querySelectorAll('.remove-image').forEach(button => {
+        button.addEventListener('click', function() {
+            const imageId = this.getAttribute('data-image-id');
+            const imageItem = this.closest('.image-item');
+
+            if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+                fetch("{% url 'eliminar_imagen_muestreo' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'image_id=' + encodeURIComponent(imageId)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        imageItem.remove();
+                        if (document.querySelectorAll('.image-item').length === 0) {
+                            document.getElementById('imageGrid').innerHTML = '<p class="text-muted" id="noImagesText">No hay imágenes asociadas a este muestreo.</p>';
+                        }
+                    } else {
+                        alert('Error al eliminar la imagen: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al eliminar la imagen.');
+                });
+            }
+        });
+    });
+
+    // Agregar nueva imagen
+    document.getElementById('addImageBtn').addEventListener('click', function() {
+        const fileInput = document.getElementById('newImage');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Por favor, selecciona una imagen para subir.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('muestreo_id', '{{ muestreo_obj.id }}');
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("{% url 'agregar_imagen_muestreo' %}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const imageGrid = document.getElementById('imageGrid');
+                const noImagesText = document.getElementById('noImagesText');
+                if (noImagesText) {
+                    noImagesText.remove();
+                }
+                const newImageItem = document.createElement('div');
+                newImageItem.className = 'image-item';
+                newImageItem.setAttribute('data-image-id', data.image_id);
+                newImageItem.innerHTML = `
+                    <img src="${data.image_url}" alt="Imagen de {{ muestreo_obj.id_muestra }}" class="img-thumbnail" width="150" data-toggle="modal" data-target="#imageModal" data-src="${data.image_url}">
+                    <button class="btn btn-danger btn-sm remove-image" data-image-id="${data.image_id}">Eliminar</button>
+                `;
+                imageGrid.appendChild(newImageItem);
+
+                newImageItem.querySelector('.remove-image').addEventListener('click', function() {
+                    const imageId = this.getAttribute('data-image-id');
+                    const imageItem = this.closest('.image-item');
+                    if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+                        fetch("{% url 'eliminar_imagen_muestreo' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: 'image_id=' + encodeURIComponent(imageId)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                imageItem.remove();
+                                if (document.querySelectorAll('.image-item').length === 0) {
+                                    imageGrid.innerHTML = '<p class="text-muted" id="noImagesText">No hay imágenes asociadas a este muestreo.</p>';
+                                }
+                            } else {
+                                alert('Error al eliminar la imagen: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Ocurrió un error al eliminar la imagen.');
+                        });
+                    }
+                });
+
+                newImageItem.querySelector('img').addEventListener('click', function() {
+                    const src = this.getAttribute('data-src');
+                    document.getElementById('modalImage').setAttribute('src', src);
+                });
+
+                fileInput.value = '';
+            } else {
+                alert('Error al subir la imagen: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al subir la imagen.');
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>ELIMINAR GRANULOMETRÍA</h1>
+
+    <div class="alert alert-warning">
+        <p>¿Está seguro de que desea eliminar la granulometría con ID: <strong>{{ granulometria.id }}</strong>?</p>
+        <p>Proyecto: {{ granulometria.id_proyecto }} | Muestra: {{ granulometria.id_muestra }}</p>
+    </div>
+
+    <form method="POST" action="{% url 'eliminar_granulometria' granulometria.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_granulometria' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

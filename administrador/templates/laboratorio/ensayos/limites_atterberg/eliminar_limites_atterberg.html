@@ -1,0 +1,14 @@
+{% extends 'index_master.html' %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Eliminar Límites de Atterberg - ID: {{ limites_atterberg.id }}</h1>
+    <p>¿Estás seguro de que deseas eliminar este registro?</p>
+    <p>ID Proyecto: {{ limites_atterberg.id_proyecto.id }} | ID Prospección: {{ limites_atterberg.id_prospeccion.id_prospeccion }} | Muestra: {{ limites_atterberg.id_muestra }} | LL: {{ limites_atterberg.limite_liquido }} | LP: {{ limites_atterberg.limite_plastico }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_limites_atterberg' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

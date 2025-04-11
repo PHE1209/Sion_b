@@ -15,14 +15,12 @@
             </a>
             <form id="exportExcelForm" action="{% url 'export_to_excel_uscs' %}" method="get" style="display:inline;">
                 <input type="hidden" name="q" value="{{ query }}">
-                <input type="hidden" name="headers" value="ID Proyecto,Tipo Prospección,ID Prospección,ID Muestra,Profundidad Desde,Profundidad Hasta,Profundidad Promedio,USCS,Área,Usuario">
                 <button type="submit" class="btn btn-info">
                     <i class="fa fa-file-excel-o"></i> Exportar a Excel
                 </button>
             </form>
             <form id="exportPdfForm" action="{% url 'export_to_pdf_uscs' %}" method="get" style="display:inline;">
                 <input type="hidden" name="q" value="{{ query }}">
-                <input type="hidden" name="headers" value="ID Proyecto,Tipo Prospección,ID Prospección,ID Muestra,Profundidad Desde,Profundidad Hasta,Profundidad Promedio,USCS,Área,Usuario">
                 <button type="submit" class="btn btn-danger">
                     <i class="fa fa-file-pdf-o"></i> Exportar a PDF
                 </button>
@@ -62,7 +60,7 @@
                         <td>
                             <a href="{% url 'ver_uscs' uscs.id %}" class="btn btn-info btn-sm">Ver</a>
                             <a href="{% url 'editar_uscs' uscs.id %}" class="btn btn-warning btn-sm">Editar</a>
-                            <form action="{% url 'eliminar_uscs' uscs.id %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta clasificación USCS?');">
+                            <form action="{% url 'eliminar_uscs' uscs.id %}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este registro de USCS?');">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                             </form>
@@ -70,7 +68,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="11" class="text-center">No hay clasificaciones USCS disponibles.</td>
+                        <td colspan="11" class="text-center">No hay registros de USCS disponibles.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -93,11 +91,8 @@
         </div>
     </div>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <style>
-        .table-responsive {
-            overflow-x: auto;
-        }
+        .table-responsive { overflow-x: auto; }
     </style>
 {% endblock %}

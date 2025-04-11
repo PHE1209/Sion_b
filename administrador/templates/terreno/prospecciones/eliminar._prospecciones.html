@@ -1,0 +1,19 @@
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>ELIMINAR PROSPECCIÓN</h1>
+
+    <div class="alert alert-warning">
+        <p>¿Está seguro de que desea eliminar la prospección con ID: <strong>{{ prospeccion.id_prospeccion }}</strong>?</p>
+        <p>Proyecto: {{ prospeccion.id_proyecto }} | Área: {{ prospeccion.area|default:'Sin área definida' }}</p>
+    </div>
+
+    <form method="POST" action="{% url 'eliminar_prospecciones' prospeccion.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a href="{% url 'listar_prospecciones' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

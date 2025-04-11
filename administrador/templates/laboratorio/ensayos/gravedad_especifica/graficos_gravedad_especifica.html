@@ -62,10 +62,10 @@
         {% endif %}
     </div>
 
-    <h2>Gráfico agrupado por Muestra (Dispersión)</h2>
-    <div id="grafico-muestra">
-        {% if image_base64_muestra %}
-            <img id="grafico_gravedad_muestra" src="data:image/png;base64,{{ image_base64_muestra }}" class="img-fluid" alt="Gráfico de Gravedad Específica por Muestra">
+    <h2>Gráfico agrupado por Prospección (Dispersión)</h2>
+    <div id="grafico-prospeccion">
+        {% if image_base64_prospeccion %}
+            <img id="grafico_gravedad_prospeccion" src="data:image/png;base64,{{ image_base64_prospeccion }}" class="img-fluid" alt="Gráfico de Gravedad Específica por Prospección">
         {% else %}
             <p class="text-muted">{% if error %}{{ error }}{% else %}No hay datos disponibles para mostrar.{% endif %}</p>
         {% endif %}
@@ -140,7 +140,7 @@ $(document).ready(function() {
         if (selectedProyectos.length > 0) {
             $.ajax({
                 url: '{% url "obtener_area_gravedad" %}',
-                data: { 'id_proyectos': selectedProyectos.join(',') },
+                data: { 'id_prospecciones': $('#id_prospecciones').val() || [] },
                 success: function(data) {
                     var areaSelect = $('#areas');
                     var selectedAreasCurrent = areaSelect.val() || [];

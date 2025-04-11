@@ -1,0 +1,88 @@
+{% extends "index_master.html" %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>Detalles de Granulometría</h1>
+
+    <div class="mb-4">
+        <p><strong>ID:</strong> {{ granulometria.id|default:'-' }}</p>
+        <p><strong>ID Proyecto:</strong> {{ granulometria.id_proyecto.id|default:'-' }}</p>
+        <p><strong>Tipo Prospección:</strong> {{ granulometria.tipo_prospeccion|default:'-' }}</p>
+        <p><strong>ID Prospección:</strong> {{ granulometria.id_prospeccion.id_prospeccion|default:'-' }}</p>
+        <p><strong>ID Muestra:</strong> {{ granulometria.id_muestra|default:'-' }}</p>
+        <p><strong>Profundidad Desde:</strong> {{ granulometria.profundidad_desde|default:'-' }}</p>
+        <p><strong>Profundidad Hasta:</strong> {{ granulometria.profundidad_hasta|default:'-' }}</p>
+        <p><strong>Profundidad Promedio:</strong> {{ granulometria.profundidad_promedio|default:'-' }}</p>
+        <p><strong>Área:</strong> {{ granulometria.area|default:'-' }}</p>
+        <p><strong>Usuario:</strong> {{ granulometria.user.username|default:'Sin usuario' }}</p>
+        <p><strong>N° 0.075:</strong> {{ granulometria.n_0075|default:'-' }}</p>
+        <p><strong>N° 0.110:</strong> {{ granulometria.n_0110|default:'-' }}</p>
+        <p><strong>N° 0.250:</strong> {{ granulometria.n_0250|default:'-' }}</p>
+        <p><strong>N° 0.420:</strong> {{ granulometria.n_0420|default:'-' }}</p>
+        <p><strong>N° 0.840:</strong> {{ granulometria.n_0840|default:'-' }}</p>
+        <p><strong>N° 2.000:</strong> {{ granulometria.n_2000|default:'-' }}</p>
+        <p><strong>N° 4.760:</strong> {{ granulometria.n_4760|default:'-' }}</p>
+        <p><strong>N° 9.520:</strong> {{ granulometria.n_9520|default:'-' }}</p>
+        <p><strong>N° 19.000:</strong> {{ granulometria.n_19000|default:'-' }}</p>
+        <p><strong>N° 25.400:</strong> {{ granulometria.n_25400|default:'-' }}</p>
+        <p><strong>N° 38.100:</strong> {{ granulometria.n_38100|default:'-' }}</p>
+        <p><strong>N° 50.800:</strong> {{ granulometria.n_50800|default:'-' }}</p>
+        <p><strong>N° 63.500:</strong> {{ granulometria.n_63500|default:'-' }}</p>
+        <p><strong>N° 75.000:</strong> {{ granulometria.n_75000|default:'-' }}</p>
+    </div>
+
+    <div class="mb-4">
+        <a href="{% url 'listar_granulometria' %}" class="btn btn-primary">Volver</a>
+    </div>
+
+    <h2>Historial de Cambios</h2>
+    {% if history_records %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Tipo de Cambio</th>
+                    <th>Cambios Realizados</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in history_records %}
+                <tr>
+                    <td>{{ record.date|date:"d/m/Y H:i:s" }}</td>
+                    <td>{{ record.user.username|default:'Sin usuario' }}</td>
+                    <td>
+                        {% if record.type == '+' %}Creado
+                        {% elif record.type == '~' %}Modificado
+                        {% elif record.type == '-' %}Eliminado
+                        {% else %}{{ record.type }}{% endif %}
+                    </td>
+                    <td>
+                        {% if record.reason %}
+                            <strong>Razón:</strong> {{ record.reason }}<br>
+                        {% endif %}
+                        {% if record.changes %}
+                            {% for change in record.changes %}
+                                <strong>{{ change.field_name }}:</strong> {{ change.old_value }} → {{ change.new_value }}<br>
+                            {% endfor %}
+                        {% else %}
+                            <em>Registro inicial</em>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No hay historial de cambios disponible para este registro.</p>
+    {% endif %}
+</div>
+
+<style>
+    .table-responsive { overflow-x: auto; }
+    .table th, .table td { vertical-align: middle; font-size: 14px; }
+    .table th { background-color: #f8f9fa; }
+</style>
+{% endblock %}

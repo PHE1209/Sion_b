@@ -3,540 +3,231 @@
 
 {% block content %}
 <div class="right_col" role="main">
-    <h1>AGREGAR PROSPECCIÓN</h1>
+    <h1>AGREGAR PROSPECCIONES</h1>
 
-    {% if error %}
+    {% if errors %}
     <div class="alert alert-danger">
-        {{ error }}
+        {% for error in errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
     </div>
     {% endif %}
 
     <form action="{% url 'agregar_prospecciones' %}" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <!-- Tipo de Prospección -->
-        <div class="form-group row">
-            <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-search"></i>
-                        </div>
-                    </div>
-                    {{ form.tipo_prospeccion }}
-                    {% if form.tipo_prospeccion.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.tipo_prospeccion.errors }}
-                    </div>
-                    {% endif %}
+        <div class="filtros-superiores">
+            <div class="form-group filtro-item">
+                <label for="id_proyecto">ID Proyecto</label>
+                <select id="id_proyecto" name="id_proyecto" class="form-control" required>
+                    <option value="">Seleccione Proyecto</option>
+                    {% for proyecto in proyectos %}
+                    <option value="{{ proyecto.id }}">{{ proyecto }}</option>
+                    {% endfor %}
+                </select>
+                <span id="proyecto-nombre" class="text-muted"></span>
+            </div>
+            <div class="form-group filtro-item">
+                <label for="tipo_prospeccion">Tipo de Prospección</label>
+                <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control" required>
+                    <option value="">Seleccione Tipo de Prospección</option>
+                    {% for value, label in tipo_prospeccion_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div id="prospecciones-container" class="mt-3">
+            <div class="prospeccion-row form-group row align-items-start">
+                <div class="col-2 field-container"><label>ID Prospección</label><input type="text" name="id_prospeccion[]" class="form-control" required></div>
+                <div class="col-2 field-container"><label>Área</label><input type="text" name="area[]" class="form-control area" autocomplete="off"></div>
+                <div class="col-2 field-container"><label>Coord. Este UTM</label><input type="number" step="0.000001" name="coordenada_este[]" class="form-control" placeholder="ej. 123456.123456"></div>
+                <div class="col-2 field-container"><label>Coord. Norte UTM</label><input type="number" step="0.000001" name="coordenada_norte[]" class="form-control" placeholder="ej. 1234567.123456"></div>
+                <div class="col-2 field-container"><label>Elevación</label><input type="number" name="elevacion[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Profundidad o Longitud</label><input type="number" step="0.01" name="profundidad[]" class="form-control"></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Inclinación</label><input type="number" step="0.01" name="inclinacion[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Fecha Inicio</label><input type="date" name="fecha_inicio_perforacion[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Fecha Término</label><input type="date" name="fecha_termino_perforacion[]" class="form-control"></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Tipo Sondaje</label><select name="tipo_sondaje[]" class="form-control"><option value="">Seleccione</option>{% for value, label in tipo_sondaje_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Metodología Sondaje</label><select name="metodologia_sondaje[]" class="form-control"><option value="">Seleccione</option>{% for value, label in metodologia_sondaje_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container geofisica-only" style="display: none;"><label>Metodología Geofísica</label><select name="metodologia_geofisica[]" class="form-control"><option value="">Seleccione</option>{% for value, label in metodologia_geofisica_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Diámetro</label><select name="diametro_sondaje[]" class="form-control"><option value="">Seleccione</option>{% for value, label in diametro_sondaje_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Habilitación</label><select name="habilitacion[]" class="form-control"><option value="">Seleccione</option>{% for value, label in habilitacion_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Monolito</label><select name="monolito[]" class="form-control"><option value="">Seleccione</option>{% for value, label in monolito_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container tapado-only" style="display: none;"><label>Tapado</label><select name="tapado[]" class="form-control"><option value="">Seleccione</option>{% for value, label in tapado_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container"><label>Contratista</label><input type="text" name="contratista[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Marca Máquina 1</label><input type="text" name="marca_maquina1[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Modelo Máquina 1</label><input type="text" name="modelo_maquina1[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>PPU 1</label><input type="text" name="ppu1[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Marca Máquina 2</label><input type="text" name="marca_maquina2[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Modelo Máquina 2</label><input type="text" name="modelo_maquina2[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>PPU 2</label><input type="text" name="ppu2[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Observación</label><input type="text" name="observacion[]" class="form-control"></div>
+                <div class="col-12 field-container image-field-container">
+                    <label>Imágenes (máximo 10)</label>
+                    <input type="file" name="image[]" class="form-control image-input" accept="image/*" multiple>
+                    <small class="form-text text-muted">Seleccione hasta 10 imágenes.</small>
                 </div>
             </div>
         </div>
 
-        <!-- ID Proyecto -->
-        <div class="form-group row">
-            <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-project-diagram"></i>
-                        </div>
-                    </div>
-                    {{ form.id_proyecto }}
-                    {% if form.id_proyecto.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.id_proyecto.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="mt-2">
+            <button type="button" id="add-prospeccion" class="btn btn-secondary">Agregar otra prospección</button>
+            <button type="button" id="duplicate-prospeccion" class="btn btn-info">Duplicar última fila</button>
+            <button type="button" id="remove-prospeccion" class="btn btn-danger">Eliminar última prospección</button>
         </div>
-
-        <!-- ID Prospección -->
-        <div class="form-group row">
-            <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-id-badge"></i>
-                        </div>
-                    </div>
-                    {{ form.id_prospeccion }}
-                    {% if form.id_prospeccion.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.id_prospeccion.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Área -->
-        <div class="form-group row">
-            <label for="area" class="col-4 col-form-label">Área</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-map"></i>
-                        </div>
-                    </div>
-                    {{ form.area }}
-                    {% if form.area.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.area.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Fecha de Inicio -->
-        <div class="form-group row">
-            <label for="fecha_inicio" class="col-4 col-form-label">Fecha de Inicio</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                    </div>
-                    <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control" value="{{ form.fecha_inicio.value|default:'' }}">
-                    {% if form.fecha_inicio.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.fecha_inicio.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Fecha de Término -->
-        <div class="form-group row">
-            <label for="fecha_termino" class="col-4 col-form-label">Fecha de Término</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                    </div>
-                    <input type="date" id="fecha_termino" name="fecha_termino" class="form-control" value="{{ form.fecha_termino.value|default:'' }}">
-                    {% if form.fecha_termino.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.fecha_termino.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Coordenada Este -->
-        <div class="form-group row">
-            <label for="coordenada_este" class="col-4 col-form-label">Coordenada Este (Formato: 123456)</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                    </div>
-                    {{ form.coordenada_este }}
-                    {% if form.coordenada_este.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.coordenada_este.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Coordenada Norte -->
-        <div class="form-group row">
-            <label for="coordenada_norte" class="col-4 col-form-label">Coordenada Norte (Formato: 1234567)</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                    </div>
-                    {{ form.coordenada_norte }}
-                    {% if form.coordenada_norte.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.coordenada_norte.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Elevación -->
-        <div class="form-group row">
-            <label for="elevacion" class="col-4 col-form-label">Elevación (Formato: 12345)</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-arrow-up"></i>
-                        </div>
-                    </div>
-                    {{ form.elevacion }}
-                    {% if form.elevacion.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.elevacion.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Profundidad -->
-        <div class="form-group row">
-            <label for="profundidad" class="col-4 col-form-label">Profundidad</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-ruler-vertical"></i>
-                        </div>
-                    </div>
-                    {{ form.profundidad }}
-                    {% if form.profundidad.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.profundidad.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Observación -->
-        <div class="form-group row">
-            <label for="observacion" class="col-4 col-form-label">Observación</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-comment"></i>
-                        </div>
-                    </div>
-                    {{ form.observacion }}
-                    {% if form.observacion.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.observacion.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Verificación de Puntos -->
-        <div class="form-group row">
-            <label for="verificacion_puntos" class="col-4 col-form-label">Verificación de Puntos</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </div>
-                    {{ form.verificacion_puntos }}
-                    {% if form.verificacion_puntos.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.verificacion_puntos.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Plataforma -->
-        <div class="form-group row">
-            <label for="plataforma" class="col-4 col-form-label">Plataforma</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                    </div>
-                    {{ form.plataforma }}
-                    {% if form.plataforma.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.plataforma.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Inclinación -->
-        <div class="form-group row" id="inclinacionField" style="display:none;">
-            <label for="inclinacion" class="col-4 col-form-label">Inclinación</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-angle-double-up"></i>
-                        </div>
-                    </div>
-                    {{ form.inclinacion }}
-                    {% if form.inclinacion.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.inclinacion.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Diámetro -->
-        <div class="form-group row" id="diametroField" style="display:none;">
-            <label for="diametro" class="col-4 col-form-label">Diámetro</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-circle"></i>
-                        </div>
-                    </div>
-                    {{ form.diametro }}
-                    {% if form.diametro.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.diametro.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Tapado -->
-        <div class="form-group row">
-            <label for="tapado" class="col-4 col-form-label">Tapado</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                    </div>
-                    {{ form.tapado }}
-                    {% if form.tapado.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.tapado.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Contratista -->
-        <div class="form-group row">
-            <label for="contratista" class="col-4 col-form-label">Contratista</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-user-tie"></i>
-                        </div>
-                    </div>
-                    {{ form.contratista }}
-                    {% if form.contratista.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.contratista.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Marca Máquina 1 -->
-        <div class="form-group row">
-            <label for="marca_maquina1" class="col-4 col-form-label">Marca Máquina 1</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                    </div>
-                    {{ form.marca_maquina1 }}
-                    {% if form.marca_maquina1.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.marca_maquina1.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Modelo Máquina 1 -->
-        <div class="form-group row">
-            <label for="modelo_maquina1" class="col-4 col-form-label">Modelo Máquina 1</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-cogs"></i>
-                        </div>
-                    </div>
-                    {{ form.modelo_maquina1 }}
-                    {% if form.modelo_maquina1.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.modelo_maquina1.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- PPU 1 -->
-        <div class="form-group row">
-            <label for="ppu1" class="col-4 col-form-label">PPU 1</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-id-card"></i>
-                        </div>
-                    </div>
-                    {{ form.ppu1 }}
-                    {% if form.ppu1.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.ppu1.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Marca Máquina 2 -->
-        <div class="form-group row">
-            <label for="marca_maquina2" class="col-4 col-form-label">Marca Máquina 2</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                    </div>
-                    {{ form.marca_maquina2 }}
-                    {% if form.marca_maquina2.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.marca_maquina2.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Modelo Máquina 2 -->
-        <div class="form-group row">
-            <label for="modelo_maquina2" class="col-4 col-form-label">Modelo Máquina 2</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-cogs"></i>
-                        </div>
-                    </div>
-                    {{ form.modelo_maquina2 }}
-                    {% if form.modelo_maquina2.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.modelo_maquina2.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- PPU 2 -->
-        <div class="form-group row">
-            <label for="ppu2" class="col-4 col-form-label">PPU 2</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-id-card"></i>
-                        </div>
-                    </div>
-                    {{ form.ppu2 }}
-                    {% if form.ppu2.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.ppu2.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Cargar Imagen -->
-        <div class="form-group row">
-            <label for="image" class="col-4 col-form-label">Cargar Imagen</label>
-            <div class="col-8">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <i class="fas fa-image"></i>
-                        </div>
-                    </div>
-                    <input type="file" name="image" id="image" class="form-control" accept="image/*">
-                    {% if form.image.errors %}
-                    <div class="alert alert-danger">
-                        {{ form.image.errors }}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Botón de Envío -->
-        <div class="form-group row">
-            <div class="col-8 offset-4">
-                <button type="submit" class="btn btn-primary">Agregar Prospección</button>
+        <div class="form-group row mt-3">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Agregar Prospecciones</button>
             </div>
         </div>
     </form>
 </div>
 
-<!-- Añadir Font Awesome si no está en index_master.html -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <style>
-    /* Ajustar tamaño y alineación de los iconos */
-    .input-group-text i {
-        font-size: 16px; /* Tamaño de los iconos */
-        width: 16px; /* Ancho fijo para consistencia */
-        text-align: center; /* Centrar el icono */
+    .filtros-superiores { display: flex; flex-direction: column; align-items: flex-start; }
+    .filtro-item { width: 300px; margin-bottom: 10px; }
+    .prospeccion-row { margin-bottom: 15px; }
+    .field-container { display: flex; flex-direction: column; justify-content: flex-start; min-height: 70px; }
+    .field-container label { font-size: 12px; margin-bottom: 2px; }
+    .field-container .form-control { height: 32px; font-size: 14px; width: 100%; box-sizing: border-box; }
+    .image-field-container .image-input {
+        height: auto;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.5;
+        width: 100%;
     }
-    .input-group-text {
-        background-color: #f8f9fa; /* Fondo claro para destacar los iconos */
-        border: 1px solid #ced4da; /* Borde consistente con el formulario */
-    }
+    #add-prospeccion, #duplicate-prospeccion, #remove-prospeccion { margin-right: 10px; }
 </style>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    var tipoProspeccionField = document.getElementById('id_tipo_prospeccion');
-    var inclinacionField = document.getElementById('inclinacionField');
-    var diametroField = document.getElementById('diametroField');
+<script type="text/javascript">
+$(document).ready(function() {
+    let prospeccionCount = 1;
 
-    tipoProspeccionField.addEventListener('change', function () {
-        if (tipoProspeccionField.value === 'sondajes') {
-            inclinacionField.style.display = 'block';
-            diametroField.style.display = 'block';
+    function updateFieldsVisibility() {
+        var tipoProspeccion = $('#tipo_prospeccion').val();
+        $('.prospeccion-row').each(function() {
+            if (tipoProspeccion === 'sondajes') {
+                $(this).find('.sondaje-only').show();
+                $(this).find('.geofisica-only').hide();
+                $(this).find('.tapado-only').show();
+            } else if (tipoProspeccion === 'geofisica') {
+                $(this).find('.sondaje-only').hide();
+                $(this).find('.geofisica-only').show();
+                $(this).find('.tapado-only').hide();
+            } else if (tipoProspeccion === 'calicatas') {
+                $(this).find('.sondaje-only').hide();
+                $(this).find('.geofisica-only').hide();
+                $(this).find('.tapado-only').show();
+            } else {
+                $(this).find('.sondaje-only').hide();
+                $(this).find('.geofisica-only').hide();
+                $(this).find('.tapado-only').hide();
+            }
+        });
+    }
+
+    $('#id_proyecto, #tipo_prospeccion').change(function() {
+        var selectedProyecto = $('#id_proyecto option:selected').text();
+        $('#proyecto-nombre').text(selectedProyecto ? 'Proyecto: ' + selectedProyecto : '');
+        updateFieldsVisibility();
+    });
+
+    $('#add-prospeccion').click(function() {
+        if (prospeccionCount >= 10) {
+            alert('No se pueden agregar más de 10 prospecciones.');
+            return;
+        }
+        prospeccionCount++;
+        var newRow = `
+            <div class="prospeccion-row form-group row align-items-start">
+                <div class="col-2 field-container"><label>ID Prospección</label><input type="text" name="id_prospeccion[]" class="form-control" required></div>
+                <div class="col-2 field-container"><label>Área</label><input type="text" name="area[]" class="form-control area" autocomplete="off"></div>
+                <div class="col-2 field-container"><label>Coord. Este UTM</label><input type="number" step="0.000001" name="coordenada_este[]" class="form-control" placeholder="ej. 123456.123456"></div>
+                <div class="col-2 field-container"><label>Coord. Norte UTM</label><input type="number" step="0.000001" name="coordenada_norte[]" class="form-control" placeholder="ej. 1234567.123456"></div>
+                <div class="col-2 field-container"><label>Elevación</label><input type="number" name="elevacion[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Profundidad o Longitud</label><input type="number" step="0.01" name="profundidad[]" class="form-control"></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Inclinación</label><input type="number" step="0.01" name="inclinacion[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Fecha Inicio</label><input type="date" name="fecha_inicio_perforacion[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Fecha Término</label><input type="date" name="fecha_termino_perforacion[]" class="form-control"></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Tipo Sondaje</label><select name="tipo_sondaje[]" class="form-control"><option value="">Seleccione</option>{% for value, label in tipo_sondaje_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Metodología Sondaje</label><select name="metodologia_sondaje[]" class="form-control"><option value="">Seleccione</option>{% for value, label in metodologia_sondaje_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container geofisica-only" style="display: none;"><label>Metodología Geofísica</label><select name="metodologia_geofisica[]" class="form-control"><option value="">Seleccione</option>{% for value, label in metodologia_geofisica_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Diámetro</label><select name="diametro_sondaje[]" class="form-control"><option value="">Seleccione</option>{% for value, label in diametro_sondaje_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Habilitación</label><select name="habilitacion[]" class="form-control"><option value="">Seleccione</option>{% for value, label in habilitacion_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container sondaje-only" style="display: none;"><label>Monolito</label><select name="monolito[]" class="form-control"><option value="">Seleccione</option>{% for value, label in monolito_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container tapado-only" style="display: none;"><label>Tapado</label><select name="tapado[]" class="form-control"><option value="">Seleccione</option>{% for value, label in tapado_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></div>
+                <div class="col-2 field-container"><label>Contratista</label><input type="text" name="contratista[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Marca Máquina 1</label><input type="text" name="marca_maquina1[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Modelo Máquina 1</label><input type="text" name="modelo_maquina1[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>PPU 1</label><input type="text" name="ppu1[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Marca Máquina 2</label><input type="text" name="marca_maquina2[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Modelo Máquina 2</label><input type="text" name="modelo_maquina2[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>PPU 2</label><input type="text" name="ppu2[]" class="form-control"></div>
+                <div class="col-2 field-container"><label>Observación</label><input type="text" name="observacion[]" class="form-control"></div>
+                <div class="col-12 field-container image-field-container">
+                    <label>Imágenes (máximo 10)</label>
+                    <input type="file" name="image[]" class="form-control image-input" accept="image/*" multiple>
+                    <small class="form-text text-muted">Seleccione hasta 10 imágenes.</small>
+                </div>
+            </div>`;
+        $('#prospecciones-container').append(newRow);
+        updateFieldsVisibility();
+    });
+
+    $('#duplicate-prospeccion').click(function() {
+        if (prospeccionCount >= 10) {
+            alert('No se pueden agregar más de 10 prospecciones.');
+            return;
+        }
+        if (prospeccionCount === 0) {
+            alert('No hay filas para duplicar. Agregue una prospección primero.');
+            return;
+        }
+
+        prospeccionCount++;
+        var $lastRow = $('.prospeccion-row').last();
+        var $newRow = $lastRow.clone();
+
+        // Limpiar el campo de imágenes en la nueva fila (no se pueden duplicar archivos)
+        $newRow.find('.image-input').val('');
+
+        // Copiar valores de los inputs
+        $newRow.find('input').each(function() {
+            var $originalInput = $lastRow.find('input[name="' + $(this).attr('name') + '"]');
+            $(this).val($originalInput.val());
+        });
+
+        // Copiar valores de los selects
+        $newRow.find('select').each(function() {
+            var $originalSelect = $lastRow.find('select[name="' + $(this).attr('name') + '"]');
+            $(this).val($originalSelect.val());
+        });
+
+        $('#prospecciones-container').append($newRow);
+        updateFieldsVisibility();
+    });
+
+    $('#remove-prospeccion').click(function() {
+        if (prospeccionCount > 1) {
+            $('.prospeccion-row').last().remove();
+            prospeccionCount--;
         } else {
-            inclinacionField.style.display = 'none';
-            diametroField.style.display = 'none';
+            alert('No se puede eliminar la última fila.');
         }
     });
 
-    // Trigger change event on page load to set initial visibility
-    tipoProspeccionField.dispatchEvent(new Event('change'));
+    $('body').on('change', '.image-input', function() {
+        if (this.files.length > 10) {
+            alert('No puede seleccionar más de 10 imágenes por prospección.');
+            this.value = '';
+        }
+    });
+
+    updateFieldsVisibility();
 });
 </script>
 {% endblock %}

@@ -21,6 +21,7 @@ from django.contrib.auth.views import LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
 
     path('', home_view, name="home"),
@@ -60,15 +61,27 @@ urlpatterns = [
     path('eliminar_prospecciones/<int:id>', views.eliminar_prospecciones, name='eliminar_prospecciones'),
     path('export_to_excel_prospecciones', views.export_to_excel_prospecciones, name='export_to_excel_prospecciones'),
     path('export_to_pdf_prospecciones', views.export_to_pdf_prospecciones, name='export_to_pdf_prospecciones'),
+    path('graficos_prospecciones', views.graficos_prospecciones, name='graficos_prospecciones'),
+    path('obtener_proyectos_prospecciones/', views.obtener_proyectos_prospecciones, name='obtener_proyectos_prospecciones'),
+    path('eliminar_imagen/', views.eliminar_imagen, name='eliminar_imagen'),
+    path('agregar_imagen/', views.agregar_imagen, name='agregar_imagen'),
+
 
     #Muestreo
     path('agregar_muestreo', views.agregar_muestreo, name='agregar_muestreo'),
     path('listar_muestreo', views.listar_muestreo, name='listar_muestreo'),
-    path('ver_muestreo/<str:id>', views.ver_muestreo, name='ver_muestreo'),
-    path('editar_muestreo/<str:id>', views.editar_muestreo, name='editar_muestreo'),
-    path('eliminar_muestreo/<str:id>', views.eliminar_muestreo, name='eliminar_muestreo'),
-    path('export_to_excel_muestreo', views.export_to_excel_muestreo, name='export_to_excel_muestreo'),
-    path('export_to_pdf_muestreo', views.export_to_pdf_muestreo, name='export_to_pdf_muestreo'),
+    path('editar_muestreo/<int:id>', views.editar_muestreo, name='editar_muestreo'),
+    path('ver_muestreo/<int:id>', views.ver_muestreo, name='ver_muestreo'),
+    path('eliminar_muestreo/<int:id>', views.eliminar_muestreo, name='eliminar_muestreo'),
+    path('export_to_excel_muestreo/', views.export_to_excel_muestreo, name='export_to_excel_muestreo'),
+    path('export_to_pdf_muestreo/', views.export_to_pdf_muestreo, name='export_to_pdf_muestreo'),
+    path('graficos_muestreo', views.graficos_muestreo, name='graficos_muestreo'),
+    path('obtener_tipos_prospeccion_muestreo', views.obtener_tipos_prospeccion_muestreo, name='obtener_tipos_prospeccion_muestreo'),
+    path('obtener_id_prospecciones_muestreo', views.obtener_id_prospecciones_muestreo, name='obtener_id_prospecciones_muestreo'),
+    path('obtener_area_muestreo', views.obtener_area_muestreo, name='obtener_area_muestreo'),
+    path('agregar_imagen_muestreo/', views.agregar_imagen_muestreo, name='agregar_imagen_muestreo'),
+    path('eliminar_imagen_muestreo/', views.eliminar_imagen_muestreo, name='eliminar_imagen_muestreo'),
+
 
     #Programa
     path('agregar_programa', views.agregar_programa, name='agregar_programa'),
@@ -83,42 +96,30 @@ urlpatterns = [
     #Humedad
     path('agregar_humedad', views.agregar_humedad, name='agregar_humedad'),
     path('listar_humedad', views.listar_humedad, name='listar_humedad'),
-    path('ver_humedad/<str:id>/', views.ver_humedad, name='ver_humedad'),
-    path('editar_humedad/<str:id>', views.editar_humedad, name='editar_humedad'),
-    path('eliminar_humedad/<str:id>/', views.eliminar_humedad, name='eliminar_humedad'),
+    path('editar_humedad/<int:id>', views.editar_humedad, name='editar_humedad'),
+    path('ver_humedad/<int:id>', views.ver_humedad, name='ver_humedad'),
+    path('eliminar_humedad/<int:id>', views.eliminar_humedad, name='eliminar_humedad'),
     path('export_to_excel_humedad/', views.export_to_excel_humedad, name='export_to_excel_humedad'),
     path('export_to_pdf_humedad/', views.export_to_pdf_humedad, name='export_to_pdf_humedad'),
-    path('graficos_humedad', views.graficos_humedad, name='graficos_humedad'),    
-    path('obtener_id_proyecto_humedad', views.obtener_id_proyecto_humedad, name='obtener_id_proyecto_humedad'),
+    path('graficos_humedad', views.graficos_humedad, name='graficos_humedad'),
     path('obtener_tipos_prospeccion_humedad', views.obtener_tipos_prospeccion_humedad, name='obtener_tipos_prospeccion_humedad'),
     path('obtener_id_prospecciones_humedad', views.obtener_id_prospecciones_humedad, name='obtener_id_prospecciones_humedad'),
-    path('obtener_areas_humedad', views.obtener_areas_humedad, name='obtener_areas_humedad'),
+    path('obtener_area_humedad', views.obtener_area_humedad, name='obtener_area_humedad'),
 
 
-    #Granulometria    
-    path('agregar_granulometria', views.agregar_granulometria, name='agregar_granulometria'),
-    path('listar_granulometria', views.listar_granulometria, name='listar_granulometria'),
-    path('ver_granulometria/<str:id>', views.ver_granulometria, name='ver_granulometria'),
-    path('editar_granulometria/<str:id>', views.editar_granulometria, name='editar_granulometria'),
-    path('eliminar_granulometria/<str:id>/', views.eliminar_granulometria, name='eliminar_granulometria'),
-    path('export_to_excel_granulometria/', views.export_to_excel_granulometria, name='export_to_excel_granulometria'),
-    path('export_to_pdf_granulometria/', views.export_to_pdf_granulometria, name='export_to_pdf_granulometria'),
-    path('graficos_granulometria', views.graficos_granulometria, name='graficos_granulometria'),  
-    path('api/proyectos', views.obtener_id_proyecto_granulometria, name='obtener_id_proyecto'),    
-    path('api/tipos-prospeccion', views.obtener_tipos_prospeccion_granulometria, name='obtener_tipos_prospeccion'),
-    path('api/id-prospecciones', views.obtener_id_prospecciones_granulometria, name='obtener_id_prospecciones'),
-    path('api/areas', views.obtener_areas_granulometria, name='obtener_areas'),
-    
+
+
     
     # USCS
     path('agregar_uscs', views.agregar_uscs, name='agregar_uscs'),
     path('listar_uscs', views.listar_uscs, name='listar_uscs'),
     path('editar_uscs/<str:id>', views.editar_uscs, name='editar_uscs'),
-    path('ver_uscs/<int:id>/', views.ver_uscs, name='ver_uscs'),
+    path('ver_uscs/<int:id>', views.ver_uscs, name='ver_uscs'),
     path('eliminar_uscs/<str:id>/', views.eliminar_uscs, name='eliminar_uscs'),
     path('graficos_uscs', views.graficos_uscs, name='graficos_uscs'),
-    path('export_to_excel_uscs/', views.export_to_excel_uscs, name='export_to_excel_uscs'),  # Si deseas exportación
-    path('export_to_pdf_uscs/', views.export_to_pdf_uscs, name='export_to_pdf_uscs'),      # Si deseas exportación
+    path('export_to_excel_uscs/', views.export_to_excel_uscs, name='export_to_excel_uscs'), 
+    path('export_to_pdf_uscs/', views.export_to_pdf_uscs, name='export_to_pdf_uscs'),     
+    path('obtener_area_uscs', views.obtener_area_uscs, name='obtener_area_uscs'),
 
 
     # Gravedad Específica
@@ -134,27 +135,57 @@ urlpatterns = [
     path('obtener_id_prospecciones_gravedad', views.obtener_id_prospecciones_gravedad, name='obtener_id_prospecciones_gravedad'),
     path('obtener_area_gravedad', views.obtener_area_gravedad, name='obtener_area_gravedad'),
 
-    
+
+    # Límites de Atterberg
+    path('agregar_limites_atterberg', views.agregar_limites_atterberg, name='agregar_limites_atterberg'),
+    path('listar_limites_atterberg', views.listar_limites_atterberg, name='listar_limites_atterberg'),
+    path('editar_limites_atterberg/<str:id>', views.editar_limites_atterberg, name='editar_limites_atterberg'),
+    path('ver_limites_atterberg/<int:id>', views.ver_limites_atterberg, name='ver_limites_atterberg'),
+    path('eliminar_limites_atterberg/<str:id>', views.eliminar_limites_atterberg, name='eliminar_limites_atterberg'),
+    path('export_to_excel_limites_atterberg/', views.export_to_excel_limites_atterberg, name='export_to_excel_limites_atterberg'),
+    path('export_to_pdf_limites_atterberg/', views.export_to_pdf_limites_atterberg, name='export_to_pdf_limites_atterberg'),
+    path('graficos_limites_atterberg', views.graficos_limites_atterberg, name='graficos_limites_atterberg'),
+    path('obtener_tipos_prospeccion_limites_atterberg', views.obtener_tipos_prospeccion_limites_atterberg, name='obtener_tipos_prospeccion_limites_atterberg'),
+    path('obtener_id_prospecciones_limites_atterberg', views.obtener_id_prospecciones_limites_atterberg, name='obtener_id_prospecciones_limites_atterberg'),
+    path('obtener_area_limites_atterberg', views.obtener_area_limites_atterberg, name='obtener_area_limites_atterberg'),
+
+    #Granulometria    
+    path('agregar_granulometria', views.agregar_granulometria, name='agregar_granulometria'),
+    path('listar_granulometria', views.listar_granulometria, name='listar_granulometria'),
+    path('editar_granulometria/<str:id>', views.editar_granulometria, name='editar_granulometria'),
+    path('ver_granulometria/<int:id>', views.ver_granulometria, name='ver_granulometria'),
+    path('eliminar_granulometria/<str:id>', views.eliminar_granulometria, name='eliminar_granulometria'),
+    path('export_to_excel_granulometria/', views.export_to_excel_granulometria, name='export_to_excel_granulometria'),
+    path('export_to_pdf_granulometria/', views.export_to_pdf_granulometria, name='export_to_pdf_granulometria'),
+    path('graficos_granulometria', views.graficos_granulometria, name='graficos_granulometria'),
+    path('obtener_tipos_prospeccion_granulometria', views.obtener_tipos_prospeccion_granulometria, name='obtener_tipos_prospeccion_granulometria'),
+    path('obtener_id_prospecciones_granulometria', views.obtener_id_prospecciones_granulometria, name='obtener_id_prospecciones_granulometria'),
+    path('obtener_area_granulometria', views.obtener_area_granulometria, name='obtener_area_granulometria'),
+   
+
+    # CBR
+    path('agregar_cbr', views.agregar_cbr, name='agregar_cbr'),
+    path('listar_cbr', views.listar_cbr, name='listar_cbr'),
+    path('editar_cbr/<str:id>', views.editar_cbr, name='editar_cbr'),
+    path('ver_cbr/<int:id>', views.ver_cbr, name='ver_cbr'),
+    path('eliminar_cbr/<str:id>', views.eliminar_cbr, name='eliminar_cbr'),
+    path('export_to_excel_cbr/', views.export_to_excel_cbr, name='export_to_excel_cbr'),
+    path('export_to_pdf_cbr/', views.export_to_pdf_cbr, name='export_to_pdf_cbr'),
+    path('graficos_cbr', views.graficos_cbr, name='graficos_cbr'),
+    path('obtener_tipos_prospeccion_cbr', views.obtener_tipos_prospeccion_cbr, name='obtener_tipos_prospeccion_cbr'),
+    path('obtener_id_prospecciones_cbr', views.obtener_id_prospecciones_cbr, name='obtener_id_prospecciones_cbr'),
+
 
 
     #Tranversal
     path('obtener_proyectos_prospecciones/', views.obtener_proyectos_prospecciones, name='obtener_proyectos_prospecciones'),
     path('obtener_tipos_prospeccion', views.obtener_tipos_prospeccion, name='obtener_tipos_prospeccion'),
     path('obtener_id_prospecciones/', views.obtener_id_prospecciones, name='obtener_id_prospecciones'),
-    path('get_area', views.get_area, name='get_area'),
+    #path('get_area', views.get_area, name='get_area'),
 
    
     path('historial', views.historial, name='historial'), 
     
-    
-    # URLs AJAX (compartidas con uscs, gravedad especifica, )
-    path('agregar_uscs/', views.agregar_uscs, name='agregar_uscs'),
-    path('obtener_tipos_prospeccion_muestreo/', views.obtener_tipos_prospeccion_muestreo, name='obtener_tipos_prospeccion_muestreo'),
-    path('obtener_id_prospecciones_muestreo/', views.obtener_id_prospecciones_muestreo, name='obtener_id_prospecciones_muestreo'),
-    path('obtener_area_muestreo/', views.obtener_area_muestreo, name='obtener_area_muestreo'),
-    path('obtener_id_muestras_muestreo/', views.obtener_id_muestras_muestreo, name='obtener_id_muestras_muestreo'),
-    path('obtener_profundidades_muestreo/', views.obtener_profundidades_muestreo, name='obtener_profundidades_muestreo'),
-
 
 
 ]

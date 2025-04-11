@@ -1,281 +1,355 @@
 {% extends "index_master.html" %}
-
+{% load static %}
 {% block content %}
-    <!-- page content -->
-    <div class="right_col" role="main">
-        <h1>Editar Prospección</h1>
-
-        {% if form.non_field_errors %}
-        <div class="alert alert-danger">
-            {{ form.non_field_errors }}
+<div class="right_col" role="main">
+    <h1>EDITAR PROSPECCIÓN - ID: {{ prospeccion_obj.id_prospeccion }}</h1>
+    {% if form.errors %}
+    <div class="alert alert-danger">
+        {% for field in form %}
+        {% for error in field.errors %}
+        <p>{{ field.label }}: {{ error }}</p>
+        {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form method="POST" action="{% url 'editar_prospecciones' prospeccion_obj.id %}" enctype="multipart/form-data" id="mainForm">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>ID Proyecto</label>
+            <p>Valor actual: {{ prospeccion_obj.id_proyecto.id }}</p>
+            {{ form.id_proyecto }}
+        </div>
+        <div class="form-group">
+            <label>Tipo Prospección</label>
+            <p>Valor actual: {{ prospeccion_obj.get_tipo_prospeccion_display|default:"No definido" }}</p>
+            {{ form.tipo_prospeccion }}
+        </div>
+        <div class="form-group">
+            <label>ID Prospección</label>
+            <p>Valor actual: {{ prospeccion_obj.id_prospeccion }}</p>
+            {{ form.id_prospeccion }}
+        </div>
+        <div class="form-group">
+            <label>Área</label>
+            <p>Valor actual: {{ prospeccion_obj.area|default:"Sin área definida" }}</p>
+            {{ form.area }}
+        </div>
+        <div class="form-group">
+            <label>Fecha Inicio Perforación</label>
+            <p>Valor actual: {{ prospeccion_obj.fecha_inicio_perforacion|default:"No definido" }}</p>
+            {{ form.fecha_inicio_perforacion }}
+        </div>
+        <div class="form-group">
+            <label>Fecha Término Perforación</label>
+            <p>Valor actual: {{ prospeccion_obj.fecha_termino_perforacion|default:"No definido" }}</p>
+            {{ form.fecha_termino_perforacion }}
+        </div>
+        <div class="form-group">
+            <label>Coordenada Este</label>
+            <p>Valor actual: {{ prospeccion_obj.coordenada_este|floatformat:3|default:"No definido" }}</p>
+            {{ form.coordenada_este }}
+        </div>
+        <div class="form-group">
+            <label>Coordenada Norte</label>
+            <p>Valor actual: {{ prospeccion_obj.coordenada_norte|floatformat:3|default:"No definido" }}</p>
+            {{ form.coordenada_norte }}
+        </div>
+        <div class="form-group">
+            <label>Elevación</label>
+            <p>Valor actual: {{ prospeccion_obj.elevacion|default:"No definido" }}</p>
+            {{ form.elevacion }}
+        </div>
+        <div class="form-group">
+            <label>Profundidad</label>
+            <p>Valor actual: {{ prospeccion_obj.profundidad|floatformat:2|default:"No definido" }}</p>
+            {{ form.profundidad }}
+        </div>
+        <div class="form-group">
+            <label>Observación</label>
+            <p>Valor actual: {{ prospeccion_obj.observacion|default:"No definido" }}</p>
+            {{ form.observacion }}
+        </div>
+        <div class="form-group">
+            <label>Contratista</label>
+            <p>Valor actual: {{ prospeccion_obj.contratista|default:"No definido" }}</p>
+            {{ form.contratista }}
+        </div>
+        <div class="form-group">
+            <label>Marca Máquina 1</label>
+            <p>Valor actual: {{ prospeccion_obj.marca_maquina1|default:"No definido" }}</p>
+            {{ form.marca_maquina1 }}
+        </div>
+        <div class="form-group">
+            <label>Modelo Máquina 1</label>
+            <p>Valor actual: {{ prospeccion_obj.modelo_maquina1|default:"No definido" }}</p>
+            {{ form.modelo_maquina1 }}
+        </div>
+        <div class="form-group">
+            <label>PPU 1</label>
+            <p>Valor actual: {{ prospeccion_obj.ppu1|default:"No definido" }}</p>
+            {{ form.ppu1 }}
+        </div>
+        <div class="form-group">
+            <label>Marca Máquina 2</label>
+            <p>Valor actual: {{ prospeccion_obj.marca_maquina2|default:"No definido" }}</p>
+            {{ form.marca_maquina2 }}
+        </div>
+        <div class="form-group">
+            <label>Modelo Máquina 2</label>
+            <p>Valor actual: {{ prospeccion_obj.modelo_maquina2|default:"No definido" }}</p>
+            {{ form.modelo_maquina2 }}
+        </div>
+        <div class="form-group">
+            <label>PPU 2</label>
+            <p>Valor actual: {{ prospeccion_obj.ppu2|default:"No definido" }}</p>
+            {{ form.ppu2 }}
+        </div>
+        {% if prospeccion_obj.tipo_prospeccion == 'sondajes' %}
+        <div class="form-group">
+            <label>Tipo Sondaje</label>
+            <p>Valor actual: {{ prospeccion_obj.get_tipo_sondaje_display|default:"No definido" }}</p>
+            {{ form.tipo_sondaje }}
+        </div>
+        <div class="form-group">
+            <label>Metodología Sondaje</label>
+            <p>Valor actual: {{ prospeccion_obj.get_metodologia_sondaje_display|default:"No definido" }}</p>
+            {{ form.metodologia_sondaje }}
+        </div>
+        <div class="form-group">
+            <label>Inclinación</label>
+            <p>Valor actual: {{ prospeccion_obj.inclinacion|floatformat:2|default:"No definido" }}</p>
+            {{ form.inclinacion }}
+        </div>
+        <div class="form-group">
+            <label>Diámetro Sondaje</label>
+            <p>Valor actual: {{ prospeccion_obj.get_diametro_sondaje_display|default:"No definido" }}</p>
+            {{ form.diametro_sondaje }}
+        </div>
+        <div class="form-group">
+            <label>Habilitación</label>
+            <p>Valor actual: {{ prospeccion_obj.get_habilitacion_display|default:"No definido" }}</p>
+            {{ form.habilitacion }}
+        </div>
+        <div class="form-group">
+            <label>Monolito</label>
+            <p>Valor actual: {{ prospeccion_obj.get_monolito_display|default:"No definido" }}</p>
+            {{ form.monolito }}
         </div>
         {% endif %}
-
-        <form action="{% url 'editar_prospeccion' prospeccion.n %}" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-
-            <div class="form-group row">
-                <label for="tipo_prospeccion" class="col-4 col-form-label">Tipo de Prospección</label>
-                <div class="col-8">
-                    {{ form.tipo_prospeccion }}
+        {% if prospeccion_obj.tipo_prospeccion == 'geofisica' %}
+        <div class="form-group">
+            <label>Metodología Geofísica</label>
+            <p>Valor actual: {{ prospeccion_obj.get_metodologia_geofisica_display|default:"No definido" }}</p>
+            {{ form.metodologia_geofisica }}
+        </div>
+        {% endif %}
+        {% if prospeccion_obj.tipo_prospeccion == 'sondajes' or prospeccion_obj.tipo_prospeccion == 'calicatas' %}
+        <div class="form-group">
+            <label>Tapado</label>
+            <p>Valor actual: {{ prospeccion_obj.get_tapado_display|default:"No definido" }}</p>
+            {{ form.tapado }}
+        </div>
+        {% endif %}
+        <div class="form-group">
+            <label>Imágenes Asociadas</label>
+            <div class="image-grid" id="imageGrid">
+                {% for image in prospeccion_obj.imagenes.all %}
+                <div class="image-item" data-image-id="{{ image.id }}">
+                    <img src="{{ image.image.url }}" alt="Imagen de {{ prospeccion_obj.id_prospeccion }}" class="img-thumbnail" width="150" data-toggle="modal" data-target="#imageModal" data-src="{{ image.image.url }}">
+                    <button type="button" class="btn btn-danger btn-sm remove-image" data-image-id="{{ image.id }}">Eliminar</button>
                 </div>
+                {% endfor %}
+                {% if not prospeccion_obj.imagenes.all %}
+                <p class="text-muted" id="noImagesText">No hay imágenes asociadas a esta prospección.</p>
+                {% endif %}
             </div>
+            <!-- Formulario para agregar imágenes -->
+            <div class="form-group mt-3">
+                <label for="newImage">Agregar nueva imagen</label>
+                <input type="file" id="newImage" name="image" accept="image/*" class="form-control-file">
+                <button type="button" id="addImageBtn" class="btn btn-success btn-sm mt-2">Subir imagen</button>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a href="{% url 'listar_prospecciones' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
 
-            <div class="form-group row">
-                <label for="id_proyecto" class="col-4 col-form-label">ID Proyecto</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-500px"></i>
-                            </div>
-                        </div>
-                        {{ form.id_proyecto }}
-                    </div>
-                </div>
+<!-- Modal para agrandar imágenes -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalLabel">Imagen Ampliada</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
-
-            <div class="form-group row">
-                <label for="id_prospeccion" class="col-4 col-form-label">ID Prospección</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-address-card-o"></i>
-                            </div>
-                        </div>
-                        {{ form.id_prospeccion }}
-                    </div>
-                </div>
+            <div class="modal-body">
+                <img src="" id="modalImage" class="img-fluid" alt="Imagen ampliada">
             </div>
-
-            <!-- Area -->
-            <div class="form-group row">
-                <label for="area" class="col-4 col-form-label">Área</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-cogs"></i>
-                            </div>
-                        </div>
-                        {{ form.area }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fecha de inicio -->
-            <div class="form-group row">
-                <label for="fecha_inicio" class="col-4 col-form-label">Fecha de Inicio</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-calendar"></i>
-                            </div>
-                        </div>
-                        {{ form.fecha_inicio }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fecha de término -->
-            <div class="form-group row">
-                <label for="fecha_termino" class="col-4 col-form-label">Fecha de Término</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-calendar"></i>
-                            </div>
-                        </div>
-                        {{ form.fecha_termino }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Otros campos -->
-            <div class="form-group row">
-                <label for="coordenada_este" class="col-4 col-form-label">Coordenada Este (Formato: 123456)</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-map-marker"></i>
-                            </div>
-                        </div>
-                        {{ form.coordenada_este }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="coordenada_norte" class="col-4 col-form-label">Coordenada Norte (Formato: 1234567)</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-map-marker"></i>
-                            </div>
-                        </div>
-                        {{ form.coordenada_norte }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="elevacion" class="col-4 col-form-label">Elevación (Formato: 12345)</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-arrow-up"></i>
-                            </div>
-                        </div>
-                        {{ form.elevacion }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="profundidad" class="col-4 col-form-label">Profundidad</label>
-                <div class="col-8">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">
-                                <i class="fa fa-pencil"></i>
-                            </div>
-                        </div>
-                        {{ form.profundidad }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="observacion" class="col-4 col-form-label">Observación</label>
-                <div class="col-8">
-                    {{ form.observacion }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="verificacion_puntos" class="col-4 col-form-label">Verificación de Puntos</label>
-                <div class="col-8">
-                    {{ form.verificacion_puntos }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="plataforma" class="col-4 col-form-label">Plataforma</label>
-                <div class="col-8">
-                    {{ form.plataforma }}
-                </div>
-            </div>
-
-            <div class="form-group row" id="inclinacionField" style="display:none;">
-                <label for="inclinacion" class="col-4 col-form-label">Inclinación</label>
-                <div class="col-8">
-                    {{ form.inclinacion }}
-                </div>
-            </div>
-
-            <div class="form-group row" id="diametroField" style="display:none;">
-                <label for="diametro" class="col-4 col-form-label">Diámetro</label>
-                <div class="col-8">
-                    {{ form.diametro }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="tapado" class="col-4 col-form-label">Tapado</label>
-                <div class="col-8">
-                    {{ form.tapado }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="contratista" class="col-4 col-form-label">Contratista</label>
-                <div class="col-8">
-                    {{ form.contratista }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="marca_maquina1" class="col-4 col-form-label">Marca Máquina 1</label>
-                <div class="col-8">
-                    {{ form.marca_maquina1 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="modelo_maquina1" class="col-4 col-form-label">Modelo Máquina 1</label>
-                <div class="col-8">
-                    {{ form.modelo_maquina1 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="ppu1" class="col-4 col-form-label">PPU 1</label>
-                <div class="col-8">
-                    {{ form.ppu1 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="marca_maquina2" class="col-4 col-form-label">Marca Máquina 2</label>
-                <div class="col-8">
-                    {{ form.marca_maquina2 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="modelo_maquina2" class="col-4 col-form-label">Modelo Máquina 2</label>
-                <div class="col-8">
-                    {{ form.modelo_maquina2 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="ppu2" class="col-4 col-form-label">PPU 2</label>
-                <div class="col-8">
-                    {{ form.ppu2 }}
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <label for="image" class="col-4 col-form-label">Cargar Imagen</label>
-                <div class="col-8">
-                    <input type="file" name="image" id="image" class="form-control" accept="image/*">
-                </div>
-            </div>
-
-            <div class="form-group row">
-                <div class="col-8 offset-4">
-                    <button type="submit" class="btn btn-primary">Actualizar Prospección</button>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
-    <!-- /page content -->
+</div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var tipoProspeccionField = document.getElementById('id_tipo_prospeccion');
-            var inclinacionField = document.getElementById('inclinacionField');
-            var diametroField = document.getElementById('diametroField');
+<style>
+    .form-group { margin-bottom: 15px; }
+    .form-control { max-width: 300px; }
+    p { margin: 5px 0; font-style: italic; color: #555; }
+    .image-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .image-item {
+        position: relative;
+    }
+    .remove-image {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+    }
+</style>
 
-            tipoProspeccionField.addEventListener('change', function () {
-                if (tipoProspeccionField.value === 'sondajes') {
-                    inclinacionField.style.display = 'block';
-                    diametroField.style.display = 'block';
-                } else {
-                    inclinacionField.style.display = 'none';
-                    diametroField.style.display = 'none';
-                }
-            });
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Eliminar restricciones de formato en las coordenadas
+    document.querySelector('input[name="coordenada_este"]').removeAttribute('pattern');
+    document.querySelector('input[name="coordenada_este"]').removeAttribute('title');
+    document.querySelector('input[name="coordenada_este"]').removeAttribute('placeholder');
 
-            // Trigger change event on page load to set initial visibility
-            tipoProspeccionField.dispatchEvent(new Event('change'));
+    document.querySelector('input[name="coordenada_norte"]').removeAttribute('pattern');
+    document.querySelector('input[name="coordenada_norte"]').removeAttribute('title');
+    document.querySelector('input[name="coordenada_norte"]').removeAttribute('placeholder');
+
+    // Acción para agrandar imagen
+    document.querySelectorAll('.image-item img').forEach(img => {
+        img.addEventListener('click', function() {
+            const src = this.getAttribute('data-src');
+            document.getElementById('modalImage').setAttribute('src', src);
         });
-    </script>
+    });
+
+    // Acción para eliminar imagen con AJAX
+    document.querySelectorAll('.remove-image').forEach(button => {
+        button.addEventListener('click', function() {
+            const imageId = this.getAttribute('data-image-id');
+            const imageItem = this.closest('.image-item');
+
+            if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+                fetch("{% url 'eliminar_imagen' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'image_id=' + encodeURIComponent(imageId)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        imageItem.remove();
+                        if (document.querySelectorAll('.image-item').length === 0) {
+                            document.getElementById('imageGrid').innerHTML = '<p class="text-muted" id="noImagesText">No hay imágenes asociadas a esta prospección.</p>';
+                        }
+                    } else {
+                        alert('Error al eliminar la imagen: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al eliminar la imagen.');
+                });
+            }
+        });
+    });
+
+    // Acción para agregar imagen con AJAX
+    document.getElementById('addImageBtn').addEventListener('click', function() {
+        const fileInput = document.getElementById('newImage');
+        const file = fileInput.files[0];
+        if (!file) {
+            alert('Por favor, selecciona una imagen para subir.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('prospeccion_id', '{{ prospeccion_obj.id }}');
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("{% url 'agregar_imagen' %}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const imageGrid = document.getElementById('imageGrid');
+                const noImagesText = document.getElementById('noImagesText');
+                if (noImagesText) {
+                    noImagesText.remove();
+                }
+                const newImageItem = document.createElement('div');
+                newImageItem.className = 'image-item';
+                newImageItem.setAttribute('data-image-id', data.image_id);
+                newImageItem.innerHTML = `
+                    <img src="${data.image_url}" alt="Imagen de {{ prospeccion_obj.id_prospeccion }}" class="img-thumbnail" width="150" data-toggle="modal" data-target="#imageModal" data-src="${data.image_url}">
+                    <button class="btn btn-danger btn-sm remove-image" data-image-id="${data.image_id}">Eliminar</button>
+                `;
+                imageGrid.appendChild(newImageItem);
+
+                // Agregar evento al nuevo botón de eliminar
+                newImageItem.querySelector('.remove-image').addEventListener('click', function() {
+                    const imageId = this.getAttribute('data-image-id');
+                    const imageItem = this.closest('.image-item');
+                    if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+                        fetch("{% url 'eliminar_imagen' %}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: 'image_id=' + encodeURIComponent(imageId)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                imageItem.remove();
+                                if (document.querySelectorAll('.image-item').length === 0) {
+                                    imageGrid.innerHTML = '<p class="text-muted" id="noImagesText">No hay imágenes asociadas a esta prospección.</p>';
+                                }
+                            } else {
+                                alert('Error al eliminar la imagen: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Ocurrió un error al eliminar la imagen.');
+                        });
+                    }
+                });
+
+                // Agregar evento para agrandar la nueva imagen
+                newImageItem.querySelector('img').addEventListener('click', function() {
+                    const src = this.getAttribute('data-src');
+                    document.getElementById('modalImage').setAttribute('src', src);
+                });
+
+                fileInput.value = ''; // Limpiar el input
+            } else {
+                alert('Error al subir la imagen: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al subir la imagen.');
+        });
+    });
+});
+</script>
 {% endblock %}
