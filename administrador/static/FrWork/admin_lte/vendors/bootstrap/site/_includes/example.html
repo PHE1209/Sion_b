@@ -10,10 +10,10 @@
 {%- endcomment -%}
 
 {%- assign id = include.id -%}
-{%- assign class = include.class -%}
+{%- assign class = include.class | default: "bd-example" -%}
 
 {%- if include.hide_preview == null -%}
-<div{% if id %} id="{{ id }}"{% endif %} class="bd-example{% if class %} {{ class }}{% endif %}">
+<div{% if id %} id="{{ id }}"{% endif %} class="{{ class }}">
   {{- include.content -}}
 </div>
 {%- endif -%}

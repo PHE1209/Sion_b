@@ -7126,3 +7126,11 @@ def export_to_pdf_roster(request):
     except Exception as e:
         logger.error(f"Error al generar archivo PDF: {str(e)}")
         return HttpResponse(f"Error al generar el archivo PDF: {str(e)}", status=500)
+    
+    
+    
+    
+from django.shortcuts import render
+
+def docs_view(request):
+    return render(request, 'docs.html')  # Renderiza un archivo HTML llamado "docs.html"

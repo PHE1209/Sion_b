@@ -188,6 +188,9 @@ urlpatterns = [
     
 
 
+    path('docs/', views.docs_view, name='docs'),  # Ruta para "/docs"
+
+
 ]
 
 if settings.DEBUG:
