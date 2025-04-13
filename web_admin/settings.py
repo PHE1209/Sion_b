@@ -102,7 +102,7 @@ WSGI_APPLICATION = 'web_admin.wsgi.application'
 # #PARA MYSQL LOCAL HOST
 
 #mysql://root:bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi@interchange.proxy.rlwy.net:21174/railway
- DATABASES = {
+DATABASES = {
      'default': {
          'ENGINE': 'django.db.backends.mysql',
          'NAME': 'railway',
