@@ -99,17 +99,34 @@ WSGI_APPLICATION = 'web_admin.wsgi.application'
 # }
 
 
-#PARA MYSQL
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bd_sionb',
-        'USER': 'root',
-        'PASSWORD': '8222',
-        'HOST': '127.0.0.1',  # O la IP de tu servidor MySQL
-        'PORT': '3306',       # Puerto por defecto de MySQL
-    }
-}
+# #PARA MYSQL LOCAL HOST
+
+#mysql://root:bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi@interchange.proxy.rlwy.net:21174/railway
+ DATABASES = {
+     'default': {
+         'ENGINE': 'django.db.backends.mysql',
+         'NAME': 'railway',
+         'USER': 'root',
+         'PASSWORD': 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi',
+         'HOST': 'interchange.proxy.rlwy.net',  # O la IP de tu servidor MySQL
+         'PORT': '21174',       # Puerto por defecto de MySQL
+     }
+ }
+
+
+
+# #PARA MYSQL PARA RAILWAY
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'bd_sionb',
+#         'USER': 'root',
+#         'PASSWORD': '8222',
+#         'HOST': '127.0.0.1',  # O la IP de tu servidor MySQL
+#         'PORT': '3306',       # Puerto por defecto de MySQL
+#     }
+# }
+
 
 
 
