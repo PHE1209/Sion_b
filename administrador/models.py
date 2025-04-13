@@ -326,19 +326,6 @@ class MuestreoImage(models.Model):
     def __str__(self):
         return f"Imagen de {self.muestreo.id_muestra}"
 
-from django.db import models
-from django.contrib.auth.models import User
-from simple_history.models import HistoricalRecords
-import logging
-
-logger = logging.getLogger(__name__)
-
-class MuestreoImage(models.Model):
-    muestreo = models.ForeignKey('Muestreo', on_delete=models.CASCADE, related_name='muestreo_imagenes')
-    image = models.ImageField(upload_to='muestreo_images/%Y/%m/%d/', null=True, blank=True)
-
-    def __str__(self):
-        return f"Imagen de {self.muestreo.id_muestra}"
 
 class Muestreo(models.Model):
     id_proyecto = models.ForeignKey('Proyectos', on_delete=models.CASCADE, db_column='id_proyecto', to_field='id')
