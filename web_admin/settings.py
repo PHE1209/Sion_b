@@ -24,9 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-h#5=y@e!^w#u)^lv51^%uvvp9l#rc#fz%k^!zpzf0f-&+vov^='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False #False para produccion, True para desarrollo
 
-ALLOWED_HOSTS = ['*']
+#ALLOWED_HOSTS = ['*'] #ESTO ES PARA DESARROLLO
+#ALLOWED_HOSTS = ['sionb-production.up.railway.app'] # ESTO ES PARA PRODUCCION
 
 APPEND_SLASH = True
 
@@ -101,18 +102,30 @@ WSGI_APPLICATION = 'web_admin.wsgi.application'
 
 # #PARA MYSQL LOCAL HOST
 
-#mysql://root:bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi@interchange.proxy.rlwy.net:21174/railway
-DATABASES = {
-     'default': {
-         'ENGINE': 'django.db.backends.mysql',
-         'NAME': 'railway',
-         'USER': 'root',
-         'PASSWORD': 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi',
-         'HOST': 'interchange.proxy.rlwy.net',  # O la IP de tu servidor MySQL
-         'PORT': '21174',       # Puerto por defecto de MySQL
-     }
- }
+# #mysql://root:bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi@interchange.proxy.rlwy.net:21174/railway
+# DATABASES = {
+#      'default': {
+#          'ENGINE': 'django.db.backends.mysql',
+#          'NAME': 'railway',
+#          'USER': 'root',
+#          'PASSWORD': 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi',
+#          'HOST': 'interchange.proxy.rlwy.net',  # O la IP de tu servidor MySQL
+#          'PORT': '21174',       # Puerto por defecto de MySQL
+#      }
+#  }
 
+import os
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME', 'railway'),
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi'),
+        'HOST': os.getenv('DB_HOST', 'interchange.proxy.rlwy.net'),
+        'PORT': os.getenv('DB_PORT', '21174'),
+    }
+}
 
 
 # #PARA MYSQL PARA RAILWAY
@@ -163,14 +176,10 @@ USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') #AGREGADO PARA  RAILWAY
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -178,10 +187,6 @@ LOGIN_URL = 'login'  # URL para la página de inicio de sesión
 
 LOGIN_REDIRECT_URL = 'index'  # URL a la que se redirige después de iniciar sesión
 
-# settings.py
-# settings.py
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 
