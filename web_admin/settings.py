@@ -24,10 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-h#5=y@e!^w#u)^lv51^%uvvp9l#rc#fz%k^!zpzf0f-&+vov^='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False #False para produccion, True para desarrollo
+DEBUG = True #False para produccion, True para desarrollo
 
 ALLOWED_HOSTS = ['*'] #ESTO ES PARA DESARROLLO
-ALLOWED_HOSTS = ['sionb-production.up.railway.app'] # ESTO ES PARA PRODUCCION
+#ALLOWED_HOSTS = ['sionb-production.up.railway.app'] # ESTO ES PARA PRODUCCION
 
 APPEND_SLASH = True
 
@@ -80,6 +80,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'web_admin.wsgi.application'
 
 
+# #PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
+
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -100,7 +102,7 @@ WSGI_APPLICATION = 'web_admin.wsgi.application'
 # }
 
 
-# #PARA MYSQL LOCAL HOST
+# #PARA MYSQL RAILWAY
 
 # #mysql://root:bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi@interchange.proxy.rlwy.net:21174/railway
 # DATABASES = {
@@ -114,6 +116,9 @@ WSGI_APPLICATION = 'web_admin.wsgi.application'
 #      }
 #  }
 
+
+
+#PARA MYSQL PARA RAILWAY
 import os
 
 DATABASES = {
@@ -128,7 +133,7 @@ DATABASES = {
 }
 
 
-# #PARA MYSQL PARA RAILWAY
+# #PARA MYSQL PARA SERVIDOR LOCAL
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
