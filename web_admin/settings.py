@@ -135,6 +135,10 @@
 Django settings for web_admin project.
 """
 
+"""
+Django settings for web_admin project.
+"""
+
 import os
 from pathlib import Path
 
@@ -144,6 +148,13 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-h#5=y@e!^w#u)^lv51^
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'sionb-production.up.railway.app', '.railway.app']
+
+CSRF_TRUSTED_ORIGINS = ['https://sionb-production.up.railway.app', 'https://*.railway.app']
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 APPEND_SLASH = True
 
 INSTALLED_APPS = [
@@ -221,6 +232,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
 # PARA MICROSOFT SQL SERVER
