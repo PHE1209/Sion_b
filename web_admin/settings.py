@@ -242,9 +242,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = []
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-WHITENOISE_IGNORE_MISSING_FILES = True  # Añade esta línea
-
+WHITENOISE_IGNORE_MISSING_FILES = True  # Ignora archivos faltantes
+WHITENOISE_MANIFEST_STRICT = False     # No es estricto con el manifiesto
+# Otra alternativa es cambiar el storage a uno más permisivo
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'  # En lugar de CompressedManifest...
 
 
 # ===== Archivos Multimedia =====
