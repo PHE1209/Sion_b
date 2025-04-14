@@ -178,32 +178,48 @@ def home_view(request):
     return render(request, 'home.html')
 
 # Vista de inicio de sesión
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.contrib.auth.models import User
+from .forms import LoginForm
+import logging
+
+# Configurar logger
+logger = logging.getLogger(__name__)
+
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            
-            # Autenticación usando el correo electrónico
             try:
+                logger.info(f"Intentando autenticar usuario con email: {email}")
                 user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                user = None
-
-            if user is not None:
+                logger.info(f"Usuario encontrado: {user.username}")
                 user = authenticate(request, username=user.username, password=password)
                 if user is not None:
                     login(request, user)
-                    return redirect('index')  # Redirecciona a la vista index después de iniciar sesión
+                    logger.info(f"Autenticación exitosa para {user.username}")
+                    return redirect('index')
                 else:
-                    form.add_error(None, 'Email o contraseña incorrectos.')
-            else:
+                    logger.warning(f"Autenticación fallida para email: {email}")
+                    form.add_error(None, 'Contraseña incorrecta.')
+            except User.DoesNotExist:
+                logger.error(f"Email no registrado: {email}")
                 form.add_error(None, 'Email no registrado.')
+            except Exception as e:
+                logger.error(f"Error en login_view: {str(e)}", exc_info=True)
+                form.add_error(None, f'Error del servidor: {str(e)}')
+        else:
+            logger.warning("Formulario inválido")
+            form.add_error(None, 'Formulario inválido.')
     else:
         form = LoginForm()
-    
     return render(request, 'login.html', {'form': form})
+
+
 
 # Vista protegida usando decorador
 @login_required

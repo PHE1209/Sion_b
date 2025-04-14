@@ -139,6 +139,10 @@ Django settings for web_admin project.
 Django settings for web_admin project.
 """
 
+"""
+Django settings for web_admin project.
+"""
+
 import os
 from pathlib import Path
 
@@ -205,11 +209,14 @@ WSGI_APPLICATION = 'web_admin.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME', 'railway'),
+        'NAME': os.getenv('DB_NAME', 'bd_sionb'),
         'USER': os.getenv('DB_USER', 'root'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi'),
         'HOST': os.getenv('DB_HOST', 'mysql.railway.internal'),
         'PORT': os.getenv('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -235,6 +242,27 @@ LOGIN_REDIRECT_URL = 'index'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
 # PARA MICROSOFT SQL SERVER
