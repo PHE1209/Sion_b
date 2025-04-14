@@ -146,6 +146,10 @@ Django settings for web_admin project.
 """
 Django settings for web_admin project.
 """
+"""
+Django settings for web_admin project.
+"""
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -157,13 +161,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Configuración de Seguridad
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-h#5=y@e!^w#u)^lv51^%uvvp9l#rc#fz%k^!zpzf0f-&+vov^=')
 DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1', 't')
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.railway.app').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.railway.app').split(',')
+
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,sionb-production.up.railway.app,.railway.app').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://sionb-production.up.railway.app,https://*.railway.app').split(',')
 
 # Configuración de Cookies y SSL
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = not DEBUG  # Solo en producción
+SECURE_SSL_REDIRECT = not DEBUG
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Aplicaciones y Middleware
@@ -212,42 +217,49 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'web_admin.wsgi.application'
 
-# Configuración de Base de Datos Mejorada
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME', 'Ferrocarril'),
-        'USER': os.getenv('DB_USER', 'root'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi'),
-        'HOST': os.getenv('DB_HOST', 'mysql.ferrocarril.interno'),
-        'PORT': os.getenv('DB_PORT', '3306'),
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'sql_mode': 'STRICT_TRANS_TABLES',
-            'ssl': {'ca': os.getenv('MYSQL_SSL_CA', '')} if os.getenv('DB_SSL', 'false').lower() == 'true' else {}
+# Configuración de Base de Datos
+if os.getenv('RAILWAY_ENVIRONMENT', 'False').lower() == 'true':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('DB_NAME', 'railway'),
+            'USER': os.getenv('DB_USER', 'root'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi'),
+            'HOST': os.getenv('DB_HOST', 'mysql.railway.internal'),
+            'PORT': os.getenv('DB_PORT', '3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
         }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('DB_NAME', 'bd_sionb'),
+            'USER': os.getenv('DB_USER', 'root'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+            'PORT': os.getenv('DB_PORT', '3306'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
+        }
+    }
 
 # Autenticación y Usuarios
 AUTH_USER_MODEL = 'auth.User'
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # Internacionalización
-LANGUAGE_CODE = 'es-cl'  # Cambiado a español de Chile
+LANGUAGE_CODE = 'es-cl'
 TIME_ZONE = 'America/Santiago'
 USE_I18N = True
 USE_L10N = True
@@ -268,7 +280,7 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-# Configuración de Logging Mejorada
+# Configuración de Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -296,6 +308,8 @@ LOGGING = {
         },
     },
 }
+
+
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
 # PARA MICROSOFT SQL SERVER
 # DATABASES = {
