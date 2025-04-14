@@ -107,8 +107,6 @@ urlpatterns = [
     path('obtener_area_humedad', views.obtener_area_humedad, name='obtener_area_humedad'),
 
 
-
-
     
     # USCS
     path('agregar_uscs', views.agregar_uscs, name='agregar_uscs'),
@@ -187,11 +185,7 @@ urlpatterns = [
     path('historial', views.historial, name='historial'), 
     
 
-
-    path('docs/', views.docs_view, name='docs'),  # Ruta para "/docs"
+   path('docs/', views.docs_view, name='docs'),  # Ruta para "/docs"
 
 
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
