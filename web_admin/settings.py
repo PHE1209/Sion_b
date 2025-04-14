@@ -145,8 +145,14 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = ['*'] if DEBUG else os.getenv('ALLOWED_HOSTS', '').split(',')
 
 # ===== Configuración de Base de Datos =====
-if os.getenv('RAILWAY_ENVIRONMENT', 'False') == 'True':
-    # Configuración para Railway (producción)
+# En la sección de imports:
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
+
+# Configuración de la base de datos:
+if dj_database_url:
     DATABASES = {
         'default': dj_database_url.config(
             default=os.getenv('DATABASE_URL'),
@@ -155,19 +161,14 @@ if os.getenv('RAILWAY_ENVIRONMENT', 'False') == 'True':
         )
     }
 else:
-    # Configuración para desarrollo local
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('MYSQLDATABASE', 'railway'),
-            'USER': os.getenv('MYSQLUSER', 'root'),
-            'PASSWORD': os.getenv('MYSQLPASSWORD', 'JUkHfYlMTTXurLfxkBelqSLeYhyZYMti'),
-            'HOST': os.getenv('MYSQLHOST_PUBLIC', 'caboose.proxy.rlwy.net'),
-            'PORT': os.getenv('MYSQLPORT_PUBLIC', '27181'),
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            }
+            'NAME': os.getenv('DB_NAME', 'railway'),
+            'USER': os.getenv('DB_USER', 'root'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
         }
     }
 
