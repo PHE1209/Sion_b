@@ -123,6 +123,13 @@
 # MEDIA_URL = '/media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+
+
+
+
+
+
+###### PARA PRODUCCCION EN RAILWEY
 import os
 from pathlib import Path
 import dj_database_url
@@ -133,30 +140,31 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ===== Configuración Básica =====
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')  # Obligatorio en producción
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
-    'sionb-production.up.railway.app',  # Tu dominio público
-    'sion_b.railway.internal',          # Dominio interno de Railway
-    '.railway.app',                     # Todos los subdominios Railway
-    'localhost',                        # Desarrollo local
-    '127.0.0.1'                        # Desarrollo local
+    'sionb-production.up.railway.app',
+    'sion_b.railway.internal',
+    '.railway.app',
+    'localhost',
+    '127.0.0.1'
 ]
 
 # ===== Configuración de Base de Datos =====
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600,
-        engine='django.db.backends.mysql',
-        options={
+# Configuración compatible con todas versiones de dj-database-url
+db_config = dj_database_url.parse(os.getenv('DATABASE_URL'), conn_max_age=600)
+
+if db_config['ENGINE'] == 'django.db.backends.mysql':
+    db_config.update({
+        'OPTIONS': {
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'ssl': {'ca': os.getenv('MYSQL_SSL_CA')} if os.getenv('MYSQL_SSL_CA') else None
+            **({'ssl': {'ca': os.getenv('MYSQL_SSL_CA')}} if os.getenv('MYSQL_SSL_CA') else {})
         }
-    )
-}
+    })
+
+DATABASES = {'default': db_config}
 
 # ===== Configuración de Seguridad =====
 CSRF_TRUSTED_ORIGINS = [
@@ -165,17 +173,16 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 if not DEBUG:
-    # Configuraciones de seguridad para producción
-    SESSION_COOKIE_SECURE = True       # Cookies solo via HTTPS
-    CSRF_COOKIE_SECURE = True          # Protección CSRF reforzada
-    SECURE_SSL_REDIRECT = True         # Redirige HTTP a HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 31_536_000   # HSTS por 1 año
+    SECURE_HSTS_SECONDS = 31_536_000  # 1 año
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True  # Anti MIME-sniffing
-    X_FRAME_OPTIONS = 'DENY'            # Protección contra clickjacking
-    SECURE_BROWSER_XSS_FILTER = True    # Filtro XSS del navegador
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_BROWSER_XSS_FILTER = True
 
 # ===== Aplicaciones =====
 INSTALLED_APPS = [
@@ -185,8 +192,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'whitenoise.runserver_nostatic',  # Para servir archivos estáticos
-    'administrador',                  # Tu app personalizada
+    'whitenoise.runserver_nostatic',
+    'administrador',
 ]
 
 # ===== Middleware =====
@@ -241,8 +248,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] if os.path.exists(os.path.join(BASE_DIR, 'static')) else []
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-WHITENOISE_IGNORE_MISSING_FILES = True  # Ignora archivos .map faltantes
-WHITENOISE_MANIFEST_STRICT = False      # Más permisivo con manifest
+WHITENOISE_IGNORE_MISSING_FILES = True
+WHITENOISE_MANIFEST_STRICT = False
 
 # ===== Archivos Multimedia =====
 MEDIA_URL = '/media/'
@@ -264,17 +271,9 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': os.getenv('LOG_LEVEL', 'INFO'),
+        'level': 'INFO',
     },
 }
-
-
-
-
-
-###### PARA PRODUCCCION EN RAILWEY
-
-
 
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
 # PARA MICROSOFT SQL SERVER
