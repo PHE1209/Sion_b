@@ -143,24 +143,30 @@ Django settings for web_admin project.
 Django settings for web_admin project.
 """
 
+"""
+Django settings for web_admin project.
+"""
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Configuración de Seguridad
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-h#5=y@e!^w#u)^lv51^%uvvp9l#rc#fz%k^!zpzf0f-&+vov^=')
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1', 't')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.railway.app').split(',')
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.railway.app').split(',')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'sionb-production.up.railway.app', '.railway.app']
-
-CSRF_TRUSTED_ORIGINS = ['https://sionb-production.up.railway.app', 'https://*.railway.app']
+# Configuración de Cookies y SSL
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = not DEBUG  # Solo en producción
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-APPEND_SLASH = True
-
+# Aplicaciones y Middleware
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -168,10 +174,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'administrador',
-    'crispy_forms',
     'whitenoise.runserver_nostatic',
+    'crispy_forms',
     'simple_history',
+    'administrador',
 ]
 
 MIDDLEWARE = [
@@ -186,12 +192,12 @@ MIDDLEWARE = [
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
+# Configuración de Templates y URLs
 ROOT_URLCONF = 'web_admin.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -206,64 +212,90 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'web_admin.wsgi.application'
 
+# Configuración de Base de Datos Mejorada
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('DB_NAME', 'bd_sionb'),
+        'NAME': os.getenv('DB_NAME', 'Ferrocarril'),
         'USER': os.getenv('DB_USER', 'root'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi'),
-        'HOST': os.getenv('DB_HOST', 'mysql.railway.internal'),
+        'HOST': os.getenv('DB_HOST', 'mysql.ferrocarril.interno'),
         'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+            'charset': 'utf8mb4',
+            'sql_mode': 'STRICT_TRANS_TABLES',
+            'ssl': {'ca': os.getenv('MYSQL_SSL_CA', '')} if os.getenv('DB_SSL', 'false').lower() == 'true' else {}
+        }
     }
 }
 
+# Autenticación y Usuarios
 AUTH_USER_MODEL = 'auth.User'
-AUTH_PASSWORD_VALIDATORS = []
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
-LANGUAGE_CODE = 'en-us'
+# Internacionalización
+LANGUAGE_CODE = 'es-cl'  # Cambiado a español de Chile
 TIME_ZONE = 'America/Santiago'
 USE_I18N = True
+USE_L10N = True
 USE_TZ = True
 
+# Archivos Estáticos y Multimedia
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Configuraciones Adicionales
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
-
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-# Logging configuration
+# Configuración de Logging Mejorada
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': os.getenv('LOG_LEVEL', 'INFO'),
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
     },
 }
-
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
 # PARA MICROSOFT SQL SERVER
 # DATABASES = {
