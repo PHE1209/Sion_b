@@ -140,83 +140,55 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ===== Configuración Básica =====
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-clave-temporal-para-desarrollo')
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*'] if DEBUG else os.getenv('ALLOWED_HOSTS', '').split(',')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = [
+    os.getenv('RAILWAY_PUBLIC_DOMAIN', 'sionb-production.up.railway.app'),
+    os.getenv('RAILWAY_PRIVATE_DOMAIN', 'sion_b.railway.internal'),
+    '.railway.app',
+    'localhost',
+    '127.0.0.1'
+]
 
-# ===== Configuración de Base de Datos =====
-# En la sección de imports:
-try:
-    import dj_database_url
-except ImportError:
-    dj_database_url = None
+# ===== Configuración de Base de Datos con dj_database_url =====
+# Construye DATABASE_URL si no está definida
+if not os.getenv('DATABASE_URL'):
+    os.environ['DATABASE_URL'] = f"mysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 
-# Configuración de la base de datos:
-if dj_database_url:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
-            conn_max_age=600,
-            engine='django.db.backends.mysql'
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('DB_NAME', 'railway'),
-            'USER': os.getenv('DB_USER', 'root'),
-            'PASSWORD': os.getenv('DB_PASSWORD'),
-            'HOST': os.getenv('DB_HOST'),
-            'PORT': os.getenv('DB_PORT'),
+DATABASES = {
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        engine='django.db.backends.mysql',
+        default=os.getenv('DATABASE_URL'),
+        options={
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'ssl': {'ca': os.getenv('MYSQL_SSL_CA')} if os.getenv('MYSQL_SSL_CA') else None
         }
-    }
+    )
+}
 
-# ===== Seguridad =====
-# ===== CONFIGURACIÓN DE SEGURIDAD COMPLETA =====
-# (Para producción - cuando DEBUG=False)
+# ===== Configuración de Seguridad =====
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}" for host in ALLOWED_HOSTS if not host.startswith('.')
+] + [
+    "https://*.railway.app"
+]
 
 if not DEBUG:
-    # 1. Protección CSRF (Cross-Site Request Forgery)
-    CSRF_TRUSTED_ORIGINS = [
-        'https://sionb-production.up.railway.app',  # Tu dominio exacto
-        'https://*.railway.app'                    # Todos los subdominios Railway
-    ]
-    
-    # 2. Cookies seguras (solo via HTTPS)
-    SESSION_COOKIE_SECURE = True      # Cookie de sesión solo HTTPS
-    CSRF_COOKIE_SECURE = True         # Cookie CSRF solo HTTPS
-    SESSION_COOKIE_HTTPONLY = True    # Previene acceso via JavaScript
-    CSRF_COOKIE_HTTPONLY = False      # Permitido para AJAX (cambia a True si no usas AJAX)
-    
-    # 3. Redirección HTTPS y cabeceras de seguridad
-    SECURE_SSL_REDIRECT = True        # Redirige HTTP → HTTPS automáticamente
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Para proxies inversos
-    SECURE_HSTS_SECONDS = 31_536_000  # HSTS (1 año, activa solo después de verificar HTTPS)
+    # Configuraciones de seguridad para producción
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 30 * 24 * 60 * 60  # 1 mes
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    
-    # 4. Protección adicional
-    SECURE_BROWSER_XSS_FILTER = True  # Filtro XSS del navegador
-    SECURE_CONTENT_TYPE_NOSNIFF = True  # Previene MIME-sniffing
-    X_FRAME_OPTIONS = 'DENY'          # Previene clickjacking
-    
-    # 5. Configuración para APIs (si usas DRF)
-    REST_FRAMEWORK = {
-        'DEFAULT_AUTHENTICATION_CLASSES': [
-            'rest_framework.authentication.SessionAuthentication',
-        ],
-        'DEFAULT_PERMISSION_CLASSES': [
-            'rest_framework.permissions.IsAuthenticated',
-        ]
-    }
-else:
-    # Configuración para desarrollo local (DEBUG=True)
-    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_BROWSER_XSS_FILTER = True
 
-# ===== Aplicaciones =====
+# ===== Aplicaciones y Middleware =====
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -225,10 +197,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',
-    'administrador',  # Tu app personalizada
+    'administrador',
 ]
 
-# ===== Middleware =====
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -257,7 +228,6 @@ TEMPLATES = [
     },
 ]
 
-# ===== URLs =====
 ROOT_URLCONF = 'web_admin.urls'
 WSGI_APPLICATION = 'web_admin.wsgi.application'
 
@@ -273,17 +243,16 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'es-cl'
 TIME_ZONE = 'America/Santiago'
 USE_I18N = True
+USE_L10N = True
 USE_TZ = True
 
 # ===== Archivos Estáticos =====
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = []
-WHITENOISE_IGNORE_MISSING_FILES = True  # Ignora archivos faltantes
-WHITENOISE_MANIFEST_STRICT = False     # No es estricto con el manifiesto
-# Otra alternativa es cambiar el storage a uno más permisivo
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'  # En lugar de CompressedManifest...
-
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] if os.path.exists(os.path.join(BASE_DIR, 'static')) else []
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_IGNORE_MISSING_FILES = True
+WHITENOISE_MANIFEST_STRICT = False
 
 # ===== Archivos Multimedia =====
 MEDIA_URL = '/media/'
@@ -305,11 +274,9 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': os.getenv('LOG_LEVEL', 'INFO'),
     },
 }
-
-
 
 
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
