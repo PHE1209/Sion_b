@@ -130,48 +130,56 @@
 
 
 ###### PARA PRODUCCCION EN RAILWEY
-
-"""
-Django settings for web_admin project.
-"""
-
-"""
-Django settings for web_admin project.
-"""
-
-"""
-Django settings for web_admin project.
-"""
-
-"""
-Django settings for web_admin project.
-"""
-"""
-Django settings for web_admin project.
-"""
-
 import os
 from pathlib import Path
+import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Configuración de Seguridad
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-h#5=y@e!^w#u)^lv51^%uvvp9l#rc#fz%k^!zpzf0f-&+vov^=')
-DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1', 't')
+# ===== Configuración Básica =====
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-clave-temporal-para-desarrollo')
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = ['*'] if DEBUG else os.getenv('ALLOWED_HOSTS', '').split(',')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,sionb-production.up.railway.app,.railway.app').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://sionb-production.up.railway.app,https://*.railway.app').split(',')
+# ===== Configuración de Base de Datos =====
+if os.getenv('RAILWAY_ENVIRONMENT', 'False') == 'True':
+    # Configuración para Railway (producción)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            engine='django.db.backends.mysql'
+        )
+    }
+else:
+    # Configuración para desarrollo local
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('MYSQLDATABASE', 'railway'),
+            'USER': os.getenv('MYSQLUSER', 'root'),
+            'PASSWORD': os.getenv('MYSQLPASSWORD', 'JUkHfYlMTTXurLfxkBelqSLeYhyZYMti'),
+            'HOST': os.getenv('MYSQLHOST_PUBLIC', 'caboose.proxy.rlwy.net'),
+            'PORT': os.getenv('MYSQLPORT_PUBLIC', '27181'),
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            }
+        }
+    }
 
-# Configuración de Cookies y SSL
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = not DEBUG
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# ===== Seguridad =====
+if not DEBUG:
+    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Aplicaciones y Middleware
+# ===== Aplicaciones =====
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -180,11 +188,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'whitenoise.runserver_nostatic',
-    'crispy_forms',
-    'simple_history',
-    'administrador',
+    'administrador',  # Tu app personalizada
 ]
 
+# ===== Middleware =====
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -194,11 +201,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
-# Configuración de Templates y URLs
-ROOT_URLCONF = 'web_admin.urls'
+# ===== Templates =====
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -215,42 +220,11 @@ TEMPLATES = [
     },
 ]
 
+# ===== URLs =====
+ROOT_URLCONF = 'web_admin.urls'
 WSGI_APPLICATION = 'web_admin.wsgi.application'
 
-# Configuración de Base de Datos
-if os.getenv('RAILWAY_ENVIRONMENT', 'False').lower() == 'true':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('DB_NAME', 'railway'),
-            'USER': os.getenv('DB_USER', 'root'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi'),
-            'HOST': os.getenv('DB_HOST', 'mysql.railway.internal'),
-            'PORT': os.getenv('DB_PORT', '3306'),
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            }
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('DB_NAME', 'bd_sionb'),
-            'USER': os.getenv('DB_USER', 'root'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-            'PORT': os.getenv('DB_PORT', '3306'),
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            }
-        }
-    }
-
-# Autenticación y Usuarios
-AUTH_USER_MODEL = 'auth.User'
+# ===== Validación de Contraseñas =====
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -258,57 +232,41 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internacionalización
+# ===== Internacionalización =====
 LANGUAGE_CODE = 'es-cl'
 TIME_ZONE = 'America/Santiago'
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
-# Archivos Estáticos y Multimedia
+# ===== Archivos Estáticos =====
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# ===== Archivos Multimedia =====
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Configuraciones Adicionales
+# ===== Configuraciones Adicionales =====
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'index'
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-# Configuración de Logging
+# ===== Logging =====
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
         },
     },
     'root': {
         'handlers': ['console'],
-        'level': os.getenv('LOG_LEVEL', 'INFO'),
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': False,
-        },
+        'level': 'INFO',
     },
 }
-
 
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
 # PARA MICROSOFT SQL SERVER
@@ -340,4 +298,35 @@ LOGGING = {
 #     }
 # }
 
+# # Configuración de Base de Datos
+# if os.getenv('RAILWAY_ENVIRONMENT', 'False').lower() == 'true':
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.mysql',
+#             'NAME': os.getenv('DB_NAME', 'railway'),
+#             'USER': os.getenv('DB_USER', 'root'),
+#             'PASSWORD': os.getenv('DB_PASSWORD', 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi'),
+#             'HOST': os.getenv('DB_HOST', 'mysql.railway.internal'),
+#             'PORT': os.getenv('DB_PORT', '3306'),
+#             'OPTIONS': {
+#                 'charset': 'utf8mb4',
+#                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#             }
+#         }
+#     }
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.mysql',
+#             'NAME': os.getenv('DB_NAME', 'bd_sionb'),
+#             'USER': os.getenv('DB_USER', 'root'),
+#             'PASSWORD': os.getenv('DB_PASSWORD', ''),
+#             'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+#             'PORT': os.getenv('DB_PORT', '3306'),
+#             'OPTIONS': {
+#                 'charset': 'utf8mb4',
+#                 'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#             }
+#         }
+#     }
 
