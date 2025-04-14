@@ -208,8 +208,8 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'railway'),
         'USER': os.getenv('DB_USER', 'root'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'bPhpGoXRmzAiWoxNCEENJaKLABEEKsDi'),
-        'HOST': os.getenv('DB_HOST', 'interchange.proxy.rlwy.net'),
-        'PORT': os.getenv('DB_PORT', '21174'),
+        'HOST': os.getenv('DB_HOST', 'mysql.railway.internal'),
+        'PORT': os.getenv('DB_PORT', '3306'),
     }
 }
 
