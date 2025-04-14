@@ -241,8 +241,11 @@ USE_TZ = True
 # ===== Archivos Estáticos =====
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = []
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_IGNORE_MISSING_FILES = True  # Añade esta línea
+
+
 
 # ===== Archivos Multimedia =====
 MEDIA_URL = '/media/'
@@ -267,6 +270,9 @@ LOGGING = {
         'level': 'INFO',
     },
 }
+
+
+
 
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
 # PARA MICROSOFT SQL SERVER
