@@ -173,12 +173,48 @@ else:
     }
 
 # ===== Seguridad =====
+# ===== CONFIGURACIÓN DE SEGURIDAD COMPLETA =====
+# (Para producción - cuando DEBUG=False)
+
 if not DEBUG:
-    CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # 1. Protección CSRF (Cross-Site Request Forgery)
+    CSRF_TRUSTED_ORIGINS = [
+        'https://sionb-production.up.railway.app',  # Tu dominio exacto
+        'https://*.railway.app'                    # Todos los subdominios Railway
+    ]
+    
+    # 2. Cookies seguras (solo via HTTPS)
+    SESSION_COOKIE_SECURE = True      # Cookie de sesión solo HTTPS
+    CSRF_COOKIE_SECURE = True         # Cookie CSRF solo HTTPS
+    SESSION_COOKIE_HTTPONLY = True    # Previene acceso via JavaScript
+    CSRF_COOKIE_HTTPONLY = False      # Permitido para AJAX (cambia a True si no usas AJAX)
+    
+    # 3. Redirección HTTPS y cabeceras de seguridad
+    SECURE_SSL_REDIRECT = True        # Redirige HTTP → HTTPS automáticamente
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Para proxies inversos
+    SECURE_HSTS_SECONDS = 31_536_000  # HSTS (1 año, activa solo después de verificar HTTPS)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # 4. Protección adicional
+    SECURE_BROWSER_XSS_FILTER = True  # Filtro XSS del navegador
+    SECURE_CONTENT_TYPE_NOSNIFF = True  # Previene MIME-sniffing
+    X_FRAME_OPTIONS = 'DENY'          # Previene clickjacking
+    
+    # 5. Configuración para APIs (si usas DRF)
+    REST_FRAMEWORK = {
+        'DEFAULT_AUTHENTICATION_CLASSES': [
+            'rest_framework.authentication.SessionAuthentication',
+        ],
+        'DEFAULT_PERMISSION_CLASSES': [
+            'rest_framework.permissions.IsAuthenticated',
+        ]
+    }
+else:
+    # Configuración para desarrollo local (DEBUG=True)
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 # ===== Aplicaciones =====
 INSTALLED_APPS = [
