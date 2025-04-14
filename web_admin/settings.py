@@ -123,13 +123,6 @@
 # MEDIA_URL = '/media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
-
-
-
-
-
-###### PARA PRODUCCCION EN RAILWEY
 import os
 from pathlib import Path
 import dj_database_url
@@ -140,26 +133,23 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ===== Configuración Básica =====
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')  # Obligatorio en producción
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+
 ALLOWED_HOSTS = [
-    os.getenv('RAILWAY_PUBLIC_DOMAIN', 'sionb-production.up.railway.app'),
-    os.getenv('RAILWAY_PRIVATE_DOMAIN', 'sion_b.railway.internal'),
-    '.railway.app',
-    'localhost',
-    '127.0.0.1'
+    'sionb-production.up.railway.app',  # Tu dominio público
+    'sion_b.railway.internal',          # Dominio interno de Railway
+    '.railway.app',                     # Todos los subdominios Railway
+    'localhost',                        # Desarrollo local
+    '127.0.0.1'                        # Desarrollo local
 ]
 
-# ===== Configuración de Base de Datos con dj_database_url =====
-# Construye DATABASE_URL si no está definida
-if not os.getenv('DATABASE_URL'):
-    os.environ['DATABASE_URL'] = f"mysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-
+# ===== Configuración de Base de Datos =====
 DATABASES = {
     'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
         engine='django.db.backends.mysql',
-        default=os.getenv('DATABASE_URL'),
         options={
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
@@ -170,25 +160,24 @@ DATABASES = {
 
 # ===== Configuración de Seguridad =====
 CSRF_TRUSTED_ORIGINS = [
-    f"https://{host}" for host in ALLOWED_HOSTS if not host.startswith('.')
-] + [
-    "https://*.railway.app"
+    'https://sionb-production.up.railway.app',
+    'https://*.railway.app'
 ]
 
 if not DEBUG:
     # Configuraciones de seguridad para producción
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True       # Cookies solo via HTTPS
+    CSRF_COOKIE_SECURE = True          # Protección CSRF reforzada
+    SECURE_SSL_REDIRECT = True         # Redirige HTTP a HTTPS
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_HSTS_SECONDS = 30 * 24 * 60 * 60  # 1 mes
+    SECURE_HSTS_SECONDS = 31_536_000   # HSTS por 1 año
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True  # Anti MIME-sniffing
+    X_FRAME_OPTIONS = 'DENY'            # Protección contra clickjacking
+    SECURE_BROWSER_XSS_FILTER = True    # Filtro XSS del navegador
 
-# ===== Aplicaciones y Middleware =====
+# ===== Aplicaciones =====
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -196,10 +185,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'whitenoise.runserver_nostatic',
-    'administrador',
+    'whitenoise.runserver_nostatic',  # Para servir archivos estáticos
+    'administrador',                  # Tu app personalizada
 ]
 
+# ===== Middleware =====
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -251,8 +241,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')] if os.path.exists(os.path.join(BASE_DIR, 'static')) else []
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-WHITENOISE_IGNORE_MISSING_FILES = True
-WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_IGNORE_MISSING_FILES = True  # Ignora archivos .map faltantes
+WHITENOISE_MANIFEST_STRICT = False      # Más permisivo con manifest
 
 # ===== Archivos Multimedia =====
 MEDIA_URL = '/media/'
@@ -277,6 +267,13 @@ LOGGING = {
         'level': os.getenv('LOG_LEVEL', 'INFO'),
     },
 }
+
+
+
+
+
+###### PARA PRODUCCCION EN RAILWEY
+
 
 
 # BD PARA MYSQL PARA SQL SERVER (MICROSOFT WSP)
