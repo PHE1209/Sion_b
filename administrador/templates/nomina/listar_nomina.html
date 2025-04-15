@@ -11,7 +11,7 @@
     </form>
 
     <div class="mb-3">
-        <a href="{% url 'agregar_nomina' %}" class="btn btn-primary"><i class="fa fa-plus"></i> Agregar Nómina</a>
+        <a href="{% url 'agregar_nomina' %}" class="btn btn-secondary"><i class="fa fa-plus"></i> Agregar Nómina</a>
         <form action="{% url 'export_to_excel_nomina' %}" method="get" style="display:inline;">
             <input type="hidden" name="q" value="{{ consulta }}">
             <button type="submit" class="btn btn-info"><i class="fa fa-file-excel-o"></i> Exportar a Excel</button>
@@ -60,7 +60,7 @@
                     <td>{{ nomina.primer_dia|date:"d/m/Y"|default:"N/A" }}</td>
                     <td>
                         <a href="{% url 'ver_nomina' nomina.id %}" class="btn btn-info btn-sm">Ver</a>
-                        <a href="{% url 'editar_nomina' nomina.id %}" class="btn btn-primary btn-sm">Editar</a>
+                        <a href="{% url 'editar_nomina' nomina.id %}" class="btn btn-warning btn-sm">Editar</a>
                         <form action="{% url 'eliminar_nomina' nomina.id %}" method="post" style="display:inline;"
                               onsubmit="return confirm('¿Estás seguro de que deseas eliminar este registro de nómina?');">
                             {% csrf_token %}
