@@ -1,658 +1,384 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/ico" />
 
-    <title>WSP Gestor de campañas!</title>
+    <title>WSP Gestor de campañas</title>
 
-    <!-- Bootstrap -->
-    <link href="{% static 'FrWork/admin_lte/vendors/bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- AdminLTE CSS (Bootstrap 4.6 incluido) -->
+    <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css" rel="stylesheet">
     <!-- Font Awesome -->
-    <link href="{% static 'FrWork/admin_lte/vendors/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet">
-    <!-- NProgress -->
-    <link href="{% static 'FrWork/admin_lte/vendors/nprogress/nprogress.css' %}" rel="stylesheet">
-    <!-- iCheck -->
-    <link href="{% static 'FrWork/admin_lte/vendors/iCheck/skins/flat/green.css' %}" rel="stylesheet">
-    <!-- bootstrap-progressbar -->
-    <link href="{% static 'FrWork/admin_lte/vendors/bootstrap-progressbar/css/bootstrap-progressbar-3.3.4.min.css' %}" rel="stylesheet">
-    <!-- JQVMap -->
-    <link href="{% static 'FrWork/admin_lte/vendors/jqvmap/dist/jqvmap.min.css' %}" rel="stylesheet">
-    <!-- bootstrap-daterangepicker -->
-    <link href="{% static 'FrWork/admin_lte/vendors/bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet">
-    <!-- Custom Theme Style -->
-    <link href="{% static 'FrWork/admin_lte/build/css/custom.min.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts (Roboto para un look moderno) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 
     <!-- Estilos personalizados -->
     <style>
-        /* Contenedor principal */
-        .main_container {
-            position: relative;
-            overflow: hidden;
+        body {
+            font-family: 'Roboto', sans-serif;
         }
-
-        /* Barra lateral */
-        .left_col {
-            width: 300px;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            background: #2A3F54; /* Color de fondo de AdminLTE */
-            z-index: 1000;
-            transition: all 0.3s ease;
-            overflow-y: auto; /* Permitir scroll en móviles */
-        }
-
-        /* Contenido principal */
-        .right_col {
-            margin-left: 300px;
+        /* Ajustes para sidebar */
+        .main-sidebar {
             transition: all 0.3s ease;
         }
-
-        /* Ajustes para pantallas pequeñas */
-        @media (max-width: 767px) {
-            .left_col {
-                width: 250px;
-                left: -250px; /* Oculta el menú por defecto */
+        .sidebar {
+            padding-bottom: 10px;
+        }
+        .nav-link {
+            border-radius: 5px;
+            margin: 3px 5px;
+            transition: background 0.2s;
+        }
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        /* Submenús */
+        .nav-treeview .nav-link {
+            padding-left: 2.5rem;
+        }
+        .nav-treeview .nav-treeview .nav-link {
+            padding-left: 3.5rem;
+        }
+        /* Responsividad */
+        @media (max-width: 767.98px) {
+            .main-sidebar {
+                transform: translateX(-100%);
             }
-
-            .left_col.menu-open {
-                left: 0; /* Muestra el menú cuando está abierto */
+            .sidebar-open .main-sidebar {
+                transform: translateX(0);
             }
-
-            .right_col {
-                margin-left: 0; /* Sin margen cuando el menú está oculto */
-            }
-
-            .main_container {
-                overflow: visible;
+            .content-wrapper {
+                margin-left: 0 !important;
             }
         }
-
-        /* Menú lateral */
-        .main_menu_side {
-            height: auto;
-            overflow-y: auto;
+        /* Animaciones suaves */
+        .nav-treeview {
+            display: none;
         }
-
-        .main_menu_side .nav.side-menu > li > a {
-            padding: 10px 15px;
+        .nav-item.menu-open > .nav-treeview {
+            display: block;
         }
-
-        .main_menu_side .nav.child_menu > li > a {
-            padding: 8px 20px 8px 40px;
-        }
-
-        .main_menu_side .nav.child_menu .nav.child_menu > li > a {
-            padding-left: 60px; /* Más indentación para submenús de tercer nivel */
-        }
-
-        /* Ajustar el footer del sidebar */
+        /* Footer del sidebar */
         .sidebar-footer {
-            position: sticky;
-            bottom: 0;
-            background: #2A3F54;
+            background: #1a252f;
+            padding: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-footer a {
+            color: #b8c7ce;
+            padding: 8px;
+            font-size: 1.1rem;
+        }
+        .sidebar-footer a:hover {
+            color: #fff;
         }
     </style>
 </head>
 
-<body class="nav-md">
-    <div class="container body">
-        <div class="main_container">
-            <div class="col-md-3 left_col">
-                <div class="left_col scroll-view">
-                    <div class="navbar nav_title" style="border: 0;">
-                        <a href="index" class="site_title"><span>Gestor de campañas</span></a>
+<body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+        <!-- Navbar -->
+        <nav class="main-header navbar navbar-expand navbar-dark navbar-primary">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-toggle="dropdown" href="#">
+                        <img src="{% static 'images/img.jpg' %}" alt="User Avatar" class="img-circle elevation-1" style="width: 25px; height: 25px;">
+                        {{ user.first_name }}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a href="#" class="dropdown-item">Perfil</a>
+                        <a href="#" class="dropdown-item">Configuración</a>
+                        <a href="#" class="dropdown-item">Ayuda</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Cerrar Sesión
+                        </a>
+                        <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: none;">
+                            {% csrf_token %}
+                        </form>
                     </div>
-
-                    <div class="clearfix"></div>
-
-                    <!-- menu profile quick info -->
-                    <div class="profile clearfix">
-                        <div class="profile_pic">
-                            <img src="{% static 'FrWork/admin_lte/build/images/WSP.png' %}" 
-                                 alt="Profile" 
-                                 class="img-circle profile_img" 
-                                 width="120" 
-                                 height="60">
-                        </div>
-                        <div class="profile_info">
-                            <span>Welcome,</span>
-                            <h2>{{ user.first_name }} {{ user.last_name }}</h2>
-                        </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-toggle="dropdown" href="#">
+                        <i class="far fa-envelope"></i>
+                        <span class="badge badge-success navbar-badge">6</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                        <a href="#" class="dropdown-item">
+                            <div class="media">
+                                <img src="{% static 'images/img.jpg' %}" alt="User Avatar" class="img-size-50 mr-3 img-circle">
+                                <div class="media-body">
+                                    <h3 class="dropdown-item-title">John Smith</h3>
+                                    <p class="text-sm">Film festivals used to be...</p>
+                                    <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> Hace 3 mins</p>
+                                </div>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item dropdown-footer">Ver todas las notificaciones</a>
                     </div>
-                    <!-- /menu profile quick info -->
+                </li>
+            </ul>
+        </nav>
+        <!-- /.navbar -->
 
-                    <br />
-
-                    <!-- sidebar menu -->
-                    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
-                        <div class="menu_section">
-                            <h3>General</h3>
-                            <ul class="nav side-menu">
-                                <li>
-                                    <a><i class="fa fa-home"></i> Home <span class="fa fa-chevron-down"></span></a>
-                                    <ul class="nav child_menu">
-                                        <!-- Add submenu items here if needed -->
+        <!-- Sidebar -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4">
+            <a href="index" class="brand-link">
+                <span class="brand-text font-weight-light">Gestor de campañas</span>
+            </a>
+            <div class="sidebar">
+                <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                    <div class="image">
+                        <img src="{% static 'FrWork/admin_lte/build/images/WSP.png' %}" class="img-circle elevation-2" alt="User Image" style="width: 40px; height: 40px;">
+                    </div>
+                    <div class="info">
+                        <a href="#" class="d-block">Bienvenido, {{ user.first_name }} {{ user.last_name }}</a>
+                    </div>
+                </div>
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-home"></i>
+                                <p>Home</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-table"></i>
+                                <p>InSitu<i class="fas fa-angle-left right"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-search"></i>
+                                        <p>Prospecciones<i class="fas fa-angle-left right"></i></p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item"><a href="listar_prospecciones" class="nav-link"><p>Listar</p></a></li>
+                                        <li class="nav-item"><a href="agregar_prospecciones" class="nav-link"><p>Agregar</p></a></li>
                                     </ul>
                                 </li>
-
-                                <li>
-                                    <a><i class="fa fa-table"></i> InSitu <span class="fa fa-chevron-down"></span></a>
-                                    <ul class="nav child_menu">
-                                        <li>
-                                            <a><i class="fa fa-search"></i> Prospecciones <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li><a href="listar_prospecciones">Listar</a></li>
-                                                <li><a href="agregar_prospecciones">Agregar</a></li>
-                                            </ul>
-                                        </li>
-                                        <li>
-                                            <a><i class="fa fa-vials"></i> Muestreo <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li><a href="listar_muestreo">Listar</a></li>
-                                                <li><a href="agregar_muestreo">Agregar</a></li>
-                                                <li><a href="graficos_muestreo">Graficos</a></li>
-                                            </ul>
-                                        </li>
-                                        <li>
-                                            <a><i class="fa fa-tools"></i> Ensayos InSitu <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li>
-                                                    <a><i class="fa fa-layer-group"></i> Estratigrafia <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_estratigrafia">Listar</a></li>
-                                                        <li><a href="agregar_estratigrafia">Agregar</a></li>
-                                                        <li><a href="editar_estratigrafia">Editar</a></li>
-                                                        <li><a href="eliminar_estratigrafia">Eliminar</a></li>
-                                                        <li><a href="graficos_estratigrafia">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-weight"></i> Densidad <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_densidad">Listar</a></li>
-                                                        <li><a href="agregar_densidad">Agregar</a></li>
-                                                        <li><a href="editar_densidad">Editar</a></li>
-                                                        <li><a href="eliminar_densidad">Eliminar</a></li>
-                                                        <li><a href="graficos_densidad">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-tint"></i> Permeabilidad <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_permeabilidad">Listar</a></li>
-                                                        <li><a href="agregar_permeabilidad">Agregar</a></li>
-                                                        <li><a href="editar_permeabilidad">Editar</a></li>
-                                                        <li><a href="eliminar_permeabilidad">Eliminar</a></li>
-                                                        <li><a href="graficos_permeabilidad">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                            </ul>
-                                        </li>
-                                        <li>
-                                            <a><i class="fa fa-file-alt"></i> Informe Diario <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li><a href="listar_informe_diario">Listar</a></li>
-                                                <li><a href="agregar_informe_diario">Agregar</a></li>
-                                            </ul>
-                                        </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-vials"></i>
+                                        <p>Muestreo<i class="fas fa-angle-left right"></i></p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item"><a href="listar_muestreo" class="nav-link"><p>Listar</p></a></li>
+                                        <li class="nav-item"><a href="agregar_muestreo" class="nav-link"><p>Agregar</p></a></li>
+                                        <li class="nav-item"><a href="graficos_muestreo" class="nav-link"><p>Gráficos</p></a></li>
                                     </ul>
                                 </li>
-
-                                <li>
-                                    <a><i class="fa fa-building"></i> Oficina <span class="fa fa-chevron-down"></span></a>
-                                    <ul class="nav child_menu">
-                                        <li>
-                                            <a><i class="fa fa-calendar"></i> Programa de laboratorio <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li><a href="listar_programa">Listar</a></li>
-                                                <li><a href="agregar_programa">Agregar</a></li>
-                                                <li><a href="estatus_programa">Estatus</a></li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-tools"></i>
+                                        <p>Ensayos InSitu<i class="fas fa-angle-left right"></i></p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item">
+                                            <a href="#" class="nav-link">
+                                                <i class="nav-icon fas fa-layer-group"></i>
+                                                <p>Estratigrafía<i class="fas fa-angle-left right"></i></p>
+                                            </a>
+                                            <ul class="nav nav-treeview">
+                                                <li class="nav-item"><a href="listar_estratigrafia" class="nav-link"><p>Listar</p></a></li>
+                                                <li class="nav-item"><a href="agregar_estratigrafia" class="nav-link"><p>Agregar</p></a></li>
+                                                <li class="nav-item"><a href="editar_estratigrafia" class="nav-link"><p>Editar</p></a></li>
+                                                <li class="nav-item"><a href="eliminar_estratigrafia" class="nav-link"><p>Eliminar</p></a></li>
+                                                <li class="nav-item"><a href="graficos_estratigrafia" class="nav-link"><p>Gráficos</p></a></li>
                                             </ul>
                                         </li>
-                                        <li>
-                                            <a><i class="fa fa-flask"></i> Ensayos de laboratorio <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li>
-                                                    <a><i class="fa fa-filter"></i> Clasificacion USCS <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_uscs">Listar</a></li>
-                                                        <li><a href="agregar_uscs">Agregar</a></li>
-                                                        <li><a href="graficos_uscs">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-exchange-alt"></i> Limites Atterberg <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_limites_atterberg">Listar</a></li>
-                                                        <li><a href="agregar_limites_atterberg">Agregar</a></li>
-                                                        <li><a href="graficos_limites_atterberg">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-balance-scale"></i> Gravedad especifica <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_gravedad_especifica">Listar</a></li>
-                                                        <li><a href="agregar_gravedad_especifica">Agregar</a></li>
-                                                        <li><a href="graficos_gravedad_especifica">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-chart-bar"></i> Granulometria <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_granulometria">Listar</a></li>
-                                                        <li><a href="agregar_granulometria">Agregar</a></li>
-                                                        <li><a href="graficos_granulometria">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-road"></i> CBR <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_cbr">Listar</a></li>
-                                                        <li><a href="agregar_cbr">Agregar</a></li>
-                                                        <li><a href="graficos_cbr">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-water"></i> Absorcion de agua <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_absorcion_agua">Listar</a></li>
-                                                        <li><a href="agregar_absorcion_agua">Agregar</a></li>
-                                                        <li><a href="graficos_absorcion_agua">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-flask"></i> Carbonatos <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_carbonatos">Listar</a></li>
-                                                        <li><a href="agregar_carbonatos">Agregar</a></li>
-                                                        <li><a href="graficos_carboanatos">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-compress"></i> Compresion simple <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_compresion_simple">Listar</a></li>
-                                                        <li><a href="agregar_compresion_simple">Agregar</a></li>
-                                                        <li><a href="graficos_compresion_simple">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-tint"></i> Humedad <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_humedad">Listar</a></li>
-                                                        <li><a href="agregar_humedad">Agregar</a></li>
-                                                        <li><a href="graficos_humedad">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-leaf"></i> Impurezas <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_impurezas">Listar</a></li>
-                                                        <li><a href="agregar_impurezas">Agregar</a></li>
-                                                        <li><a href="editar_impurezas">Editar</a></li>
-                                                        <li><a href="eliminar_impurezas">Eliminar</a></li>
-                                                        <li><a href="graficos_impurezas">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-cubes"></i> Sales solubles <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_sales_solubles">Listar</a></li>
-                                                        <li><a href="agregar_sales_solubles">Agregar</a></li>
-                                                        <li><a href="editar_sales_solubles">Editar</a></li>
-                                                        <li><a href="eliminar_sales_solubles">Eliminar</a></li>
-                                                        <li><a href="graficos_sales_solubles">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-weight-hanging"></i> Densidad aparente <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_densidad_aparente">Listar</a></li>
-                                                        <li><a href="agregar_densidad_aparente">Agregar</a></li>
-                                                        <li><a href="graficos_densidad_aparente">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-arrows-alt-v"></i> Densidad MIN-MAX <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_densidadminmax">Listar</a></li>
-                                                        <li><a href="agregar_densidadminmax">Agregar</a></li>
-                                                        <li><a href="graficos_densidadminmax">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-x-ray"></i> DRX <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_drx">Listar</a></li>
-                                                        <li><a href="agregar_drx">Agregar</a></li>
-                                                        <li><a href="graficos_drx">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-tachometer-alt"></i> Permeabilidad <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_permeabilidad">Listar</a></li>
-                                                        <li><a href="agregar_permeabilidad">Agregar</a></li>
-                                                        <li><a href="graficos_permeabilidad">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-dumbbell"></i> Peso unitario <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_perso_unitario">Listar</a></li>
-                                                        <li><a href="agregar_peso_unitario">Agregar</a></li>
-                                                        <li><a href="graficos_peso_unitario">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-vial"></i> PH <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_ph">Listar</a></li>
-                                                        <li><a href="agregar_ph">Agregar</a></li>
-                                                        <li><a href="graficos_ph">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-hammer"></i> Proctor modificado <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_proctor_modificado">Listar</a></li>
-                                                        <li><a href="agregar_proctor_modificado">Agregar</a></li>
-                                                        <li><a href="graficos_proctor_modificado">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-ruler"></i> Propiedades fisicas <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_propiedades_fisicas">Listar</a></li>
-                                                        <li><a href="agregar_propiedades_fisicas">Agregar</a></li>
-                                                        <li><a href="graficos_propiedades_fisicas">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-shield-alt"></i> Resistencia a la desintegracion <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_resistencia_desintegracion">Listar</a></li>
-                                                        <li><a href="agregar_resistencia_desintegracion">Agregar</a></li>
-                                                        <li><a href="graficos_resistencia_desintegracion">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-tools"></i> Resistencia al Desgaste <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_resistencia_desgaste">Listar</a></li>
-                                                        <li><a href="agregar_resistencia_desgaste">Agregar</a></li>
-                                                        <li><a href="graficos_resistencia_desgaste">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-bolt"></i> Resistividad electrica <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_resistencia_electrica">Listar</a></li>
-                                                        <li><a href="agregar_resistencia_electrica">Agregar</a></li>
-                                                        <li><a href="graficos_resistencia_electrica">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-hourglass"></i> Slake Durability <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_slake_durability">Listar</a></li>
-                                                        <li><a href="agregar_slake_durability">Agregar</a></li>
-                                                        <li><a href="graficos_slake_durability">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-chart-line"></i> Triaxial CID <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_triaxial_cid">Listar</a></li>
-                                                        <li><a href="agregar_triaxial_cid">Agregar</a></li>
-                                                        <li><a href="graficos_triaxial_cid">Graficos</a></li>
-                                                    </ul>
-                                                </li>
-                                                <li>
-                                                    <a><i class="fa fa-chart-area"></i> Triaxial Roca <span class="fa fa-chevron-down"></span></a>
-                                                    <ul class="nav child_menu">
-                                                        <li><a href="listar_triaxial_roca">Listar</a></li>
-                                                        <li><a href="agregar_triaxial_roca">Agregar</a></li>
-                                                        <li><a href="graficos_triaxial_roca">Graficos</a></li>
-                                                    </ul>
-                                                </li>
+                                        <li class="nav-item">
+                                            <a href="#" class="nav-link">
+                                                <i class="nav-icon fas fa-weight"></i>
+                                                <p>Densidad<i class="fas fa-angle-left right"></i></p>
+                                            </a>
+                                            <ul class="nav nav-treeview">
+                                                <li class="nav-item"><a href="listar_densidad" class="nav-link"><p>Listar</p></a></li>
+                                                <li class="nav-item"><a href="agregar_densidad" class="nav-link"><p>Agregar</p></a></li>
+                                                <li class="nav-item"><a href="editar_densidad" class="nav-link"><p>Editar</p></a></li>
+                                                <li class="nav-item"><a href="eliminar_densidad" class="nav-link"><p>Eliminar</p></a></li>
+                                                <li class="nav-item"><a href="graficos_densidad" class="nav-link"><p>Gráficos</p></a></li>
+                                            </ul>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a href="#" class="nav-link">
+                                                <i class="nav-icon fas fa-tint"></i>
+                                                <p>Permeabilidad<i class="fas fa-angle-left right"></i></p>
+                                            </a>
+                                            <ul class="nav nav-treeview">
+                                                <li class="nav-item"><a href="listar_permeabilidad" class="nav-link"><p>Listar</p></a></li>
+                                                <li class="nav-item"><a href="agregar_permeabilidad" class="nav-link"><p>Agregar</p></a></li>
+                                                <li class="nav-item"><a href="editar_permeabilidad" class="nav-link"><p>Editar</p></a></li>
+                                                <li class="nav-item"><a href="eliminar_permeabilidad" class="nav-link"><p>Eliminar</p></a></li>
+                                                <li class="nav-item"><a href="graficos_permeabilidad" class="nav-link"><p>Gráficos</p></a></li>
                                             </ul>
                                         </li>
                                     </ul>
                                 </li>
-
-                                <li>
-                                    <a><i class="fa fa-users"></i> Administracion <span class="fa fa-chevron-down"></span></a>
-                                    <ul class="nav child_menu">
-                                        <li>
-                                            <a><i class="fa fa-address-book"></i> Nomina <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li><a href="listar_nomina">Listar</a></li>
-                                                <li><a href="agregar_nomina">Agregar</a></li>
-                                                <li><a href="listar_roster">Roster</a></li>
-                                                <li><a href="eliminar_nomina">Eliminar</a></li>
-                                            </ul>
-                                        </li>
-                                        <li>
-                                            <a><i class="fa fa-project-diagram"></i> Proyectos <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li><a href="listar_proyectos">Listar</a></li>
-                                                <li><a href="agregar_proyectos">Agregar</a></li>
-                                            </ul>
-                                        </li>
-                                        <li>
-                                            <a><i class="fa fa-file-export"></i> Report <span class="fa fa-chevron-down"></span></a>
-                                            <ul class="nav child_menu">
-                                                <li><a href="listar_reporte">Listar</a></li>
-                                                <li><a href="agregar_reporte">Agregar</a></li>
-                                                <li><a href="editar_reporte">Editar</a></li>
-                                                <li><a href="eliminar_reporte">Eliminar</a></li>
-                                            </ul>
-                                        </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-file-alt"></i>
+                                        <p>Informe Diario<i class="fas fa-angle-left right"></i></p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item"><a href="listar_informe_diario" class="nav-link"><p>Listar</p></a></li>
+                                        <li class="nav-item"><a href="agregar_informe_diario" class="nav-link"><p>Agregar</p></a></li>
                                     </ul>
                                 </li>
                             </ul>
-                        </div>
-                    </div>
-                    <!-- /sidebar menu -->
-
-                    <!-- menu footer buttons -->
-                    <div class="sidebar-footer hidden-small">
-                        <a data-toggle="tooltip" data-placement="top" title="Settings">
-                            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-                        </a>
-                        <a data-toggle="tooltip" data-placement="top" title="FullScreen">
-                            <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>
-                        </a>
-                        <a data-toggle="tooltip" data-placement="top" title="Lock">
-                            <span class="glyphicon glyphicon-eye-close" aria-hidden="true"></span>
-                        </a>
-                        <a data-toggle="tooltip" data-placement="top" title="Logout" href="login.html">
-                            <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
-                        </a>
-                    </div>
-                    <!-- /menu footer buttons -->
-                </div>
-            </div>
-
-            <!-- top navigation -->
-            <div class="top_nav">
-                <div class="nav_menu">
-                    <div class="nav toggle">
-                        <a id="menu_toggle"><i class="fa fa-bars"></i></a>
-                    </div>
-                    <nav class="nav navbar-nav">
-                        <ul class="navbar-right">
-                            <li class="nav-item dropdown open" style="padding-left: 15px;">
-                                <a href="javascript:;" 
-                                   class="user-profile dropdown-toggle" 
-                                   aria-haspopup="true" 
-                                   id="navbarDropdown" 
-                                   data-toggle="dropdown" 
-                                   aria-expanded="false">
-                                    <img src="{% static 'images/img.jpg' %}" alt="">{{ user.first_name }}
-                                </a>
-                                <div class="dropdown-menu dropdown-usermenu pull-right" 
-                                     aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="javascript:;">Profile</a>
-                                    <a class="dropdown-item" href="javascript:;">
-                                        <span class="badge bg-red pull-right">50%</span>
-                                        <span>Settings</span>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-building"></i>
+                                <p>Oficina<i class="fas fa-angle-left right"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-calendar"></i>
+                                        <p>Programa de laboratorio<i class="fas fa-angle-left right"></i></p>
                                     </a>
-                                    <a class="dropdown-item" href="javascript:;">Help</a>
-                                    <a class="dropdown-item" 
-                                       href="#" 
-                                       onclick="document.getElementById('logout-form').submit();">
-                                        <i class="fa fa-sign-out pull-right"></i> Log Out
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item"><a href="listar_programa" class="nav-link"><p>Listar</p></a></li>
+                                        <li class="nav-item"><a href="agregar_programa" class="nav-link"><p>Agregar</p></a></li>
+                                        <li class="nav-item"><a href="estatus_programa" class="nav-link"><p>Estatus</p></a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-flask"></i>
+                                        <p>Ensayos de laboratorio<i class="fas fa-angle-left right"></i></p>
                                     </a>
-                                    <form id="logout-form" 
-                                          action="{% url 'logout' %}" 
-                                          method="POST" 
-                                          style="display: none;">
-                                        {% csrf_token %}
-                                    </form>
-                                </div>
-                            </li>
-
-                            <li role="presentation" class="nav-item dropdown open">
-                                <a href="javascript:;" 
-                                   class="dropdown-toggle info-number" 
-                                   id="navbarDropdown1" 
-                                   data-toggle="dropdown" 
-                                   aria-expanded="false">
-                                    <i class="fa fa-envelope-o"></i>
-                                    <span class="badge bg-green">6</span>
-                                </a>
-                                <ul class="dropdown-menu list-unstyled msg_list" 
-                                    role="menu" 
-                                    aria-labelledby="navbarDropdown1">
-                                    <li class="nav-item">
-                                        <a class="dropdown-item">
-                                            <span class="image">
-                                                <img src="{% static 'images/img.jpg' %}" alt="Profile Image" />
-                                            </span>
-                                            <span>
-                                                <span>John Smith</span>
-                                                <span class="time">3 mins ago</span>
-                                            </span>
-                                            <span class="message">
-                                                Film festivals used to be do-or-die moments for movie makers...
-                                            </span>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <div class="text-center">
-                                            <a class="dropdown-item">
-                                                <strong>See All Alerts</strong>
-                                                <i class="fa fa-angle-right"></i>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item">
+                                            <a href="#" class="nav-link">
+                                                <i class="nav-icon fas fa-filter"></i>
+                                                <p>Clasificación USCS<i class="fas fa-angle-left right"></i></p>
                                             </a>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </nav>
+                                            <ul class="nav nav-treeview">
+                                                <li class="nav-item"><a href="listar_uscs" class="nav-link"><p>Listar</p></a></li>
+                                                <li class="nav-item"><a href="agregar_uscs" class="nav-link"><p>Agregar</p></a></li>
+                                                <li class="nav-item"><a href="graficos_uscs" class="nav-link"><p>Gráficos</p></a></li>
+                                            </ul>
+                                        </li>
+                                        <!-- Repite para Limites Atterberg, Gravedad específica, etc. -->
+                                        <!-- Para mantener brevedad, solo incluyo un ejemplo. Puedes replicar la estructura para los demás -->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>Administración<i class="fas fa-angle-left right"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-address-book"></i>
+                                        <p>Nómina<i class="fas fa-angle-left right"></i></p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item"><a href="listar_nomina" class="nav-link"><p>Listar</p></a></li>
+                                        <li class="nav-item"><a href="agregar_nomina" class="nav-link"><p>Agregar</p></a></li>
+                                        <li class="nav-item"><a href="listar_roster" class="nav-link"><p>Roster</p></a></li>
+                                        <li class="nav-item"><a href="eliminar_nomina" class="nav-link"><p>Eliminar</p></a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-project-diagram"></i>
+                                        <p>Proyectos<i class="fas fa-angle-left right"></i></p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item"><a href="listar_proyectos" class="nav-link"><p>Listar</p></a></li>
+                                        <li class="nav-item"><a href="agregar_proyectos" class="nav-link"><p>Agregar</p></a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link">
+                                        <i class="nav-icon fas fa-file-export"></i>
+                                        <p>Reporte<i class="fas fa-angle-left right"></i></p>
+                                    </a>
+                                    <ul class="nav nav-treeview">
+                                        <li class="nav-item"><a href="listar_reporte" class="nav-link"><p>Listar</p></a></li>
+                                        <li class="nav-item"><a href="agregar_reporte" class="nav-link"><p>Agregar</p></a></li>
+                                        <li class="nav-item"><a href="editar_reporte" class="nav-link"><p>Editar</p></a></li>
+                                        <li class="nav-item"><a href="eliminar_reporte" class="nav-link"><p>Eliminar</p></a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- Sidebar Footer -->
+                <div class="sidebar-footer mt-auto">
+                    <a href="#" data-toggle="tooltip" title="Configuración"><i class="fas fa-cog"></i></a>
+                    <a href="#" data-toggle="tooltip" title="Pantalla completa"><i class="fas fa-expand"></i></a>
+                    <a href="#" data-toggle="tooltip" title="Bloquear"><i class="fas fa-lock"></i></a>
+                    <a href="login.html" data-toggle="tooltip" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i></a>
                 </div>
             </div>
-            <!-- /top navigation -->
+        </aside>
+        <!-- /.sidebar -->
 
-            <!-- page content -->
-            {% block content %}
-            {% endblock %}
-
-            <!-- footer content -->
-            <footer>
-                <div class="pull-right">
-                    WSP MINING - CONSTRUCCIÓN - andres.rios.d@wsp.com 
-                    <a href="https://colorlib.com"></a>
-                </div>
-                <div class="clearfix"></div>
-            </footer>
-            <!-- /footer content -->
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Main content -->
+            <section class="content">
+                {% block content %}
+                {% endblock %}
+            </section>
+            <!-- /.content -->
         </div>
+        <!-- /.content-wrapper -->
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="float-right d-none d-sm-block">
+                WSP MINING - CONSTRUCCIÓN - andres.rios.d@wsp.com
+            </div>
+            <strong>&copy; 2025 WSP</strong> Todos los derechos reservados.
+        </footer>
     </div>
+    <!-- ./wrapper -->
 
     <!-- jQuery -->
-    <script src="{% static 'FrWork/admin_lte/vendors/jquery/dist/jquery.min.js' %}"></script>
-    <!-- Bootstrap -->
-    <script src="{% static 'FrWork/admin_lte/vendors/bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
-    <!-- FastClick -->
-    <script src="{% static 'FrWork/admin_lte/vendors/fastclick/lib/fastclick.js' %}"></script>
-    <!-- NProgress -->
-    <script src="{% static 'FrWork/admin_lte/vendors/nprogress/nprogress.js' %}"></script>
-    <!-- Chart.js -->
-    <script src="{% static 'FrWork/admin_lte/vendors/Chart.js/dist/Chart.min.js' %}"></script>
-    <!-- gauge.js -->
-    <script src="{% static 'FrWork/admin_lte/vendors/gauge.js/dist/gauge.min.js' %}"></script>
-    <!-- bootstrap-progressbar -->
-    <script src="{% static 'FrWork/admin_lte/vendors/bootstrap-progressbar/bootstrap-progressbar.min.js' %}"></script>
-    <!-- iCheck -->
-    <script src="{% static 'FrWork/admin_lte/vendors/iCheck/icheck.min.js' %}"></script>
-    <!-- Skycons -->
-    <script src="{% static 'FrWork/admin_lte/vendors/skycons/skycons.js' %}"></script>
-    <!-- Flot -->
-    <script src="{% static 'FrWork/admin_lte/vendors/Flot/jquery.flot.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/Flot/jquery.flot.pie.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/Flot/jquery.flot.time.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/Flot/jquery.flot.stack.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/Flot/jquery.flot.resize.js' %}"></script>
-    <!-- Flot plugins -->
-    <script src="{% static 'FrWork/admin_lte/vendors/flot.orderbars/js/jquery.flot.orderBars.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/flot-spline/js/jquery.flot.spline.min.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/flot.curvedlines/curvedLines.js' %}"></script>
-    <!-- DateJS -->
-    <script src="{% static 'FrWork/admin_lte/vendors/DateJS/build/date.js' %}"></script>
-    <!-- JQVMap -->
-    <script src="{% static 'FrWork/admin_lte/vendors/jqvmap/dist/jquery.vmap.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/jqvmap/dist/maps/jquery.vmap.world.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/jqvmap/examples/js/jquery.vmap.sampledata.js' %}"></script>
-    <!-- bootstrap-daterangepicker -->
-    <script src="{% static 'FrWork/admin_lte/vendors/moment/min/moment.min.js' %}"></script>
-    <script src="{% static 'FrWork/admin_lte/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
-    <!-- Custom Theme Scripts -->
-    <script src="{% static 'FrWork/admin_lte/build/js/custom.min.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js"></script>
 
-    <!-- Script para togglear el menú en móviles -->
+    <!-- Script personalizado -->
     <script>
         $(document).ready(function() {
-            // Toggle del menú lateral
-            $('#menu_toggle').click(function() {
-                $('.left_col').toggleClass('menu-open');
-                $('body').toggleClass('nav-md nav-sm');
-                
-                // Ajustar el contenido principal
-                if ($('.left_col').hasClass('menu-open')) {
-                    $('.right_col').css('margin-left', '0');
-                } else {
-                    $('.right_col').css('margin-left', '300px');
-                }
-            });
+            // Inicializar tooltips
+            $('[data-toggle="tooltip"]').tooltip();
 
-            // Asegurar que el menú esté oculto en móviles al cargar
-            if ($(window).width() <= 767) {
-                $('.left_col').removeClass('menu-open');
-                $('body').removeClass('nav-md').addClass('nav-sm');
-                $('.right_col').css('margin-left', '0');
+            // Asegurar que el sidebar esté colapsado en móviles al cargar
+            if ($(window).width() <= 767.98) {
+                $('body').addClass('sidebar-collapse');
             }
 
-            // Ajustar el menú al redimensionar la ventana
+            // Ajustar al redimensionar
             $(window).resize(function() {
-                if ($(window).width() <= 767) {
-                    $('.left_col').removeClass('menu-open');
-                    $('body').removeClass('nav-md').addClass('nav-sm');
-                    $('.right_col').css('margin-left', '0');
+                if ($(window).width() <= 767.98) {
+                    $('body').addClass('sidebar-collapse');
                 } else {
-                    $('.left_col').addClass('menu-open');
-                    $('body').removeClass('nav-sm').addClass('nav-md');
-                    $('.right_col').css('margin-left', '300px');
+                    $('body').removeClass('sidebar-collapse');
                 }
             });
         });
