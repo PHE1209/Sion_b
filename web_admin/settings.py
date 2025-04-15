@@ -252,10 +252,6 @@ WHITENOISE_MANIFEST_STRICT = False
 # Cambia el storage de Whitenoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'  # En lugar de CompressedManifest...
 
-# Añade estas configuraciones
-
-
-
 
 # ===== Archivos Multimedia =====
 MEDIA_URL = '/media/'
