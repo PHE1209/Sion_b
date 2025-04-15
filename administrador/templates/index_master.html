@@ -13,7 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- PPNeueMontreal-Bold (debes incluirla localmente o desde un CDN) -->
+    <!-- PPNeueMontreal (para títulos en páginas internas) -->
     <style>
         @font-face {
             font-family: 'PPNeueMontreal';
@@ -35,7 +35,7 @@
     <style>
         body {
             font-family: 'PPNeueMontreal', sans-serif;
-            background-color: #ffffff; /* Fondo blanco para coherencia */
+            background-color: #ffffff;
         }
         /* Navbar */
         .main-header {
@@ -44,12 +44,11 @@
         }
         .main-header .nav-link {
             color: #ffffff !important; /* Texto blanco */
-            font-size: 32px; /* Tamaño para títulos */
-            font-weight: bold; /* PPNeueMontreal-Bold */
-            text-transform: uppercase; /* Para énfasis */
+            font-size: 16px; /* Tamaño original */
+            font-weight: normal;
         }
         .main-header .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1); /* Hover sutil */
+            background: rgba(255, 255, 255, 0.1);
         }
         .main-header .nav-icon {
             color: #ffffff; /* Íconos blancos */
@@ -63,16 +62,16 @@
             padding-bottom: 10px;
         }
         .brand-link {
-            background-color: #000000; /* Negro */
-            color: #ffffff !important; /* Texto blanco */
-            font-size: 32px;
-            font-weight: bold;
+            background-color: #000000;
+            color: #ffffff !important;
+            font-size: 18px; /* Tamaño original */
+            font-weight: normal;
             border-bottom: 1px solid #ffffff;
         }
         .nav-link {
             color: #ffffff !important; /* Texto blanco */
-            font-size: 16px; /* Submenús más pequeños */
-            font-weight: normal; /* Sin negritas para menos carga */
+            font-size: 16px; /* Tamaño original */
+            font-weight: normal; /* Sin negritas */
             border-radius: 5px;
             margin: 3px 5px;
             transition: background 0.2s;
@@ -83,17 +82,16 @@
         .nav-icon {
             color: #ffffff !important; /* Íconos blancos */
         }
-        /* Estilo para botones "Agregar" */
+        /* Botones "Agregar" en el menú */
         .nav-treeview .nav-link.agregar {
-            background-color: #000000; /* Negro, igual que botones Agregar */
-            color: #ffffff !important; /* Texto blanco */
+            background-color: #007bff; /* Azul, como Agregar Proyecto */
+            color: #ffffff !important;
             padding: 5px 10px;
             margin: 2px 10px;
             border-radius: 3px;
-            border: 1px solid #ffffff; /* Borde blanco para destacar */
         }
         .nav-treeview .nav-link.agregar:hover {
-            background-color: rgba(255, 255, 255, 0.2); /* Hover sutil */
+            background-color: #0056b3; /* Azul más oscuro para hover */
         }
         /* Submenús */
         .nav-treeview .nav-link {
@@ -123,7 +121,7 @@
         }
         /* Footer del sidebar */
         .sidebar-footer {
-            background: #000000; /* Negro */
+            background: #000000;
             padding: 10px;
             border-top: 1px solid #ffffff;
         }
@@ -161,7 +159,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
                         <img src="{% static 'images/img.jpg' %}" alt="User Avatar" class="img-circle elevation-1" style="width: 25px; height: 25px;">
-                        <span style="font-size: 16px; font-weight: normal;">{{ user.first_name }}</span>
+                        <span>{{ user.first_name }}</span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right">
                         <a href="#" class="dropdown-item">Perfil</a>
@@ -211,7 +209,7 @@
                         <img src="{% static 'FrWork/admin_lte/build/images/WSP.png' %}" class="img-circle elevation-2" alt="User Image" style="width: 40px; height: 40px;">
                     </div>
                     <div class="info">
-                        <a href="#" class="d-block" style="font-size: 16px; font-weight: normal;">Bienvenido, {{ user.first_name }} {{ user.last_name }}</a>
+                        <a href="#" class="d-block">Bienvenido, {{ user.first_name }} {{ user.last_name }}</a>
                     </div>
                 </div>
                 <nav class="mt-2">
@@ -563,7 +561,7 @@
                                             <ul class="nav nav-treeview">
                                                 <li class="nav-item"><a href="listar_resistencia_desgaste" class="nav-link"><p>Listar</p></a></li>
                                                 <li class="nav-item"><a href="agregar_resistencia_desgaste" class="nav-link agregar"><p>Agregar</p></a></li>
-                                                <li class="nav-item"><a href="graficos_resistencia_desgaste" class="nav-link"><p>Gráficos</p></a></li>
+                                                <ívar class="nav-item"><a href="graficos_resistencia_desgaste" class="nav-link"><p>Gráficos</p></a></li>
                                             </ul>
                                         </li>
                                         <li class="nav-item">
