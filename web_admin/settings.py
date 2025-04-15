@@ -137,34 +137,50 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# ===== Detección de Entorno =====
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'railway')  # Default: railway
+
+# ===== Configuración Base =====
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# ===== Configuración Básica =====
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = [
-    'sionb-production.up.railway.app',
-    'sion_b.railway.internal',
-    '.railway.app',
-    'localhost',
-    '127.0.0.1'
-]
-
-# ===== Configuración de Base de Datos =====
-# Configuración compatible con todas versiones de dj-database-url
-db_config = dj_database_url.parse(os.getenv('DATABASE_URL'), conn_max_age=600)
-
-if db_config['ENGINE'] == 'django.db.backends.mysql':
-    db_config.update({
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            **({'ssl': {'ca': os.getenv('MYSQL_SSL_CA')}} if os.getenv('MYSQL_SSL_CA') else {})
+# ===== Base de Datos =====
+if ENVIRONMENT == 'local':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT'),
         }
-    })
+    }
+    DEBUG = True
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']  # Añadí 0.0.0.0
+else:
+    # Configuración original de Railway
+    db_config = dj_database_url.parse(os.getenv('DATABASE_URL'), conn_max_age=600)
+    if db_config['ENGINE'] == 'django.db.backends.mysql':
+        db_config.update({
+            'OPTIONS': {
+                'charset': 'utf8mb4',
+                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+                **({'ssl': {'ca': os.getenv('MYSQL_SSL_CA')}} if os.getenv('MYSQL_SSL_CA') else {})
+            }
+        })
+    DATABASES = {'default': db_config}
+    DEBUG = os.getenv('DEBUG', 'False') == 'True'
+    ALLOWED_HOSTS = [
+        'sionb-production.up.railway.app',
+        'sion_b.railway.internal',
+        '.railway.app',
+        'localhost',
+        '127.0.0.1'
+    ]
 
-DATABASES = {'default': db_config}
+# ===== Resto de tu configuración (SE MANTIENE IGUAL) =====
+# [Todo lo demás permanece exactamente igual]
 
 # ===== Configuración de Seguridad =====
 CSRF_TRUSTED_ORIGINS = [
