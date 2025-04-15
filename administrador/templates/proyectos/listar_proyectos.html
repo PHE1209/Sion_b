@@ -11,7 +11,7 @@
     </form>
 
     <div class="mb-3">
-        <a href="{% url 'agregar_proyectos' %}" class="btn btn-success"><i class="fa fa-plus"></i> Agregar Proyecto</a>
+        <a href="{% url 'agregar_proyectos' %}" class="btn btn-secondary"><i class="fa fa-plus"></i> Agregar Proyecto</a>
         <form action="{% url 'export_to_excel_proyectos' %}" method="get" style="display:inline;">
             <input type="hidden" name="q" value="{{ query }}">
             <button type="submit" class="btn btn-info"><i class="fa fa-file-excel-o"></i> Exportar a Excel</button>
@@ -88,8 +88,6 @@
 </div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-
 
 <style>
 .editable-cell { cursor: pointer; transition: background-color 0.3s; }

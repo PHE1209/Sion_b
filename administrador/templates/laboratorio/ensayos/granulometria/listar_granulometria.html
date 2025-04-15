@@ -10,7 +10,7 @@
     </form>
 
     <div class="mb-3">
-        <a href="{% url 'agregar_granulometria' %}" class="btn btn-success">
+        <a href="{% url 'agregar_granulometria' %}" class="btn btn-secondary">
             <i class="fa fa-plus"></i> Agregar Granulometría
         </a>
         <form id="exportExcelForm" action="{% url 'export_to_excel_granulometria' %}" method="get" style="display:inline;">
@@ -128,7 +128,7 @@ $(document).ready(function() {
     $('#searchForm').on('submit', function(e) {
         e.preventDefault();
         var query = $('#searchInput').val();
-        window.location.href = "{% url 'listar_granulometria' %}?q=" + encodeURIComponent(query);
+        window.location.href Among others, we find the following: "{% url 'listar_granulometria' %}?q=" + encodeURIComponent(query);
     });
 });
 </script>
