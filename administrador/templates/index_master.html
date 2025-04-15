@@ -30,17 +30,74 @@
 
     <!-- Estilos personalizados -->
     <style>
+        /* Contenedor principal */
+        .main_container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Barra lateral */
         .left_col {
-            width: 300px; /* Aumentamos el ancho de la barra lateral */
+            width: 300px;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            background: #2A3F54; /* Color de fondo de AdminLTE */
+            z-index: 1000;
+            transition: all 0.3s ease;
+            overflow-y: auto; /* Permitir scroll en móviles */
         }
+
+        /* Contenido principal */
+        .right_col {
+            margin-left: 300px;
+            transition: all 0.3s ease;
+        }
+
+        /* Ajustes para pantallas pequeñas */
+        @media (max-width: 767px) {
+            .left_col {
+                width: 250px;
+                left: -250px; /* Oculta el menú por defecto */
+            }
+
+            .left_col.menu-open {
+                left: 0; /* Muestra el menú cuando está abierto */
+            }
+
+            .right_col {
+                margin-left: 0; /* Sin margen cuando el menú está oculto */
+            }
+
+            .main_container {
+                overflow: visible;
+            }
+        }
+
+        /* Menú lateral */
+        .main_menu_side {
+            height: auto;
+            overflow-y: auto;
+        }
+
         .main_menu_side .nav.side-menu > li > a {
-            padding: 10px 15px; /* Más espacio interno para los ítems principales */
+            padding: 10px 15px;
         }
+
         .main_menu_side .nav.child_menu > li > a {
-            padding: 8px 20px 8px 40px; /* Más margen izquierdo para submenús */
+            padding: 8px 20px 8px 40px;
         }
+
         .main_menu_side .nav.child_menu .nav.child_menu > li > a {
-            padding-left: 20px; /* Más indentación para submenús de tercer nivel */
+            padding-left: 60px; /* Más indentación para submenús de tercer nivel */
+        }
+
+        /* Ajustar el footer del sidebar */
+        .sidebar-footer {
+            position: sticky;
+            bottom: 0;
+            background: #2A3F54;
         }
     </style>
 </head>
@@ -562,5 +619,43 @@
     <script src="{% static 'FrWork/admin_lte/vendors/bootstrap-daterangepicker/daterangepicker.js' %}"></script>
     <!-- Custom Theme Scripts -->
     <script src="{% static 'FrWork/admin_lte/build/js/custom.min.js' %}"></script>
+
+    <!-- Script para togglear el menú en móviles -->
+    <script>
+        $(document).ready(function() {
+            // Toggle del menú lateral
+            $('#menu_toggle').click(function() {
+                $('.left_col').toggleClass('menu-open');
+                $('body').toggleClass('nav-md nav-sm');
+                
+                // Ajustar el contenido principal
+                if ($('.left_col').hasClass('menu-open')) {
+                    $('.right_col').css('margin-left', '0');
+                } else {
+                    $('.right_col').css('margin-left', '300px');
+                }
+            });
+
+            // Asegurar que el menú esté oculto en móviles al cargar
+            if ($(window).width() <= 767) {
+                $('.left_col').removeClass('menu-open');
+                $('body').removeClass('nav-md').addClass('nav-sm');
+                $('.right_col').css('margin-left', '0');
+            }
+
+            // Ajustar el menú al redimensionar la ventana
+            $(window).resize(function() {
+                if ($(window).width() <= 767) {
+                    $('.left_col').removeClass('menu-open');
+                    $('body').removeClass('nav-md').addClass('nav-sm');
+                    $('.right_col').css('margin-left', '0');
+                } else {
+                    $('.left_col').addClass('menu-open');
+                    $('body').removeClass('nav-sm').addClass('nav-md');
+                    $('.right_col').css('margin-left', '300px');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
