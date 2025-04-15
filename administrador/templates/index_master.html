@@ -13,52 +13,87 @@
     <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Google Fonts (Roboto para un look moderno) -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <!-- PPNeueMontreal-Bold (debes incluirla localmente o desde un CDN) -->
+    <style>
+        @font-face {
+            font-family: 'PPNeueMontreal';
+            src: url('{% static "fonts/PPNeueMontreal-Bold.woff2" %}') format('woff2'),
+                 url('{% static "fonts/PPNeueMontreal-Bold.woff" %}') format('woff');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'PPNeueMontreal';
+            src: url('{% static "fonts/PPNeueMontreal-Regular.woff2" %}') format('woff2'),
+                 url('{% static "fonts/PPNeueMontreal-Regular.woff" %}') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+    </style>
 
     <!-- Estilos personalizados -->
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'PPNeueMontreal', sans-serif;
+            background-color: #ffffff; /* Fondo blanco para coherencia */
         }
         /* Navbar */
         .main-header {
-            background-color: #cc2126; /* Rojo #1 */
-            border-bottom: 1px solid #a81b1f; /* Tono más oscuro para borde */
+            background-color: #000000; /* Negro */
+            border-bottom: 1px solid #000000;
         }
         .main-header .nav-link {
-            color: #ffffff !important; /* Texto blanco para contraste */
-            font-weight: 400; /* Sin negritas */
+            color: #ffffff !important; /* Texto blanco */
+            font-size: 32px; /* Tamaño para títulos */
+            font-weight: bold; /* PPNeueMontreal-Bold */
+            text-transform: uppercase; /* Para énfasis */
         }
         .main-header .nav-link:hover {
-            background: #a81b1f; /* Tono más oscuro para hover */
+            background: rgba(255, 255, 255, 0.1); /* Hover sutil */
         }
-        /* Ajustes para sidebar */
+        .main-header .nav-icon {
+            color: #ffffff; /* Íconos blancos */
+        }
+        /* Sidebar */
         .main-sidebar {
+            background-color: #000000; /* Negro */
             transition: all 0.3s ease;
         }
         .sidebar {
             padding-bottom: 10px;
         }
+        .brand-link {
+            background-color: #000000; /* Negro */
+            color: #ffffff !important; /* Texto blanco */
+            font-size: 32px;
+            font-weight: bold;
+            border-bottom: 1px solid #ffffff;
+        }
         .nav-link {
+            color: #ffffff !important; /* Texto blanco */
+            font-size: 16px; /* Submenús más pequeños */
+            font-weight: normal; /* Sin negritas para menos carga */
             border-radius: 5px;
             margin: 3px 5px;
             transition: background 0.2s;
-            font-weight: 300; /* Letras más ligeras, sin negritas */
         }
         .nav-link:hover {
             background: rgba(255, 255, 255, 0.1);
         }
-        /* Estilo para botones "Agregar" en el menú */
+        .nav-icon {
+            color: #ffffff !important; /* Íconos blancos */
+        }
+        /* Estilo para botones "Agregar" */
         .nav-treeview .nav-link.agregar {
-            background-color: #cc2126; /* Rojo #1, como botones Agregar */
+            background-color: #000000; /* Negro, igual que botones Agregar */
             color: #ffffff !important; /* Texto blanco */
             padding: 5px 10px;
             margin: 2px 10px;
             border-radius: 3px;
+            border: 1px solid #ffffff; /* Borde blanco para destacar */
         }
         .nav-treeview .nav-link.agregar:hover {
-            background-color: #a81b1f; /* Tono más oscuro para hover */
+            background-color: rgba(255, 255, 255, 0.2); /* Hover sutil */
         }
         /* Submenús */
         .nav-treeview .nav-link {
@@ -88,18 +123,27 @@
         }
         /* Footer del sidebar */
         .sidebar-footer {
-            background: #1a252f;
+            background: #000000; /* Negro */
             padding: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid #ffffff;
         }
         .sidebar-footer a {
-            color: #b8c7ce;
+            color: #ffffff;
             padding: 8px;
-            font-size: 1.1rem;
-            font-weight: 400; /* Sin negritas */
+            font-size: 16px;
+            font-weight: normal;
         }
         .sidebar-footer a:hover {
-            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        /* Footer principal */
+        .main-footer {
+            background-color: #ffffff;
+            color: #000000;
+            border-top: 1px solid #000000;
+        }
+        .main-footer a {
+            color: #000000;
         }
     </style>
 </head>
@@ -117,7 +161,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
                         <img src="{% static 'images/img.jpg' %}" alt="User Avatar" class="img-circle elevation-1" style="width: 25px; height: 25px;">
-                        {{ user.first_name }}
+                        <span style="font-size: 16px; font-weight: normal;">{{ user.first_name }}</span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right">
                         <a href="#" class="dropdown-item">Perfil</a>
@@ -159,7 +203,7 @@
         <!-- Sidebar -->
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <a href="index" class="brand-link">
-                <span class="brand-text font-weight-light">Gestor de campañas</span>
+                <span class="brand-text">Gestor de campañas</span>
             </a>
             <div class="sidebar">
                 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
@@ -167,7 +211,7 @@
                         <img src="{% static 'FrWork/admin_lte/build/images/WSP.png' %}" class="img-circle elevation-2" alt="User Image" style="width: 40px; height: 40px;">
                     </div>
                     <div class="info">
-                        <a href="#" class="d-block">Bienvenido, {{ user.first_name }} {{ user.last_name }}</a>
+                        <a href="#" class="d-block" style="font-size: 16px; font-weight: normal;">Bienvenido, {{ user.first_name }} {{ user.last_name }}</a>
                     </div>
                 </div>
                 <nav class="mt-2">
