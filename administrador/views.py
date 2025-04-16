@@ -7150,3 +7150,534 @@ from django.shortcuts import render
 
 def docs_view(request):
     return render(request, 'docs.html')  # Renderiza un archivo HTML llamado "docs.html"
+
+
+
+#####
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+from io import BytesIO
+import base64
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse, HttpResponse
+from administrador.models import densidad_insitu, Proyectos, Prospecciones
+from .forms import DensidadInsituForm
+import json
+import random
+from django.core.paginator import Paginator
+from django.db.models import Q
+import openpyxl
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
+# Funciones de gráficos por área
+def generar_grafico_densidad_area(df):
+    areas_unicas = df['area'].unique()
+    colores = {area: (random.random(), random.random(), random.random()) for area in areas_unicas}
+    fig, ax = plt.subplots()
+    
+    for area in areas_unicas:
+        datos_area = df[df['area'] == area]
+        ax.scatter(
+            datos_area['densidad_natural_del_suelo'],
+            datos_area['profundidad_promedio'],
+            color=colores[area],
+            s=100,
+            label=area,
+            marker='s'
+        )
+    
+    ax.xaxis.set_ticks_position("top")
+    ax.xaxis.set_label_position("top")
+    ax.invert_yaxis()
+    ax.set_xlabel("Densidad Natural del Suelo (g/cm³)")
+    ax.set_ylabel("Profundidad (m)")
+    ax.grid(True)
+    plt.subplots_adjust(right=0.75)
+    num_columns = (len(areas_unicas) + 24) // 25
+    legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
+    plt.title("GRÁFICO AGRUPADO POR ÁREA (DISPERSIÓN)", pad=30)
+    
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png', dpi=100, bbox_inches='tight', bbox_extra_artists=[legend])
+    buffer.seek(0)
+    plt.close()
+    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return image_base64
+
+# Funciones de gráficos por prospección
+def generar_grafico_densidad_prospeccion(df):
+    df['id_prospeccion'] = df['id_prospeccion'].astype(str)
+    df['id_prospeccion_unico'] = df.groupby('id_prospeccion').cumcount() + 1
+    df['etiqueta'] = df['id_prospeccion'] + '-' + df['id_prospeccion_unico'].astype(str)
+    prospecciones_unicas = df['etiqueta'].unique()
+    colores = {prospeccion: (random.random(), random.random(), random.random()) for prospeccion in prospecciones_unicas}
+    
+    fig, ax = plt.subplots()
+    
+    for prospeccion in prospecciones_unicas:
+        datos_prospeccion = df[df['etiqueta'] == prospeccion]
+        ax.scatter(
+            datos_prospeccion['densidad_natural_del_suelo'],
+            datos_prospeccion['profundidad_promedio'],
+            color=colores[prospeccion],
+            s=100,
+            label=prospeccion,
+            marker='s'
+        )
+    
+    ax.xaxis.set_ticks_position("top")
+    ax.xaxis.set_label_position("top")
+    ax.invert_yaxis()
+    ax.set_xlabel("Densidad Natural del Suelo (g/cm³)")
+    ax.set_ylabel("Profundidad (m)")
+    ax.grid(True)
+    plt.subplots_adjust(right=0.75)
+    num_columns = (len(prospecciones_unicas) + 24) // 25
+    legend = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), ncol=num_columns)
+    plt.title("GRÁFICO AGRUPADO POR PROSPECCIÓN (DISPERSIÓN)", pad=30)
+    
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png', dpi=100, bbox_inches='tight', bbox_extra_artists=[legend])
+    buffer.seek(0)
+    plt.close()
+    image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return image_base64
+
+# Vista principal para gráficos de Densidad Insitu
+@login_required
+def graficos_densidad_insitu(request):
+    id_proyectos = request.GET.getlist('id_proyectos')
+    tipos_prospeccion = request.GET.getlist('tipos_prospeccion')
+    areas = request.GET.getlist('areas')
+    id_prospecciones = request.GET.getlist('id_prospecciones')
+
+    query = densidad_insitu.objects.all()
+    if id_proyectos:
+        query = query.filter(id_proyecto__in=id_proyectos)
+    if tipos_prospeccion:
+        query = query.filter(tipo_prospeccion__in=tipos_prospeccion)
+    if areas:
+        query = query.filter(area__in=areas)
+    if id_prospecciones:
+        query = query.filter(id_prospeccion__in=id_prospecciones)
+
+    proyectos = query.values('id_proyecto').distinct()
+    tipos_prospeccion_inicial = query.values_list('tipo_prospeccion', flat=True).distinct().exclude(tipo_prospeccion__isnull=True)
+    areas_inicial = query.values_list('area', flat=True).distinct().exclude(area__isnull=True).exclude(area='')
+    id_prospecciones_inicial = query.values_list('id_prospeccion', flat=True).distinct().exclude(id_prospeccion__isnull=True)
+
+    df = pd.DataFrame(list(query.values('densidad_natural_del_suelo', 'profundidad_promedio', 'area', 'id_prospeccion_id')))
+    df = df.rename(columns={'id_prospeccion_id': 'id_prospeccion'})
+
+    context = {
+        'proyectos': proyectos,
+        'tipos_prospeccion_inicial': tipos_prospeccion_inicial,
+        'areas_inicial': areas_inicial,
+        'id_prospecciones_inicial': id_prospecciones_inicial,
+        'selected_id_proyectos': json.dumps(id_proyectos),
+        'selected_tipos_prospeccion': json.dumps(tipos_prospeccion),
+        'selected_areas': json.dumps(areas),
+        'selected_id_prospecciones': json.dumps(id_prospecciones),
+    }
+
+    if df.empty:
+        context['error'] = "No hay datos disponibles para los filtros seleccionados."
+    else:
+        context['image_base64_area'] = generar_grafico_densidad_area(df)
+        context['image_base64_prospeccion'] = generar_grafico_densidad_prospeccion(df)
+
+    return render(request, 'terreno/ensayos_terreno/densidad_insitu/graficos_densidad_insitu.html', context)
+
+# Funciones auxiliares para Densidad Insitu
+def obtener_tipos_prospeccion_densidad_insitu(request):
+    id_proyectos = request.GET.get('id_proyectos')
+    query = densidad_insitu.objects.all()
+    if id_proyectos:
+        query = query.filter(id_proyecto__in=id_proyectos.split(','))
+    tipos_list = list(query.values_list('tipo_prospeccion', flat=True).distinct().exclude(tipo_prospeccion__isnull=True))
+    return JsonResponse({'options': tipos_list}, safe=False)
+
+def obtener_id_prospecciones_densidad_insitu(request):
+    id_proyectos = request.GET.get('id_proyectos')
+    tipos_prospeccion = request.GET.get('tipos_prospeccion')
+    areas = request.GET.get('areas')
+    query = densidad_insitu.objects.all()
+    if id_proyectos:
+        query = query.filter(id_proyecto__in=id_proyectos.split(','))
+    if tipos_prospeccion:
+        query = query.filter(tipo_prospeccion__in=tipos_prospeccion.split(','))
+    if areas:
+        query = query.filter(area__in=areas.split(','))
+    id_prospecciones_list = list(query.values_list('id_prospeccion', flat=True).distinct().exclude(id_prospeccion__isnull=True))
+    return JsonResponse({'options': id_prospecciones_list}, safe=False)
+
+def obtener_area_densidad_insitu(request):
+    id_prospecciones = request.GET.get('id_prospecciones')
+    if id_prospecciones:
+        query = densidad_insitu.objects.filter(id_prospeccion__in=id_prospecciones.split(','))
+        areas_list = list(query.values_list('area', flat=True).distinct().exclude(area__isnull=True).exclude(area=''))
+        return JsonResponse({'options': areas_list})
+    return JsonResponse({'options': []})
+
+# Vista para agregar densidad insitu
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
+from .models import Muestreo  # Ajusta según tu app
+
+def agregar_densidad_insitu(request):
+    """
+    Vista para agregar densidad in situ, obteniendo todos los datos desde Muestreo.
+    Maneja GET para llenar selectores y POST para guardar datos.
+    """
+    if request.method == 'GET':
+        # Parámetros de consulta
+        load_proyectos = request.GET.get('load_proyectos')
+        id_proyecto = request.GET.get('id_proyecto')
+        tipo_prospeccion = request.GET.get('tipo_prospeccion')
+        id_prospeccion = request.GET.get('id_prospeccion')
+        id_muestra = request.GET.get('id_muestra')
+
+        if load_proyectos:
+            # Cargar proyectos únicos desde Muestreo
+            proyectos = Muestreo.objects.values_list('id_proyecto', flat=True).distinct()
+            return JsonResponse({'proyectos': list(proyectos)})
+
+        if id_proyecto and not tipo_prospeccion:
+            # Cargar tipos de prospección para el proyecto
+            tipos = Muestreo.objects.filter(id_proyecto=id_proyecto).values_list('tipo_prospeccion', flat=True).distinct()
+            return JsonResponse({'tipo_prospeccion_choices': list(tipos)})
+
+        if id_proyecto and tipo_prospeccion and not id_prospeccion:
+            # Cargar prospecciones para el proyecto y tipo
+            prospecciones = Muestreo.objects.filter(
+                id_proyecto=id_proyecto,
+                tipo_prospeccion=tipo_prospeccion
+            ).values_list('id_prospeccion', flat=True).distinct()
+            return JsonResponse({'prospecciones': list(prospecciones)})
+
+        if id_proyecto and tipo_prospeccion and id_prospeccion and not id_muestra:
+            # Cargar muestras para la prospección
+            muestras = Muestreo.objects.filter(
+                id_proyecto=id_proyecto,
+                tipo_prospeccion=tipo_prospeccion,
+                id_prospeccion=id_prospeccion
+            ).values_list('id_muestra', flat=True).distinct()
+            return JsonResponse({'muestras': list(muestras)})
+
+        if id_proyecto and tipo_prospeccion and id_prospeccion and id_muestra:
+            # Obtener datos de la muestra específica
+            try:
+                muestra = Muestreo.objects.get(
+                    id_proyecto=id_proyecto,
+                    tipo_prospeccion=tipo_prospeccion,
+                    id_prospeccion=id_prospeccion,
+                    id_muestra=id_muestra
+                )
+                return JsonResponse({
+                    'area': muestra.area or '',
+                    'profundidad_desde': muestra.profundidad_desde or '',
+                    'profundidad_hasta': muestra.profundidad_hasta or '',
+                    'profundidad_promedio': muestra.profundidad_promedio or ''
+                })
+            except ObjectDoesNotExist:
+                return JsonResponse({'error': 'Muestra no encontrada'}, status=404)
+
+    elif request.method == 'POST':
+        errors = []
+        try:
+            # Recolectar datos del formulario
+            id_proyecto = request.POST.get('id_proyecto')
+            tipo_prospeccion = request.POST.get('tipo_prospeccion')
+            data = {
+                'id_prospeccion': request.POST.getlist('id_prospeccion[]'),
+                'id_muestra': request.POST.getlist('id_muestra[]'),
+                'area': request.POST.getlist('area[]'),
+                'profundidad_desde': request.POST.getlist('profundidad_desde[]'),
+                'profundidad_hasta': request.POST.getlist('profundidad_hasta[]'),
+                'profundidad_promedio': request.POST.getlist('profundidad_promedio[]'),
+                'profundidad_ensayo': request.POST.getlist('profundidad_ensayo[]'),
+                'cota': request.POST.getlist('cota[]'),
+                'profundidad_nivel_freatico': request.POST.getlist('profundidad_nivel_freatico[]'),
+                'condicion_ambiental': request.POST.getlist('condicion_ambiental[]'),
+                'peso_materia_humedo': request.POST.getlist('peso_materia_humedo[]'),
+                'masa_arena_inicial': request.POST.getlist('masa_arena_inicial_en_cono_superior[]'),
+                'masa_arena_remanente': request.POST.getlist('masa_arena_remanente_en_cono_superior[]'),
+                'masa_arena_cono_inferior': request.POST.getlist('masa_arena_en_cono_inferior[]'),
+                'masa_arena_excavacion': request.POST.getlist('masa_arena_excavacion[]'),
+                'densidad_aparente_arena': request.POST.getlist('densidad_aparente_arena[]'),
+                'volumen_perforacion': request.POST.getlist('volumen_perforacion[]'),
+                'densidad_natural_suelo': request.POST.getlist('densidad_natural_del_suelo[]'),
+                'peso_suelo_humedo': request.POST.getlist('peso_suelo_humedo[]'),
+                'peso_suelo_seco': request.POST.getlist('peso_suelo_seco[]'),
+                'peso_agua': request.POST.getlist('peso_agua[]'),
+                'humedad': request.POST.getlist('humedad[]'),
+                'densidad_seca_suelo': request.POST.getlist('densidad_seca_del_suelo[]'),
+                'observacion': request.POST.getlist('observacion[]')
+            }
+
+            # Validar y procesar cada fila
+            for i in range(len(data['id_muestra'])):
+                if not data['id_muestra'][i] or not data['observacion'][i]:
+                    errors.append(f"Fila {i+1}: ID Muestra y Observación son obligatorios")
+                    continue
+
+                # Guardar datos (descomenta y ajusta según tu modelo DensidadInsitu)
+                """
+                DensidadInsitu.objects.create(
+                    id_proyecto_id=id_proyecto,
+                    tipo_prospeccion=tipo_prospeccion,
+                    id_prospeccion=data['id_prospeccion'][i],
+                    id_muestra=data['id_muestra'][i],
+                    area=data['area'][i],
+                    profundidad_desde=data['profundidad_desde'][i],
+                    profundidad_hasta=data['profundidad_hasta'][i],
+                    profundidad_promedio=data['profundidad_promedio'][i],
+                    profundidad_ensayo=data['profundidad_ensayo'][i],
+                    cota=data['cota'][i],
+                    profundidad_nivel_freatico=data['profundidad_nivel_freatico'][i],
+                    condicion_ambiental=data['condicion_ambiental'][i],
+                    peso_materia_humedo=data['peso_materia_humedo'][i],
+                    masa_arena_inicial_en_cono_superior=data['masa_arena_inicial'][i],
+                    masa_arena_remanente_en_cono_superior=data['masa_arena_remanente'][i],
+                    masa_arena_en_cono_inferior=data['masa_arena_cono_inferior'][i],
+                    masa_arena_excavacion=data['masa_arena_excavacion'][i],
+                    densidad_aparente_arena=data['densidad_aparente_arena'][i],
+                    volumen_perforacion=data['volumen_perforacion'][i],
+                    densidad_natural_del_suelo=data['densidad_natural_suelo'][i],
+                    peso_suelo_humedo=data['peso_suelo_humedo'][i],
+                    peso_suelo_seco=data['peso_suelo_seco'][i],
+                    peso_agua=data['peso_agua'][i],
+                    humedad=data['humedad'][i],
+                    densidad_seca_del_suelo=data['densidad_seca_suelo'][i],
+                    observacion=data['observacion'][i]
+                )
+                """
+
+            if errors:
+                return render(request, 'terreno/ensayos_terreno/densidad_insitu/agregar_densidad_insitu.html', {
+                    'errors': errors
+                })
+
+            # Redirigir tras éxito (ajusta la URL según tu proyecto)
+            return redirect('agregar_densidad_insitu')
+
+        except Exception as e:
+            return render(request, 'terreno/ensayos_terreno/densidad_insitu/agregar_densidad_insitu.html', {
+                'errors': [f"Error al procesar los datos: {str(e)}"]
+            })
+
+    return render(request, 'terreno/ensayos_terreno/densidad_insitu/agregar_densidad_insitu.html', {})
+
+
+# Vista para listar densidad insitu
+@login_required
+def listar_densidad_insitu(request):
+    query = request.GET.get('q', '')
+    densidades = densidad_insitu.objects.all()
+    
+    if query:
+        densidades = densidades.filter(
+            Q(id_proyecto__id__icontains=query) |
+            Q(tipo_prospeccion__icontains=query) |
+            Q(id_prospeccion__id_prospeccion__icontains=query) |
+            Q(id_muestra__icontains=query) |
+            Q(area__icontains=query)
+        )
+    
+    paginator = Paginator(densidades, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'terreno/ensayos_terreno/densidad_insitu/listar_densidad_insitu.html', {
+        'page_obj': page_obj,
+        'query': query
+    })
+
+# Vista para ver detalles de densidad insitu
+@login_required
+def ver_densidad_insitu(request, id):
+    densidad = get_object_or_404(densidad_insitu, id=id)
+    history_records = densidad.history.all()
+    return render(request, 'terreno/ensayos_terreno/densidad_insitu/ver_densidad_insitu.html', {
+        'densidad': densidad,
+        'history_records': history_records
+    })
+
+# Vista para editar densidad insitu
+@login_required
+def editar_densidad_insitu(request, id):
+    densidad = get_object_or_404(densidad_insitu, id=id)
+    if request.method == 'POST':
+        form = DensidadInsituForm(request.POST, instance=densidad)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_densidad_insitu')
+    else:
+        form = DensidadInsituForm(instance=densidad)
+    return render(request, 'terreno/ensayos_terreno/densidad_insitu/editar_densidad_insitu.html', {
+        'form': form,
+        'densidad': densidad
+    })
+
+# Vista para eliminar densidad insitu
+@login_required
+def eliminar_densidad_insitu(request, id):
+    densidad = get_object_or_404(densidad_insitu, id=id)
+    if request.method == 'POST':
+        densidad.delete()
+        return redirect('listar_densidad_insitu')
+    return render(request, 'terreno/ensayos_terreno/densidad_insitu/eliminar_densidad_insitu.html', {
+        'densidad': densidad
+    })
+
+# Vista para exportar a Excel
+@login_required
+def export_to_excel_densidad_insitu(request):
+    query = request.GET.get('q', '')
+    densidades = densidad_insitu.objects.all()
+    
+    if query:
+        densidades = densidades.filter(
+            Q(id_proyecto__id__icontains=query) |
+            Q(tipo_prospeccion__icontains=query) |
+            Q(id_prospeccion__id_prospeccion__icontains=query) |
+            Q(id_muestra__icontains=query) |
+            Q(area__icontains=query)
+        )
+    
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Densidad Insitu'
+    
+    headers = [
+        'ID Proyecto', 'Tipo Prospección', 'ID Prospección', 'ID Muestra', 'Profundidad Desde',
+        'Profundidad Hasta', 'Profundidad Promedio', 'Profundidad Ensayo', 'Cota',
+        'Profundidad Nivel Freático', 'Condición Ambiental', 'Peso Materia Húmedo',
+        'Masa Arena Inicial', 'Masa Arena Remanente', 'Masa Arena Cono Inferior',
+        'Masa Arena Excavación', 'Densidad Aparente Arena', 'Volumen Perforación',
+        'Densidad Natural del Suelo', 'Peso Suelo Húmedo', 'Peso Suelo Seco',
+        'Peso Agua', 'Humedad', 'Densidad Seca del Suelo', 'Área', 'Observación', 'Usuario'
+    ]
+    worksheet.append(headers)
+    
+    for densidad in densidades:
+        worksheet.append([
+            str(densidad.id_proyecto.id) if densidad.id_proyecto else '-',
+            densidad.tipo_prospeccion or '-',
+            str(densidad.id_prospeccion.id_prospeccion) if densidad.id_prospeccion else '-',
+            densidad.id_muestra or '-',
+            densidad.profundidad_desde or '-',
+            densidad.profundidad_hasta or '-',
+            densidad.profundidad_promedio or '-',
+            densidad.profundidad_ensayo or '-',
+            densidad.cota or '-',
+            densidad.profundidad_nivel_freatico or '-',
+            densidad.condicion_ambiental or '-',
+            densidad.peso_materia_humedo or '-',
+            densidad.masa_arena_inicial_en_cono_superior or '-',
+            densidad.masa_arena_remanente_en_cono_superior or '-',
+            densidad.masa_arena_en_cono_inferior or '-',
+            densidad.masa_arena_excavacion or '-',
+            densidad.densidad_aparente_arena or '-',
+            densidad.volumen_perforacion or '-',
+            densidad.densidad_natural_del_suelo or '-',
+            densidad.peso_suelo_humedo or '-',
+            densidad.peso_suelo_seco or '-',
+            densidad.peso_agua or '-',
+            densidad.humedad or '-',
+            densidad.densidad_seca_del_suelo or '-',
+            densidad.area or '-',
+            densidad.observacion or '-',
+            densidad.user.username if densidad.user else 'Sin usuario'
+        ])
+    
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=densidad_insitu.xlsx'
+    workbook.save(response)
+    return response
+
+# Vista para exportar a PDF
+@login_required
+def export_to_pdf_densidad_insitu(request):
+    query = request.GET.get('q', '')
+    densidades = densidad_insitu.objects.all()
+    
+    if query:
+        densidades = densidades.filter(
+            Q(id_proyecto__id__icontains=query) |
+            Q(tipo_prospeccion__icontains=query) |
+            Q(id_prospeccion__id_prospeccion__icontains=query) |
+            Q(id_muestra__icontains=query) |
+            Q(area__icontains=query)
+        )
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="densidad_insitu.pdf"'
+    
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    headers = [
+        'ID Proyecto', 'Tipo Prospección', 'ID Prospección', 'ID Muestra', 'Profundidad Desde',
+        'Profundidad Hasta', 'Profundidad Promedio', 'Profundidad Ensayo', 'Cota',
+        'Profundidad Nivel Freático', 'Condición Ambiental', 'Peso Materia Húmedo',
+        'Masa Arena Inicial', 'Masa Arena Remanente', 'Masa Arena Cono Inferior',
+        'Masa Arena Excavación', 'Densidad Aparente Arena', 'Volumen Perforación',
+        'Densidad Natural del Suelo', 'Peso Suelo Húmedo', 'Peso Suelo Seco',
+        'Peso Agua', 'Humedad', 'Densidad Seca del Suelo', 'Área', 'Observación', 'Usuario'
+    ]
+    
+    data = [headers]
+    for densidad in densidades:
+        data.append([
+            str(densidad.id_proyecto.id) if densidad.id_proyecto else '-',
+            densidad.tipo_prospeccion or '-',
+            str(densidad.id_prospeccion.id_prospeccion) if densidad.id_prospeccion else '-',
+            densidad.id_muestra or '-',
+            str(densidad.profundidad_desde) if densidad.profundidad_desde else '-',
+            str(densidad.profundidad_hasta) if densidad.profundidad_hasta else '-',
+            str(densidad.profundidad_promedio) if densidad.profundidad_promedio else '-',
+            str(densidad.profundidad_ensayo) if densidad.profundidad_ensayo else '-',
+            str(densidad.cota) if densidad.cota else '-',
+            str(densidad.profundidad_nivel_freatico) if densidad.profundidad_nivel_freatico else '-',
+            densidad.condicion_ambiental or '-',
+            str(densidad.peso_materia_humedo) if densidad.peso_materia_humedo else '-',
+            str(densidad.masa_arena_inicial_en_cono_superior) if densidad.masa_arena_inicial_en_cono_superior else '-',
+            str(densidad.masa_arena_remanente_en_cono_superior) if densidad.masa_arena_remanente_en_cono_superior else '-',
+            str(densidad.masa_arena_en_cono_inferior) if densidad.masa_arena_en_cono_inferior else '-',
+            str(densidad.masa_arena_excavacion) if densidad.masa_arena_excavacion else '-',
+            str(densidad.densidad_aparente_arena) if densidad.densidad_aparente_arena else '-',
+            str(densidad.volumen_perforacion) if densidad.volumen_perforacion else '-',
+            str(densidad.densidad_natural_del_suelo) if densidad.densidad_natural_del_suelo else '-',
+            str(densidad.peso_suelo_humedo) if densidad.peso_suelo_humedo else '-',
+            str(densidad.peso_suelo_seco) if densidad.peso_suelo_seco else '-',
+            str(densidad.peso_agua) if densidad.peso_agua else '-',
+            str(densidad.humedad) if densidad.humedad else '-',
+            str(densidad.densidad_seca_del_suelo) if densidad.densidad_seca_del_suelo else '-',
+            densidad.area or '-',
+            densidad.observacion or '-',
+            densidad.user.username if densidad.user else 'Sin usuario'
+        ])
+    
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+    return response

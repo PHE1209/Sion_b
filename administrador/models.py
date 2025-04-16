@@ -310,8 +310,6 @@ class Historial(models.Model):
 
 # Muestreo ########################
 
-# models.py
-# models.py
 from django.db import models
 from django.contrib.auth.models import User
 from simple_history.models import HistoricalRecords
@@ -559,6 +557,84 @@ class Programa(models.Model):
 #     area = models.CharField(max_length=50, null=True, blank=True)
 #     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 #     history = HistoricalRecords()
+
+
+####ENSAYOS INSITU##
+from django.db import models
+from django.contrib.auth.models import User
+from simple_history.models import HistoricalRecords
+import logging
+
+####ENSAYOS INSITU##
+logger = logging.getLogger(__name__)
+class densidad_insitu(models.Model):
+    id_proyecto = models.ForeignKey('Proyectos', on_delete=models.CASCADE, db_column='id_proyecto', to_field='id') #utiliza la misma escructura que en humedad (replica)
+    tipo_prospeccion = models.CharField(max_length=25, null=True, blank=True) #utiliza la misma escructura que en humedad (replica)
+    id_prospeccion = models.ForeignKey('Prospecciones', on_delete=models.CASCADE, db_column='id_prospeccion', to_field='id_prospeccion') #utiliza la misma escructura que en humedad (replica)
+    id_muestra = models.CharField(max_length=50, null=False, blank=False) #Este va a quedar como una lista desplegale al igual que "id_proyecto, tipo_prospeccion, id_prospeccion"
+    profundidad_desde = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_hasta = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True) #Deben solicitidar al modelo muestreo y cargarse automaticamente, sin modificacion al igual que area
+    profundidad_promedio = models.DecimalField(max_digits=12, decimal_places=3, null=False)
+    profundidad_ensayo = models.DecimalField(max_digits=12, decimal_places=3, null=False)
+    horizonte = models.CharField(max_length=50, null=True, blank=True)  #Averiguar bien la calsificacion, se indica en uno que es H-1 pero deberia corrsponder al estrato.. revisar
+
+    #desde aqui calcular lo que corrsponda
+    cota = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    profundidad_nivel_freatico = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    condicion_ambiental = models.CharField(max_length=50, null=True, blank=True)
+    peso_materia_humedo = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) # en gramos (g)
+    masa_arena_inicial_en_cono_superior = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) # en gramos (g)
+    masa_arena_remanente_en_cono_superior = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) #en gramos (g)
+    masa_arena_en_cono_inferior = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) #en gramos (g)
+    masa_arena_excavacion = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) # (masa_arena_inicial_en_cono_superior - masa_arena_remanente_en_cono_superior_(g) - masa_arena_en_cono_inferior) en gramos (g)
+    densidad_aparente_arena = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) # en (g/cm3)
+    volumen_perforacion = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) # (masa_arena_excavacion / densidad_aparente_arena_ensayo) en (cm3)
+    densidad_natural_del_suelo = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)  #(peso_materia_húmedo / volumen_de_la_perforación) en (g/cm3)
+
+    peso_suelo_humedo = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) #en gramos
+    peso_suelo_seco = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) #en gramos
+    peso_agua = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) # (peso_suelo_húmedo - peso_suelo_seco) en gramos (g)
+    humedad = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True) # ((peso_agua / peso_suelo_seco) * 100) en (%)
+
+    densidad_seca_del_suelo = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)  #(densidad_natural_del_suelo / (1 + (humedad / 100))) en (g/cm3)
+
+
+    area = models.CharField(max_length=50, null=True, blank=True)
+    observacion = models.CharField(max_length=255, null=False)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    history = HistoricalRecords()
+
+
+    class Meta:
+        db_table = 'densidad_insitu'
+
+    def save(self, *args, **kwargs):
+        if self.masa_arena_inicial_en_cono_superior is not None and \
+           self.masa_arena_remanente_en_cono_superior is not None and \
+           self.masa_arena_en_cono_inferior is not None:
+            self.masa_arena_excavacion = self.masa_arena_inicial_en_cono_superior - self.masa_arena_remanente_en_cono_superior - self.masa_arena_en_cono_inferior
+
+        if self.masa_arena_excavacion is not None and self.densidad_aparente_arena is not None:
+            self.volumen_perforacion = self.masa_arena_excavacion / self.densidad_aparente_arena
+
+        if self.peso_materia_humedo is not None and self.volumen_perforacion is not None:
+            self.densidad_natural_del_suelo = self.peso_materia_humedo / self.volumen_perforacion
+
+        if self.peso_suelo_humedo is not None and self.peso_suelo_seco is not None:
+            self.peso_agua = self.peso_suelo_humedo - self.peso_suelo_seco
+
+        if self.peso_agua is not None and self.peso_suelo_seco is not None and self.peso_suelo_seco != 0:
+            self.humedad = (self.peso_agua / self.peso_suelo_seco) * 100
+        elif self.peso_agua is not None and self.peso_suelo_seco == 0:
+            self.humedad = 0  # Evitar división por cero
+
+        if self.densidad_natural_del_suelo is not None and self.humedad is not None:
+            self.densidad_seca_del_suelo = self.densidad_natural_del_suelo / (1 + (self.humedad / 100))
+
+        super().save(*args, **kwargs)
+        
+
+####ENSAYOS LABORATORIO##
 
 # Clasificacion USC ########################
 logger = logging.getLogger(__name__)

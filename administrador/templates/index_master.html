@@ -13,7 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- PPNeueMontreal (para títulos en páginas internas) -->
+    <!-- PPNeueMontreal Fonts -->
     <style>
         @font-face {
             font-family: 'PPNeueMontreal';
@@ -39,23 +39,21 @@
         }
         /* Navbar */
         .main-header {
-            background-color: #000000; /* Negro */
+            background-color: #000000;
             border-bottom: 1px solid #000000;
         }
         .main-header .nav-link {
-            color: #ffffff !important; /* Texto blanco */
-            font-size: 16px; /* Tamaño original */
+            color: #ffffff !important;
+            font-size: 16px;
+            font-family: 'PPNeueMontreal', sans-serif;
             font-weight: normal;
         }
         .main-header .nav-link:hover {
             background: rgba(255, 255, 255, 0.1);
         }
-        .main-header .nav-icon {
-            color: #ffffff; /* Íconos blancos */
-        }
         /* Sidebar */
         .main-sidebar {
-            background-color: #000000; /* Negro */
+            background-color: #000000;
             transition: all 0.3s ease;
         }
         .sidebar {
@@ -64,41 +62,72 @@
         .brand-link {
             background-color: #000000;
             color: #ffffff !important;
-            font-size: 18px; /* Tamaño original */
-            font-weight: normal;
+            font-size: 16px;
+            font-family: 'PPNeueMontreal', sans-serif;
+            font-weight: bold;
             border-bottom: 1px solid #ffffff;
         }
         .nav-link {
-            color: #ffffff !important; /* Texto blanco */
-            font-size: 16px; /* Tamaño original */
-            font-weight: normal; /* Sin negritas */
+            color: #ffffff !important;
+            font-size: 16px;
+            font-family: 'PPNeueMontreal', sans-serif;
+            font-weight: bold;
             border-radius: 5px;
             margin: 3px 5px;
-            transition: background 0.2s;
+            transition: background 0.2s, color 0.2s;
         }
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .nav-icon {
-            color: #ffffff !important; /* Íconos blancos */
+            background: #ffffff !important;
+            color: #000000 !important;
         }
         /* Botones "Agregar" en el menú */
         .nav-treeview .nav-link.agregar {
-            background-color: #007bff; /* Azul, como Agregar Proyecto */
             color: #ffffff !important;
             padding: 5px 10px;
-            margin: 2px 10px;
+            margin: 2px 5px;
             border-radius: 3px;
+            font-family: 'PPNeueMontreal', sans-serif;
+            font-weight: normal;
+            font-size: 16px;
         }
         .nav-treeview .nav-link.agregar:hover {
-            background-color: #0056b3; /* Azul más oscuro para hover */
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff !important;
         }
         /* Submenús */
         .nav-treeview .nav-link {
             padding-left: 2.5rem;
+            font-size: 16px;
+            font-family: 'PPNeueMontreal', sans-serif;
+            font-weight: normal;
+            color: #ffffff !important;
+        }
+        .nav-treeview .nav-link.parent {
+            font-family: 'PPNeueMontreal', sans-serif;
+            font-weight: normal;
+            font-size: 16px;
+            color: #ffffff !important;
+            padding-left: 2rem;
+        }
+        .nav-treeview .nav-link.parent:hover {
+            background: #ffffff !important;
+            color: #000000 !important;
         }
         .nav-treeview .nav-treeview .nav-link {
+            padding-left: 3rem;
+        }
+        .nav-treeview .nav-treeview .nav-link.parent {
+            padding-left: 2.5rem;
+        }
+        .nav-treeview .nav-treeview .nav-treeview .nav-link {
             padding-left: 3.5rem;
+        }
+        /* User panel */
+        .user-panel .info a {
+            color: #808080 !important;
+            font-size: 16px;
+            font-family: 'PPNeueMontreal', sans-serif;
+            font-weight: bold;
         }
         /* Responsividad */
         @media (max-width: 767.98px) {
@@ -129,6 +158,7 @@
             color: #ffffff;
             padding: 8px;
             font-size: 16px;
+            font-family: 'PPNeueMontreal', sans-serif;
             font-weight: normal;
         }
         .sidebar-footer a:hover {
@@ -158,13 +188,13 @@
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item dropdown">
                     <a class="nav-link" data-toggle="dropdown" href="#">
-                        <img src="{% static 'images/img.jpg' %}" alt="User Avatar" class="img-circle elevation-1" style="width: 25px; height: 25px;">
+                        <i class="fas fa-user"></i>
                         <span>{{ user.first_name }}</span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right">
-                        <a href="#" class="dropdown-item">Perfil</a>
-                        <a href="#" class="dropdown-item">Configuración</a>
-                        <a href="#" class="dropdown-item">Ayuda</a>
+                        <a href="#" class="dropdown-item"><i class="fas fa-user mr-2"></i> Perfil</a>
+                        <a href="#" class="dropdown-item"><i class="fas fa-cog mr-2"></i> Configuración</a>
+                        <a href="#" class="dropdown-item"><i class="fas fa-question-circle mr-2"></i> Ayuda</a>
                         <div class="dropdown-divider"></div>
                         <a href="#" class="dropdown-item" onclick="document.getElementById('logout-form').submit();">
                             <i class="fas fa-sign-out-alt mr-2"></i> Cerrar Sesión
@@ -216,19 +246,18 @@
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-home"></i>
+                                <i class="fas fa-home nav-icon"></i>
                                 <p>Home</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-table"></i>
+                                <i class="fas fa-compass nav-icon"></i>
                                 <p>InSitu<i class="fas fa-angle-left right"></i></p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-search"></i>
+                                    <a href="#" class="nav-link parent">
                                         <p>Prospecciones<i class="fas fa-angle-left right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">
@@ -237,8 +266,7 @@
                                     </ul>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-vials"></i>
+                                    <a href="#" class="nav-link parent">
                                         <p>Muestreo<i class="fas fa-angle-left right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">
@@ -248,14 +276,12 @@
                                     </ul>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-tools"></i>
+                                    <a href="#" class="nav-link parent">
                                         <p>Ensayos InSitu<i class="fas fa-angle-left right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-layer-group"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Estratigrafía<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -267,21 +293,19 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-weight"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Densidad<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
-                                                <li class="nav-item"><a href="listar_densidad" class="nav-link"><p>Listar</p></a></li>
-                                                <li class="nav-item"><a href="agregar_densidad" class="nav-link agregar"><p>Agregar</p></a></li>
-                                                <li class="nav-item"><a href="editar_densidad" class="nav-link"><p>Editar</p></a></li>
-                                                <li class="nav-item"><a href="eliminar_densidad" class="nav-link"><p>Eliminar</p></a></li>
-                                                <li class="nav-item"><a href="graficos_densidad" class="nav-link"><p>Gráficos</p></a></li>
+                                                <li class="nav-item"><a href="listar_densidad_insitu" class="nav-link"><p>Listar</p></a></li>
+                                                <li class="nav-item"><a href="agregar_densidad_insitu" class="nav-link agregar"><p>Agregar</p></a></li>
+                                                <li class="nav-item"><a href="editar_densidad_insitu" class="nav-link"><p>Editar</p></a></li>
+                                                <li class="nav-item"><a href="eliminar_densidad_insitu" class="nav-link"><p>Eliminar</p></a></li>
+                                                <li class="nav-item"><a href="graficos_densidad_insitu" class="nav-link"><p>Gráficos</p></a></li>
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-tint"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Permeabilidad<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -295,8 +319,7 @@
                                     </ul>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-file-alt"></i>
+                                    <a href="#" class="nav-link parent">
                                         <p>Informe Diario<i class="fas fa-angle-left right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">
@@ -308,13 +331,12 @@
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-building"></i>
+                                <i class="fas fa-briefcase nav-icon"></i>
                                 <p>Oficina<i class="fas fa-angle-left right"></i></p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-calendar"></i>
+                                    <a href="#" class="nav-link parent">
                                         <p>Programa de laboratorio<i class="fas fa-angle-left right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">
@@ -324,14 +346,12 @@
                                     </ul>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-flask"></i>
-                                        <p>Ensayos de laboratorio<i class="fas fa-angle-left right"></i></p>
+                                    <a href="#" class="nav-link parent">
+                                        <p>Ensayos de laboratorio<i class="fas fa-angle Pach-level right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-filter"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Clasificación USCS<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -341,8 +361,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-exchange-alt"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Límites Atterberg<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -352,8 +371,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-balance-scale"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Gravedad específica<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -363,8 +381,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-chart-bar"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Granulometría<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -374,8 +391,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-road"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>CBR<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -385,8 +401,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-water"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Absorción de agua<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -396,8 +411,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-flask"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Carbonatos<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -407,8 +421,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-compress"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Compresión simple<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -418,8 +431,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-tint"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Humedad<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -429,8 +441,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-leaf"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Impurezas<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -442,8 +453,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-cubes"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Sales solubles<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -455,8 +465,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-weight-hanging"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Densidad aparente<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -466,8 +475,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-arrows-alt-v"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Densidad MIN-MAX<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -477,8 +485,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-x-ray"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>DRX<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -488,8 +495,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Permeabilidad<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -499,8 +505,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-dumbbell"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Peso unitario<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -510,8 +515,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-vial"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>pH<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -521,8 +525,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-hammer"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Proctor modificado<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -532,8 +535,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-ruler"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Propiedades físicas<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -543,8 +545,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-shield-alt"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Resistencia a la desintegración<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -554,19 +555,17 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-tools"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Resistencia al desgaste<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
                                                 <li class="nav-item"><a href="listar_resistencia_desgaste" class="nav-link"><p>Listar</p></a></li>
                                                 <li class="nav-item"><a href="agregar_resistencia_desgaste" class="nav-link agregar"><p>Agregar</p></a></li>
-                                                <ívar class="nav-item"><a href="graficos_resistencia_desgaste" class="nav-link"><p>Gráficos</p></a></li>
+                                                <li class="nav-item"><a href="graficos_resistencia_desgaste" class="nav-link"><p>Gráficos</p></a></li>
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-bolt"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Resistividad eléctrica<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -576,8 +575,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-hourglass"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Slake Durability<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -587,8 +585,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-chart-line"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Triaxial CID<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -598,8 +595,7 @@
                                             </ul>
                                         </li>
                                         <li class="nav-item">
-                                            <a href="#" class="nav-link">
-                                                <i class="nav-icon fas fa-chart-area"></i>
+                                            <a href="#" class="nav-link parent">
                                                 <p>Triaxial Roca<i class="fas fa-angle-left right"></i></p>
                                             </a>
                                             <ul class="nav nav-treeview">
@@ -614,13 +610,12 @@
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-users"></i>
+                                <i class="fas fa-cogs nav-icon"></i>
                                 <p>Administración<i class="fas fa-angle-left right"></i></p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-address-book"></i>
+                                    <a href="#" class="nav-link parent">
                                         <p>Nómina<i class="fas fa-angle-left right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">
@@ -631,8 +626,7 @@
                                     </ul>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-project-diagram"></i>
+                                    <a href="#" class="nav-link parent">
                                         <p>Proyectos<i class="fas fa-angle-left right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">
@@ -641,8 +635,7 @@
                                     </ul>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="nav-icon fas fa-file-export"></i>
+                                    <a href="#" class="nav-link parent">
                                         <p>Reporte<i class="fas fa-angle-left right"></i></p>
                                     </a>
                                     <ul class="nav nav-treeview">

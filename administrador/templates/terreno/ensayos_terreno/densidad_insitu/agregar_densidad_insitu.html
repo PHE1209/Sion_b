@@ -1,0 +1,519 @@
+```html
+{% extends "index_master.html" %}
+{% load static %}
+
+{% block content %}
+<div class="right_col" role="main">
+    <h1>AGREGAR DENSIDAD INSITU</h1>
+
+    {% if errors %}
+    <div class="alert alert-danger">
+        {% for error in errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form action="{% url 'agregar_densidad_insitu' %}" method="POST">
+        {% csrf_token %}
+
+        <div class="filtros-superiores">
+            <div class="form-group filtro-item">
+                <label for="id_proyecto">ID Proyecto</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fas fa-project-diagram"></i></div>
+                    </div>
+                    <select id="id_proyecto" name="id_proyecto" class="form-control" required>
+                        <option value="">Seleccione Proyecto</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group filtro-item">
+                <label for="tipo_prospeccion">Tipo de Prospección</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"><i class="fas fa-search"></i></div>
+                    </div>
+                    <select id="tipo_prospeccion" name="tipo_prospeccion" class="form-control">
+                        <option value="">Seleccione Tipo de Prospección</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="muestras-container" class="mt-3">
+            <div class="muestra-row form-group row align-items-center">
+                <div class="col-2">
+                    <label for="id_prospeccion_0" class="col-form-label">Prospección</label>
+                    <select id="id_prospeccion_0" name="id_prospeccion[]" class="form-control id-prospeccion" required>
+                        <option value="">Seleccione</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label for="area_0" class="col-form-label">Área</label>
+                    <input type="text" id="area_0" name="area[]" class="form-control area" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="id_muestra_0" class="col-form-label">ID Muestra</label>
+                    <select id="id_muestra_0" name="id_muestra[]" class="form-control id-muestra" required>
+                        <option value="">Seleccione</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_desde_0" class="col-form-label">Desde (m)</label>
+                    <input type="text" id="profundidad_desde_0" name="profundidad_desde[]" class="form-control profundidad-desde" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_hasta_0" class="col-form-label">Hasta (m)</label>
+                    <input type="text" id="profundidad_hasta_0" name="profundidad_hasta[]" class="form-control profundidad-hasta" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_promedio_0" class="col-form-label">Prof. Promedio (m)</label>
+                    <input type="text" id="profundidad_promedio_0" name="profundidad_promedio[]" class="form-control profundidad-promedio" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_ensayo_0" class="col-form-label">Prof. Ensayo (m)</label>
+                    <input type="text" id="profundidad_ensayo_0" name="profundidad_ensayo[]" class="form-control" required>
+                </div>
+                <div class="col-2">
+                    <label for="cota_0" class="col-form-label">Cota (m)</label>
+                    <input type="text" id="cota_0" name="cota[]" class="form-control">
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_nivel_freatico_0" class="col-form-label">Nivel Freático (m)</label>
+                    <input type="text" id="profundidad_nivel_freatico_0" name="profundidad_nivel_freatico[]" class="form-control">
+                </div>
+                <div class="col-2">
+                    <label for="condicion_ambiental_0" class="col-form-label">Cond. Ambiental</label>
+                    <input type="text" id="condicion_ambiental_0" name="condicion_ambiental[]" class="form-control">
+                </div>
+                <div class="col-2">
+                    <label for="peso_materia_humedo_0" class="col-form-label">Peso Mat. Húmedo (g)</label>
+                    <input type="text" id="peso_materia_humedo_0" name="peso_materia_humedo[]" class="form-control peso-materia-humedo">
+                </div>
+                <div class="col-2">
+                    <label for="masa_arena_inicial_en_cono_superior_0" class="col-form-label">Masa Arena Inicial (g)</label>
+                    <input type="text" id="masa_arena_inicial_en_cono_superior_0" name="masa_arena_inicial_en_cono_superior[]" class="form-control masa-arena-inicial">
+                </div>
+                <div class="col-2">
+                    <label for="masa_arena_remanente_en_cono_superior_0" class="col-form-label">Masa Arena Remanente (g)</label>
+                    <input type="text" id="masa_arena_remanente_en_cono_superior_0" name="masa_arena_remanente_en_cono_superior[]" class="form-control masa-arena-remanente">
+                </div>
+                <div class="col-2">
+                    <label for="masa_arena_en_cono_inferior_0" class="col-form-label">Masa Arena Cono Inf. (g)</label>
+                    <input type="text" id="masa_arena_en_cono_inferior_0" name="masa_arena_en_cono_inferior[]" class="form-control masa-arena-cono-inferior">
+                </div>
+                <div class="col-2">
+                    <label for="masa_arena_excavacion_0" class="col-form-label">Masa Arena Excavacion (g)</label>
+                    <input type="text" id="masa_arena_excavacion_0" name="masa_arena_excavacion[]" class="form-control masa-arena-excavacion" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="densidad_aparente_arena_0" class="col-form-label">Dens. Aparente Arena (g/cm³)</label>
+                    <input type="text" id="densidad_aparente_arena_0" name="densidad_aparente_arena[]" class="form-control densidad-aparente-arena">
+                </div>
+                <div class="col-2">
+                    <label for="volumen_perforacion_0" class="col-form-label">Vol. Perforación (cm³)</label>
+                    <input type="text" id="volumen_perforacion_0" name="volumen_perforacion[]" class="form-control volumen-perforacion" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="densidad_natural_del_suelo_0" class="col-form-label">Dens. Natural Suelo (g/cm³)</label>
+                    <input type="text" id="densidad_natural_del_suelo_0" name="densidad_natural_del_suelo[]" class="form-control densidad-natural-suelo" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="peso_suelo_humedo_0" class="col-form-label">Peso Suelo Húmedo (g)</label>
+                    <input type="text" id="peso_suelo_humedo_0" name="peso_suelo_humedo[]" class="form-control peso-suelo-humedo">
+                </div>
+                <div class="col-2">
+                    <label for="peso_suelo_seco_0" class="col-form-label">Peso Suelo Seco (g)</label>
+                    <input type="text" id="peso_suelo_seco_0" name="peso_suelo_seco[]" class="form-control peso-suelo-seco">
+                </div>
+                <div class="col-2">
+                    <label for="peso_agua_0" class="col-form-label">Peso Agua (g)</label>
+                    <input type="text" id="peso_agua_0" name="peso_agua[]" class="form-control peso-agua" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="humedad_0" class="col-form-label">Humedad (%)</label>
+                    <input type="text" id="humedad_0" name="humedad[]" class="form-control humedad" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="densidad_seca_del_suelo_0" class="col-form-label">Dens. Seca Suelo (g/cm³)</label>
+                    <input type="text" id="densidad_seca_del_suelo_0" name="densidad_seca_del_suelo[]" class="form-control densidad-seca-suelo" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="observacion_0" class="col-form-label">Observación</label>
+                    <input type="text" id="observacion_0" name="observacion[]" class="form-control" required>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" id="add-muestra" class="btn btn-secondary mt-2">Agregar otra muestra</button>
+        <div class="form-group row mt-3">
+            <div class="col-8 offset-4">
+                <button type="submit" class="btn btn-primary">Agregar Densidad Insitu</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    .filtros-superiores {
+        margin-left: 0;
+        padding-left: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .filtro-item {
+        width: 300px;
+        margin-bottom: 10px;
+    }
+    .filtro-item label {
+        font-size: 14px;
+        margin-bottom: 2px;
+    }
+    .filtro-item .form-control {
+        height: 32px;
+        font-size: 14px;
+    }
+    .muestra-row label {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+    .muestra-row .form-control {
+        height: 32px;
+        font-size: 14px;
+    }
+    .muestra-row .col-2 {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    .muestra-row {
+        margin-bottom: 10px;
+    }
+</style>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    let muestraCount = 0;
+
+    // Cargar proyectos desde Muestreo al iniciar
+    $.ajax({
+        url: '{% url "agregar_densidad_insitu" %}',
+        type: 'GET',
+        data: {'load_proyectos': true},
+        success: function(data) {
+            var proyectoSelect = $('#id_proyecto');
+            proyectoSelect.empty().append('<option value="">Seleccione Proyecto</option>');
+            $.each(data.proyectos, function(index, value) {
+                if (value) proyectoSelect.append('<option value="' + value + '">' + value + '</option>');
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error("Error al obtener proyectos: ", error);
+        }
+    });
+
+    function calculateFields(row) {
+        let masaInicial = parseFloat(row.find('.masa-arena-inicial').val()) || 0;
+        let masaRemanente = parseFloat(row.find('.masa-arena-remanente').val()) || 0;
+        let masaConoInferior = parseFloat(row.find('.masa-arena-cono-inferior').val()) || 0;
+        let densidadAparente = parseFloat(row.find('.densidad-aparente-arena').val()) || 0;
+        let pesoMateriaHumedo = parseFloat(row.find('.peso-materia-humedo').val()) || 0;
+        let pesoSueloHumedo = parseFloat(row.find('.peso-suelo-humedo').val()) || 0;
+        let pesoSueloSeco = parseFloat(row.find('.peso-suelo-seco').val()) || 0;
+
+        let masaExcavacion = masaInicial - masaRemanente - masaConoInferior;
+        row.find('.masa-arena-excavacion').val(isNaN(masaExcavacion) ? '' : masaExcavacion.toFixed(3));
+
+        let volumenPerforacion = densidadAparente !== 0 ? masaExcavacion / densidadAparente : 0;
+        row.find('.volumen-perforacion').val(isNaN(volumenPerforacion) ? '' : volumenPerforacion.toFixed(3));
+
+        let densidadNatural = volumenPerforacion !== 0 ? pesoMateriaHumedo / volumenPerforacion : 0;
+        row.find('.densidad-natural-suelo').val(isNaN(densidadNatural) ? '' : densidadNatural.toFixed(3));
+
+        let pesoAgua = pesoSueloHumedo - pesoSueloSeco;
+        row.find('.peso-agua').val(isNaN(pesoAgua) ? '' : pesoAgua.toFixed(3));
+
+        let humedad = pesoSueloSeco !== 0 ? (pesoAgua / pesoSueloSeco) * 100 : 0;
+        row.find('.humedad').val(isNaN(humedad) ? '' : humedad.toFixed(3));
+
+        let densidadSeca = humedad !== 0 ? densidadNatural / (1 + (humedad / 100)) : densidadNatural;
+        row.find('.densidad-seca-suelo').val(isNaN(densidadSeca) ? '' : densidadSeca.toFixed(3));
+    }
+
+    $(document).on('input', '.masa-arena-inicial, .masa-arena-remanente, .masa-arena-cono-inferior, .densidad-aparente-arena, .peso-materia-humedo, .peso-suelo-humedo, .peso-suelo-seco', function() {
+        let row = $(this).closest('.muestra-row');
+        calculateFields(row);
+    });
+
+    $('#id_proyecto').change(function() {
+        var idProyecto = $(this).val();
+        if (idProyecto) {
+            $.ajax({
+                url: '{% url "agregar_densidad_insitu" %}',
+                type: 'GET',
+                data: {'id_proyecto': idProyecto},
+                success: function(data) {
+                    var tipoProspeccionSelect = $('#tipo_prospeccion');
+                    tipoProspeccionSelect.empty().append('<option value="">Seleccione Tipo de Prospección</option>');
+                    $.each(data.tipo_prospeccion_choices, function(index, value) {
+                        if (value) tipoProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
+                    });
+                    $('.id-prospeccion').empty().append('<option value="">Seleccione</option>');
+                    $('.id-muestra').empty().append('<option value="">Seleccione</option>');
+                    $('.area').val('');
+                    $('.profundidad-desde').val('');
+                    $('.profundidad-hasta').val('');
+                    $('.profundidad-promedio').val('');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al obtener tipos de prospección: ", error);
+                }
+            });
+        } else {
+            $('#tipo_prospeccion').empty().append('<option value="">Seleccione Tipo de Prospección</option>');
+            $('.id-prospeccion').empty().append('<option value="">Seleccione</option>');
+            $('.id-muestra').empty().append('<option value="">Seleccione</option>');
+            $('.area').val('');
+            $('.profundidad-desde').val('');
+            $('.profundidad-hasta').val('');
+            $('.profundidad-promedio').val('');
+        }
+    });
+
+    $('#tipo_prospeccion').change(function() {
+        var idProyecto = $('#id_proyecto').val();
+        var tipoProspeccion = $(this).val();
+        if (idProyecto && tipoProspeccion) {
+            $.ajax({
+                url: '{% url "agregar_densidad_insitu" %}',
+                type: 'GET',
+                data: {'id_proyecto': idProyecto, 'tipo_prospeccion': tipoProspeccion},
+                success: function(data) {
+                    $('.id-prospeccion').each(function() {
+                        var idProspeccionSelect = $(this);
+                        idProspeccionSelect.empty().append('<option value="">Seleccione</option>');
+                        $.each(data.prospecciones, function(index, value) {
+                            if (value) idProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
+                        });
+                    });
+                    $('.id-muestra').empty().append('<option value="">Seleccione</option>');
+                    $('.area').val('');
+                    $('.profundidad-desde').val('');
+                    $('.profundidad-hasta').val('');
+                    $('.profundidad-promedio').val('');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al obtener prospecciones: ", error);
+                }
+            });
+        } else {
+            $('.id-prospeccion').empty().append('<option value="">Seleccione</option>');
+            $('.id-muestra').empty().append('<option value="">Seleccione</option>');
+            $('.area').val('');
+            $('.profundidad-desde').val('');
+            $('.profundidad-hasta').val('');
+            $('.profundidad-promedio').val('');
+        }
+    });
+
+    $(document).on('change', '.id-prospeccion', function() {
+        var idProyecto = $('#id_proyecto').val();
+        var tipoProspeccion = $('#tipo_prospeccion').val();
+        var prospeccionId = $(this).val();
+        var row = $(this).closest('.muestra-row');
+        if (idProyecto && tipoProspeccion && prospeccionId) {
+            $.ajax({
+                url: '{% url "agregar_densidad_insitu" %}',
+                type: 'GET',
+                data: {'id_proyecto': idProyecto, 'tipo_prospeccion': tipoProspeccion, 'id_prospeccion': prospeccionId},
+                success: function(data) {
+                    var idMuestraSelect = row.find('.id-muestra');
+                    idMuestraSelect.empty().append('<option value="">Seleccione</option>');
+                    $.each(data.muestras, function(index, value) {
+                        if (value) idMuestraSelect.append('<option value="' + value + '">' + value + '</option>');
+                    });
+                    row.find('.area').val('');
+                    row.find('.profundidad-desde').val('');
+                    row.find('.profundidad-hasta').val('');
+                    row.find('.profundidad-promedio').val('');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al obtener muestras: ", error);
+                }
+            });
+        } else {
+            row.find('.id-muestra').empty().append('<option value="">Seleccione</option>');
+            row.find('.area').val('');
+            row.find('.profundidad-desde').val('');
+            row.find('.profundidad-hasta').val('');
+            row.find('.profundidad-promedio').val('');
+        }
+    });
+
+    $(document).on('change', '.id-muestra', function() {
+        var idProyecto = $('#id_proyecto').val();
+        var tipoProspeccion = $('#tipo_prospeccion').val();
+        var idProspeccion = $(this).closest('.muestra-row').find('.id-prospeccion').val();
+        var idMuestra = $(this).val();
+        var row = $(this).closest('.muestra-row');
+        if (idProyecto && tipoProspeccion && idProspeccion && idMuestra) {
+            $.ajax({
+                url: '{% url "agregar_densidad_insitu" %}',
+                type: 'GET',
+                data: {'id_proyecto': idProyecto, 'tipo_prospeccion': tipoProspeccion, 'id_prospeccion': idProspeccion, 'id_muestra': idMuestra},
+                success: function(data) {
+                    row.find('.area').val(data.area || '');
+                    row.find('.profundidad-desde').val(data.profundidad_desde || '');
+                    row.find('.profundidad-hasta').val(data.profundidad_hasta || '');
+                    row.find('.profundidad-promedio').val(data.profundidad_promedio || '');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al obtener datos: ", error);
+                }
+            });
+        } else {
+            row.find('.area').val('');
+            row.find('.profundidad-desde').val('');
+            row.find('.profundidad-hasta').val('');
+            row.find('.profundidad-promedio').val('');
+        }
+    });
+
+    $('#add-muestra').click(function() {
+        muestraCount++;
+        var newRow = `
+            <div class="muestra-row form-group row align-items-center">
+                <div class="col-2">
+                    <label for="id_prospeccion_${muestraCount}" class="col-form-label">Prospección</label>
+                    <select id="id_prospeccion_${muestraCount}" name="id_prospeccion[]" class="form-control id-prospeccion" required>
+                        <option value="">Seleccione</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label for="area_${muestraCount}" class="col-form-label">Área</label>
+                    <input type="text" id="area_${muestraCount}" name="area[]" class="form-control area" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="id_muestra_${muestraCount}" class="col-form-label">ID Muestra</label>
+                    <select id="id_muestra_${muestraCount}" name="id_muestra[]" class="form-control id-muestra" required>
+                        <option value="">Seleccione</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_desde_${muestraCount}" class="col-form-label">Desde (m)</label>
+                    <input type="text" id="profundidad_desde_${muestraCount}" name="profundidad_desde[]" class="form-control profundidad-desde" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_hasta_${muestraCount}" class="col-form-label">Hasta (m)</label>
+                    <input type="text" id="profundidad_hasta_${muestraCount}" name="profundidad_hasta[]" class="form-control profundidad-hasta" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_promedio_${muestraCount}" class="col-form-label">Prof. Promedio (m)</label>
+                    <input type="text" id="profundidad_promedio_${muestraCount}" name="profundidad_promedio[]" class="form-control profundidad-promedio" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_ensayo_${muestraCount}" class="col-form-label">Prof. Ensayo (m)</label>
+                    <input type="text" id="profundidad_ensayo_${muestraCount}" name="profundidad_ensayo[]" class="form-control" required>
+                </div>
+                <div class="col-2">
+                    <label for="cota_${muestraCount}" class="col-form-label">Cota (m)</label>
+                    <input type="text" id="cota_${muestraCount}" name="cota[]" class="form-control">
+                </div>
+                <div class="col-2">
+                    <label for="profundidad_nivel_freatico_${muestraCount}" class="col-form-label">Nivel Freático (m)</label>
+                    <input type="text" id="profundidad_nivel_freatico_${muestraCount}" name="profundidad_nivel_freatico[]" class="form-control">
+                </div>
+                <div class="col-2">
+                    <label for="condicion_ambiental_${muestraCount}" class="col-form-label">Cond. Ambiental</label>
+                    <input type="text" id="condicion_ambiental_${muestraCount}" name="condicion_ambiental[]" class="form-control">
+                </div>
+                <div class="col-2">
+                    <label for="peso_materia_humedo_${muestraCount}" class="col-form-label">Peso Mat. Húmedo (g)</label>
+                    <input type="text" id="peso_materia_humedo_${muestraCount}" name="peso_materia_humedo[]" class="form-control peso-materia-humedo">
+                </div>
+                <div class="col-2">
+                    <label for="masa_arena_inicial_en_cono_superior_${muestraCount}" class="col-form-label">Masa Arena Inicial (g)</label>
+                    <input type="text" id="masa_arena_inicial_en_cono_superior_${muestraCount}" name="masa_arena_inicial_en_cono_superior[]" class="form-control masa-arena-inicial">
+                </div>
+                <div class="col-2">
+                    <label for="masa_arena_remanente_en_cono_superior_${muestraCount}" class="col-form-label">Masa Arena Remanente (g)</label>
+                    <input type="text" id="masa_arena_remanente_en_cono_superior_${muestraCount}" name="masa_arena_remanente_en_cono_superior[]" class="form-control masa-arena-remanente">
+                </div>
+                <div class="col-2">
+                    <label for="masa_arena_en_cono_inferior_${muestraCount}" class="col-form-label">Masa Arena Cono Inf. (g)</label>
+                    <input type="text" id="masa_arena_en_cono_inferior_${muestraCount}" name="masa_arena_en_cono_inferior[]" class="form-control masa-arena-cono-inferior">
+                </div>
+                <div class="col-2">
+                    <label for="masa_arena_excavacion_${muestraCount}" class="col-form-label">Masa Arena Excav. (g)</label>
+                    <input type="text" id="masa_arena_excavacion_${muestraCount}" name="masa_arena_excavacion[]" class="form-control masa-arena-excavacion" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="densidad_aparente_arena_${muestraCount}" class="col-form-label">Dens. Aparente Arena (g/cm³)</label>
+                    <input type="text" id="densidad_aparente_arena_${muestraCount}" name="densidad_aparente_arena[]" class="form-control densidad-aparente-arena">
+                </div>
+                <div class="col-2">
+                    <label for="volumen_perforacion_${muestraCount}" class="col-form-label">Vol. Perforación (cm³)</label>
+                    <input type="text" id="volumen_perforacion_${muestraCount}" name="volumen_perforacion[]" class="form-control volumen-perforacion" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="densidad_natural_del_suelo_${muestraCount}" class="col-form-label">Dens. Natural Suelo (g/cm³)</label>
+                    <input type="text" id="densidad_natural_del_suelo_${muestraCount}" name="densidad_natural_del_suelo[]" class="form-control densidad-natural-suelo" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="peso_suelo_humedo_${muestraCount}" class="col-form-label">Peso Suelo Húmedo (g)</label>
+                    <input type="text" id="peso_suelo_humedo_${muestraCount}" name="peso_suelo_humedo[]" class="form-control peso-suelo-humedo">
+                </div>
+                <div class="col-2">
+                    <label for="peso_suelo_seco_${muestraCount}" class="col-form-label">Peso Suelo Seco (g)</label>
+                    <input type="text" id="peso_suelo_seco_${muestraCount}" name="peso_suelo_seco[]" class="form-control peso-suelo-seco">
+                </div>
+                <div class="col-2">
+                    <label for="peso_agua_${muestraCount}" class="col-form-label">Peso Agua (g)</label>
+                    <input type="text" id="peso_agua_${muestraCount}" name="peso_agua[]" class="form-control peso-agua" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="humedad_${muestraCount}" class="col-form-label">Humedad (%)</label>
+                    <input type="text" id="humedad_${muestraCount}" name="humedad[]" class="form-control humedad" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="densidad_seca_del_suelo_${muestraCount}" class="col-form-label">Dens. Seca Suelo (g/cm³)</label>
+                    <input type="text" id="densidad_seca_del_suelo_${muestraCount}" name="densidad_seca_del_suelo[]" class="form-control densidad-seca-suelo" readonly>
+                </div>
+                <div class="col-2">
+                    <label for="observacion_${muestraCount}" class="col-form-label">Observación</label>
+                    <input type="text" id="observacion_${muestraCount}" name="observacion[]" class="form-control" required>
+                </div>
+            </div>`;
+        $('#muestras-container').append(newRow);
+
+        // Populate new prospeccion dropdown with existing prospecciones
+        var idProyecto = $('#id_proyecto').val();
+        var tipoProspeccion = $('#tipo_prospeccion').val();
+        if (idProyecto && tipoProspeccion) {
+            $.ajax({
+                url: '{% url "agregar_densidad_insitu" %}',
+                type: 'GET',
+                data: {'id_proyecto': idProyecto, 'tipo_prospeccion': tipoProspeccion},
+                success: function(data) {
+                    var newProspeccionSelect = $('#id_prospeccion_' + muestraCount);
+                    newProspeccionSelect.empty().append('<option value="">Seleccione</option>');
+                    $.each(data.prospecciones, function(index, value) {
+                        if (value) newProspeccionSelect.append('<option value="' + value + '">' + value + '</option>');
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error al obtener prospecciones: ", error);
+                }
+            });
+        }
+    });
+});
+</script>
+
+{% endblock %}

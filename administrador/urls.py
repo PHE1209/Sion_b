@@ -173,6 +173,18 @@ urlpatterns = [
     path('obtener_tipos_prospeccion_cbr', views.obtener_tipos_prospeccion_cbr, name='obtener_tipos_prospeccion_cbr'),
     path('obtener_id_prospecciones_cbr', views.obtener_id_prospecciones_cbr, name='obtener_id_prospecciones_cbr'),
 
+    #Densidad Insitu
+    path('agregar_densidad_insitu', views.agregar_densidad_insitu, name='agregar_densidad_insitu'),
+    path('listar_densidad_insitu', views.listar_densidad_insitu, name='listar_densidad_insitu'),
+    path('editar_densidad_insitu/<int:id>', views.editar_densidad_insitu, name='editar_densidad_insitu'),
+    path('ver_densidad_insitu/<int:id>', views.ver_densidad_insitu, name='ver_densidad_insitu'),
+    path('eliminar_densidad_insitu/<int:id>', views.eliminar_densidad_insitu, name='eliminar_densidad_insitu'),
+    path('export_to_excel_densidad_insitu/', views.export_to_excel_densidad_insitu, name='export_to_excel_densidad_insitu'),
+    path('export_to_pdf_densidad_insitu/', views.export_to_pdf_densidad_insitu, name='export_to_pdf_densidad_insitu'),
+    path('graficos_densidad_insitu', views.graficos_densidad_insitu, name='graficos_densidad_insitu'),
+    path('obtener_tipos_prospeccion_densidad_insitu', views.obtener_tipos_prospeccion_densidad_insitu, name='obtener_tipos_prospeccion_densidad_insitu'),
+    path('obtener_id_prospecciones_densidad_insitu', views.obtener_id_prospecciones_densidad_insitu, name='obtener_id_prospecciones_densidad_insitu'),
+    path('obtener_area_densidad_insitu', views.obtener_area_densidad_insitu, name='obtener_area_densidad_insitu'),
 
 
     #Tranversal

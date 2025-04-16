@@ -273,3 +273,31 @@ class CbrForm(forms.ModelForm):
             'profundidad_desde': forms.TextInput(attrs={'readonly': 'readonly'}),
             'profundidad_hasta': forms.TextInput(attrs={'readonly': 'readonly'}),
         }
+        
+        
+from django import forms
+from .models import densidad_insitu
+
+class DensidadInsituForm(forms.ModelForm):
+    class Meta:
+        model = densidad_insitu
+        fields = [
+            'id_proyecto', 'tipo_prospeccion', 'id_prospeccion', 'id_muestra', 'profundidad_desde',
+            'profundidad_hasta', 'profundidad_promedio', 'profundidad_ensayo', 'horizonte', 'cota',
+            'profundidad_nivel_freatico', 'condicion_ambiental', 'peso_materia_humedo',
+            'masa_arena_inicial_en_cono_superior', 'masa_arena_remanente_en_cono_superior',
+            'masa_arena_en_cono_inferior', 'masa_arena_excavacion', 'densidad_aparente_arena',
+            'volumen_perforacion', 'densidad_natural_del_suelo', 'peso_suelo_humedo',
+            'peso_suelo_seco', 'peso_agua', 'humedad', 'densidad_seca_del_suelo', 'area', 'observacion'
+        ]
+        widgets = {
+            'area': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'profundidad_desde': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'profundidad_hasta': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'masa_arena_excavacion': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'volumen_perforacion': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'densidad_natural_del_suelo': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'peso_agua': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'humedad': forms.TextInput(attrs={'readonly': 'readonly'}),
+            'densidad_seca_del_suelo': forms.TextInput(attrs={'readonly': 'readonly'}),
+        }
